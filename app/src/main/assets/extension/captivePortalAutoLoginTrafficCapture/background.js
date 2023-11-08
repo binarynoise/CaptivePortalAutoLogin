@@ -22,7 +22,7 @@ console.log("starting captivePortalAutoLoginTrafficCapture...")
  */
 const filter = {
     urls: ["<all_urls>"], // "image", "sub_frame", "stylesheet", "script", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "beacon", "xml_dtd", "font", "media", "websocket", "csp_report", "imageset", "web_manifest", "speculative", "other",
-    types: ["sub_frame", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "speculative", "other",]
+    // types: ["sub_frame", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "speculative", "other",]
 };
 
 let decoder = new TextDecoder();

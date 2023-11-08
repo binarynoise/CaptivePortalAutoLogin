@@ -1,5 +1,5 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "captivePortalAutoLoginTrafficCapture",
     "version": "1.0",
     "browser_specific_settings": {
@@ -31,5 +31,6 @@
     ],
     "host_permissions": [
         "<all_urls>"
+//        "*://*.binarynoise.de/*"
     ]
 }
