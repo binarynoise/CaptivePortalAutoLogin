@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "captivePortalAutoLoginTrafficCapture",
+    "version": "1.0",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "captivePortalAutoLoginTrafficCapture@binarynoise.de"
+        }
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "type": "module"
+    },
+    "permissions": [
+        "<all_urls>",
+//        "activeTab",
+        "cookies",
+        "declarativeNetRequest",
+        "declarativeNetRequestFeedback",
+        "declarativeNetRequestWithHostAccess",
+        "geckoViewAddons",
+        "nativeMessaging",
+        "nativeMessagingFromContent",
+//        "scripting",
+//        "tabs",
+        "webRequest",
+        "webRequestBlocking",
+        "webRequestFilterResponse"
+    ],
+    "host_permissions": [
+//        "<all_urls>"
+    ]
+}
