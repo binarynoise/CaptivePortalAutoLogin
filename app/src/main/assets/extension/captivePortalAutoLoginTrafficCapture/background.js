@@ -27,8 +27,6 @@ const filter = {
 
 let decoder = new TextDecoder();
 
-postMessage("debug", { "filter": filter })
-
 browser.webRequest.onBeforeRequest.addListener(details => {
     postMessage("onBeforeRequest", details)
     
@@ -63,6 +61,6 @@ browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBef
 browser.webRequest.onHeadersReceived.addListener(details => postMessage("onHeadersReceived", details), filter)
 browser.webRequest.onResponseStarted.addListener(details => postMessage("onResponseStarted", details), filter, ["responseHeaders"])
 browser.webRequest.onCompleted.addListener(details => postMessage("onCompleted", details), filter)
-browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
+// browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
 
 console.log("started captivePortalAutoLoginTrafficCapture")
