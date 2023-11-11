@@ -1,17 +1,27 @@
 const port = browser.runtime.connectNative("browser")
 const realLog = console.log
 
+const routeToApp = true
+
 function postMessage(event, details = undefined) {
-    try {
-        port.postMessage({ event: event, details: details })
-    } catch (e) {
-        realLog(e)
+    if (routeToApp) {
+        try {
+            port.postMessage({ event: event, details: details })
+        } catch (e) {
+            realLog(e)
+            realLog(event, details)
+        }
+    } else {
         realLog(event, details)
     }
 }
 
 console.log = function (...data) {
-    postMessage("log", data)
+    if (routeToApp) {
+        postMessage("log", data);
+    } else {
+        realLog(...data);
+    }
 }
 
 console.log("starting captivePortalAutoLoginTrafficCapture...")
@@ -61,6 +71,12 @@ browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBef
 browser.webRequest.onHeadersReceived.addListener(details => postMessage("onHeadersReceived", details), filter)
 browser.webRequest.onResponseStarted.addListener(details => postMessage("onResponseStarted", details), filter, ["responseHeaders"])
 browser.webRequest.onCompleted.addListener(details => postMessage("onCompleted", details), filter)
+
+browser.webRequest.onAuthRequired.addListener(details => postMessage("onAuthRequired", details), filter)
+browser.webRequest.onBeforeRedirect.addListener(details => postMessage("onBeforeRedirect", details), filter)
+
+browser.webRequest.onErrorOccurred.addListener(details => postMessage("onErrorOccurred", details), filter)
+
 // browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
 
 console.log("started captivePortalAutoLoginTrafficCapture")
