@@ -1,6 +1,7 @@
 import java.io.FileInputStream
 import java.util.*
 import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -99,6 +100,10 @@ if (isAndroid) {
             includeInBundle = false
         }
         
+        buildFeatures {
+            buildConfig = true
+        }
+        
         lint {
             disable += "DiscouragedApi"
             disable += "ExpiredTargedSdkVersion"
@@ -160,6 +165,16 @@ if (isAndroid) {
                 println("Created release ${release.name}: ${release.htmlUrl}")
             }
         }
+    }
+    
+    android.packagingOptions {
+        resources.excludes += listOf(
+            "**/*.kotlin_builtins",
+            "**/*.kotlin_metadata",
+            "**/*.kotlin_module",
+            "/META-INF/com/android/build/gradle/app-metadata.properties",
+            "kotlin-tooling-metadata.json"
+        )
     }
 }
 
