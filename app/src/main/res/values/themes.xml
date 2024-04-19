@@ -1,0 +1,33 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="CaptivePortalAutoLogin" parent="android:Theme.DeviceDefault.Settings">
+        <item name="android:statusBarColor">?android:attr/colorBackground</item>
+        <item name="android:navigationBarColor">?android:attr/colorBackground</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Button" parent="android:style/Widget.DeviceDefault.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Button.Outline" parent="android:style/Widget.DeviceDefault.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Button.Text" parent="android:style/Widget.DeviceDefault.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Button.Accent" parent="android:style/Widget.DeviceDefault.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Text" parent="android:style/TextAppearance.DeviceDefault">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="CaptivePortalAutoLogin.Text.Heading" parent="android:style/TextAppearance.DeviceDefault">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+</resources>

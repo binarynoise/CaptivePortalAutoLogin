@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingEnd="8dp"
+    tools:ignore="RtlSymmetry"
+    tools:showIn="@layout/activity_permissions"
+    >
+    
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+        
+        <CheckBox
+            android:id="@+id/grantedCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:clickable="false"
+            tools:text="​"
+            />
+        
+        <TextView
+            android:id="@+id/nameText"
+            style="@android:style/TextAppearance.DeviceDefault.Medium"
+            android:text="TextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            tools:text="Permission Name"
+            />
+        
+        <Button
+            android:id="@+id/requestButton"
+            style="@style/CaptivePortalAutoLogin.Button.Accent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grant"
+            />
+    </TableRow>
+    
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+        
+        <View />
+        
+        <TextView
+            android:id="@+id/descriptionText"
+            style="@style/CaptivePortalAutoLogin.Text"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:justificationMode="inter_word"
+            tools:text="Just a lengthy description of why this permission is needed and how to enable it and which consequences it can have to not enabling it."
+            />
+    </TableRow>
+</TableLayout>

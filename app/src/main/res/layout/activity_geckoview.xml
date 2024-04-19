@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:animateLayoutChanges="true"
+    >
+    
+    <TextView
+        android:id="@+id/notUsingCaptivePortalWifiWarning"
+        style="@style/CaptivePortalAutoLogin.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:padding="8dp"
+        android:text="@string/not_using_captive_portal_wifi_warning"
+        tools:visibility="visible"
+        />
+    
+    <org.mozilla.geckoview.GeckoView
+        android:id="@+id/geckoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:alpha="0"
+        tools:alpha="1"
+        tools:visibility="visible"
+        />
+</LinearLayout>

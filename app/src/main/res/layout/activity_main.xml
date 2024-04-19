@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:showDividers="middle"
+    android:divider="@drawable/divider8dp"
+    tools:context=".MainActivity"
+    >
+    
+    <TextView
+        android:id="@+id/serviceRunningText"
+        style="@style/CaptivePortalAutoLogin.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Service is currently running"
+        />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+    <Button
+        android:id="@+id/startServiceButton"
+        style="@style/CaptivePortalAutoLogin.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/start_service"
+        android:layout_weight="1"
+        />
+    <Button
+        android:id="@+id/stopServiceButton"
+        style="@style/CaptivePortalAutoLogin.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_service"
+        android:layout_weight="1"
+        />
+    </LinearLayout>
+    
+    <Button
+        android:id="@+id/managePermissionsButton"
+        style="@style/CaptivePortalAutoLogin.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/manage_permissions"
+        />
+    
+    <Button
+        android:id="@+id/captureLoginButton"
+        style="@style/CaptivePortalAutoLogin.Button.Accent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/capture_captive_portal_login"
+        />
+    
+    <Button
+        android:id="@+id/exportLogsButton"
+        style="@style/CaptivePortalAutoLogin.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/export_logs"
+        />
+
+
+</LinearLayout>

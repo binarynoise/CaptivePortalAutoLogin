@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <item android:id="@+id/action_reload" android:title="Restart" android:icon="@android:drawable/ic_menu_revert" android:showAsAction="always" />
+    <item android:id="@+id/action_save" android:title="Save HAR" android:icon="@android:drawable/ic_menu_save" android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_export" android:title="Export HAR" android:icon="@android:drawable/ic_menu_share" android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_send" android:title="Send HAR to developer"  android:icon="@android:drawable/ic_menu_send" android:showAsAction="ifRoom"/>
+</menu>

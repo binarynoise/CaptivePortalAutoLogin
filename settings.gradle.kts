@@ -13,8 +13,13 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://jitpack.io")
-        maven("https://api.xposed.info/")
+//        maven("https://api.xposed.info/")
+        maven("https://maven.mozilla.org/maven2/")
     }
 }
 
 rootProject.name = "CaptivePortalAutoLogin"
+
+include(":app")
+include(":liberator")
+include(":logger")
