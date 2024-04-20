@@ -79,8 +79,8 @@ class GeckoViewActivity : ComponentActivity() {
     
     private var extension: WebExtension? = null
     
-    private fun networkListener(network: Network?, available: Boolean) = withThisAs(binding) {
-        mainHandler.post {
+    private fun networkListener(@Suppress("UNUSED_PARAMETER") network: Network?, available: Boolean) = mainHandler.post {
+        withThisAs(binding) {
             if (available) {
                 notUsingCaptivePortalWifiWarning.isVisible = false
                 
@@ -137,7 +137,6 @@ class GeckoViewActivity : ComponentActivity() {
                     
                     ConnectivityChangeListenerService.networkListeners.add(::networkListener)
                     networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
-                    
                 }
             }, {
                 log("Error installing extension", it)
@@ -176,7 +175,10 @@ class GeckoViewActivity : ComponentActivity() {
                         this, ConnectivityManager::class.java
                     )!!.activeNetwork
                     networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
-                    if (session.isOpen) session.loadUri("https://am-i-captured.binarynoise.de/portal/")
+                    
+                    mainHandler.postDelayed(1000) {
+                        /*if (session.isOpen)*/ session.loadUri("https://am-i-captured.binarynoise.de/portal/")
+                    }
                     true
                 }
             }

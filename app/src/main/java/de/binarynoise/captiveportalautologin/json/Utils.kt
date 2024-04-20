@@ -1,4 +1,4 @@
-@file:Suppress("unused", "MemberVisibilityCanBePrivate")
+@file:Suppress("unused", "MemberVisibilityCanBePrivate", "RedundantSuppression")
 
 package de.binarynoise.captiveportalautologin.json
 

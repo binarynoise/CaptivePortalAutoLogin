@@ -21,7 +21,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
-import android.os.Looper
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -33,7 +32,6 @@ import de.binarynoise.logger.Logger.log
 
 class ConnectivityChangeListenerService : Service() {
     
-    val mainHandler = Handler(Looper.getMainLooper())
     val backgroundHandler = Handler(HandlerThread("Liberator").apply { start() }.looper)
     
     private var notification: Notification? = null
@@ -59,6 +57,8 @@ class ConnectivityChangeListenerService : Service() {
                 backgroundHandler.post {
                     tryLiberate(network)
                 }
+            } else {
+                Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
             }
             return START_STICKY
         }
@@ -81,7 +81,7 @@ class ConnectivityChangeListenerService : Service() {
             it.addAction(
                 NotificationCompat.Action.Builder(
                     null,
-                    "Try again",
+                    "Try again", // TODO
                     PendingIntent.getService(
                         this,
                         0,

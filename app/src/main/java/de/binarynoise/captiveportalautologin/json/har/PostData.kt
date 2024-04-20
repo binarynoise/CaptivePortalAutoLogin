@@ -2,7 +2,6 @@ package de.binarynoise.captiveportalautologin.json.har
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.binarynoise.logger.Logger.log
 
 /**
  * Posted data info

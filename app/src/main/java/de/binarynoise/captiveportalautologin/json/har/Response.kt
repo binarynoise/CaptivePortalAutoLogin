@@ -51,6 +51,8 @@ class Response(
      */
     @SerialName("bodySize") var bodySize: Int,
 ) {
+    
+    /*
     constructor(onBeforeRedirectDetails: OnBeforeRedirectDetails) : this(
         onBeforeRedirectDetails.statusCode,
         onBeforeRedirectDetails.statusLine,
@@ -64,6 +66,7 @@ class Response(
     ) {
         handleResponseHeaders(onBeforeRedirectDetails.responseHeaders)
     }
+    */
     
     constructor(onAuthRequiredDetails: OnAuthRequiredDetails) : this(
         onAuthRequiredDetails.statusCode,
@@ -128,6 +131,7 @@ class Response(
     private fun fillInHeaders(responseHeaders: Array<HttpHeader>) {
         headers += responseHeaders.map(::Header)
         responseHeaders.dump("responseHeaders")
+        redirectURL = responseHeaders.find { it.name.lowercase() == "location" }?.value ?: ""
     }
     
     fun setContent(contentString: String) {

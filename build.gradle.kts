@@ -64,7 +64,6 @@ allprojects {
 //        if (isKotlinLib) println("kotlin lib")
 //        if (isKotlinAndroid) println("kotlin android")
         
-        
         val commitCount = getCommitCount()
         val commitHash = getCommitHash()
         val workingTreeClean = getWorkingTreeClean()

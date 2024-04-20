@@ -29,10 +29,3 @@ data class Cookie(
         secure = cookie.secure
     )
 }
-
-private fun String.unquote(): String {
-    if (this.firstOrNull() == '"' && this.lastOrNull() == '"') {
-        return this.substring(1, this.length - 1)
-    }
-    return this
-}

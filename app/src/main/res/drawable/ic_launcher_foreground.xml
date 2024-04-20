@@ -6,8 +6,7 @@
     android:autoMirrored="true"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    tools:ignore="VectorRaster"
-    tools:targetApi="19">
+    tools:ignore="VectorRaster">
     <group
         android:scaleX="0.5"
         android:scaleY="0.5"

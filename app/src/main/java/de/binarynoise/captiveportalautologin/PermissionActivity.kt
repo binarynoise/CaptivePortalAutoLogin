@@ -26,8 +26,8 @@ class PermissionActivity : ComponentActivity() {
         
         binding.permissionList.adapter = object : ArrayAdapter<Permission>(this, R.layout.item_permission, permissions) {
             override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
-                val view: View;
-                val binding: ItemPermissionBinding;
+                val view: View
+                val binding: ItemPermissionBinding
                 
                 if (convertView == null) {
                     binding = ItemPermissionBinding.inflate(layoutInflater, parent, false)

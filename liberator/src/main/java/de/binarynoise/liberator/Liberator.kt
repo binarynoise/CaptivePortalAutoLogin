@@ -1,12 +1,10 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package de.binarynoise.liberator
 
-import java.net.HttpCookie
 import java.net.SocketTimeoutException
 import java.net.URLDecoder
 import java.nio.charset.Charset
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import de.binarynoise.logger.Logger.log
 import okhttp3.Cookie
 import okhttp3.FormBody
@@ -21,10 +19,11 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
+const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
 
 class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
     
+    private val cookies: MutableSet<Cookie> = mutableSetOf()
     
     private var client = OkHttpClient.Builder().apply {
         cache(null)
@@ -34,36 +33,35 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
         
         addInterceptor(::interceptRequest)
         
-        cookieJar(object : okhttp3.CookieJar {
-            private var cookies: List<Cookie> = mutableListOf()
-            override fun loadForRequest(url: HttpUrl): List<Cookie> {
-                return cookies.filter { it.matches(url) }
-            }
-            
-            override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                this.cookies = cookies
-            }
-        })
-        
         clientInit()
     }.build()
     
     private fun interceptRequest(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
-        val newRequest = originalRequest.newBuilder().header(
-            "User-Agent",
-            "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-        ).header(
-            "Connection",
-            "Keep-Alive",
-        ).build()
+        val newRequest = originalRequest.newBuilder().apply {
+            header(
+                "User-Agent",
+                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            )
+            header(
+                "Connection",
+                "Keep-Alive",
+            )
+            
+            log("Loading cookies for ${originalRequest.url}: ${cookies.joinToString { "${it.name}=${it.value}" }}")
+            val cookies = cookies.filter { it.matches(originalRequest.url) }
+            if (cookies.isNotEmpty()) {
+                val cookieHeader = cookies.joinToString(separator = "; ") { "${it.name}=${it.value}" }
+                header("Cookie", cookieHeader)
+            }
+        }.build()
         
-        log("> ${newRequest.method} ${originalRequest.url}")
+        log("> ${newRequest.method} ${newRequest.url}")
         newRequest.headers.forEach { (name, value) ->
             log("> $name: $value")
         }
-        if (originalRequest.method == "POST") {
-            when (val body = originalRequest.body) {
+        if (newRequest.method == "POST") {
+            when (val body = newRequest.body) {
                 is FormBody -> for (i in 0..<body.size) {
                     val name = body.name(i)
                     val value = body.value(i)
@@ -82,6 +80,13 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             log("< $name: $value")
         }
         var text = response.readText()
+        
+        val newCookies = Cookie.parseAll(newRequest.url, response.headers)
+        if (newCookies.isNotEmpty()) {
+            log("Saving cookies for ${newRequest.url}: ${newCookies.joinToString { "${it.name}=${it.value}" }}")
+            cookies += newCookies
+            log("All cookies now: ${cookies.joinToString { "${it.name}=${it.value}" }}")
+        }
         
         // prettify text if html, xml or json
         val contentType = response.header("Content-Type")
@@ -124,14 +129,9 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
         when {
             // Germany, Dortmund, bus
             "hotspot.dokom21.de" == locationUrl.host && "/([^/]+)/Index".toRegex().matches(locationUrl.encodedPath) -> {
-//                val cookies = response.getCookies()
                 val networkType = "/([^/]+)/Index".toRegex().matchEntire(locationUrl.path)!!.groupValues[1]
                 
-                val response1 = client.get(locationUrl.toString(), null) {
-//                    cookies.forEach {
-//                        addHeader("Cookie", it.value)
-//                    }
-                }
+                val response1 = client.get(locationUrl.toString(), null)
                 val html1 = response1.parseHtml()
                 
                 val __EVENTTARGET = html1.selectFirst("input[name=__EVENTTARGET]")!!.attr("value")
@@ -155,11 +155,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                         "ctl00\$LanguageSelect" to "DE",
                         "ctl00\$GenericContent\$SubmitLogin" to "Einloggen"
                     )
-                ) {
-//                    cookies.forEach {
-//                        addHeader("Cookie", it.value)
-//                    }
-                }
+                )
                 val url2 = response2.getLocation()!!
                 val response3 = client.post(url2, response2.requestUrl)
                 val url3 = response3.getLocation()!! // https://controller.dokom21.de/portal_api.php?action=authenticate&...
@@ -400,6 +396,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                     client.get(portalTestUrl, null).readText()
                     client.get(portalTestUrl, null).parseHtml()
                     client.post("https://am-i-captured.binarynoise.de/portal/index.html", null, mapOf("random" to "1")).checkSuccess()
+                    client.get("https://am-i-captured.binarynoise.de/portal/index.html", null, mapOf("random" to "1")).checkSuccess()
                 }
             }
             

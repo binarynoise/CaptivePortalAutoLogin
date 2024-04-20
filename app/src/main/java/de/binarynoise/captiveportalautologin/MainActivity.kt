@@ -1,6 +1,5 @@
 package de.binarynoise.captiveportalautologin
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,28 +9,29 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityMainBinding
 import de.binarynoise.logger.Logger.log
 
-@SuppressLint("RestrictedApi")
 class MainActivity : ComponentActivity() {
     private val binding: ActivityMainBinding by viewBinding(CreateMethod.INFLATE)
     
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
-        setContentView(binding.root)
-        
-        with(binding.serviceRunningText) {
-            ConnectivityChangeListenerService.serviceListeners.add { running ->
-                log("received service running: $running")
-                runOnUiThread {
-                    if (running) {
-                        text = "Service is currently running"
-                    } else {
-                        text = "Service is currently not running"
-                    }
+    // Don't inline
+    private val connectivityListener: (running: Boolean) -> Unit = { running ->
+        log("received service running: $running")
+        runOnUiThread {
+            with(binding.serviceRunningText) {
+                if (running) {
+                    text = "Service is currently running"
+                } else {
+                    text = "Service is currently not running"
                 }
             }
-            log("added service listener")
         }
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+        
+        ConnectivityChangeListenerService.serviceListeners.add(connectivityListener)
+        log("added service listener")
         
         binding.startServiceButton.setOnClickListener {
             if (ConnectivityChangeListenerService.running.get()) {

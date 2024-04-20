@@ -7,14 +7,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityLogExportBinding
 import de.binarynoise.captiveportalautologin.databinding.ItemLogExportBinding
-import de.binarynoise.captiveportalautologin.databinding.ItemPermissionBinding
 import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
 import de.binarynoise.captiveportalautologin.util.FileUtils.share
 import de.binarynoise.logger.Logger
@@ -48,8 +45,8 @@ class LogExportActivity : ComponentActivity() {
     class LogExportAdapter(val activity: Activity, val logFiles: List<File>) : ArrayAdapter<File>(activity, R.layout.item_log_export, logFiles) {
         
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            val view: View;
-            val binding: ItemLogExportBinding;
+            val view: View
+            val binding: ItemLogExportBinding
             
             if (convertView == null) {
                 binding = ItemLogExportBinding.inflate(activity.layoutInflater, parent, false)

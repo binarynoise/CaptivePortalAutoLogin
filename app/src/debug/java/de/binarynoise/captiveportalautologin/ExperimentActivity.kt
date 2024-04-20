@@ -1,14 +1,12 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "RedundantSuppression")
 
 package de.binarynoise.captiveportalautologin
 
 import android.app.Activity
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 
 class ExperimentActivity : Activity() {
     
@@ -24,6 +22,5 @@ class ExperimentActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_experiment)
-        
     }
 }

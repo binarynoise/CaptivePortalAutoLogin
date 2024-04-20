@@ -9,6 +9,7 @@
     android:padding="24dp"
     android:showDividers="middle"
     tools:context=".ExperimentActivity"
+    tools:ignore="HardcodedText"
     >
     
     <LinearLayout

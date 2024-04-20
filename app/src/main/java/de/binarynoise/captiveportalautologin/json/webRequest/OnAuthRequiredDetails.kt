@@ -30,7 +30,6 @@ responses (i.e., responses that lack a status line) or an empty string if there 
 headers.
  * @param statusCode Standard HTTP status code returned by the server.
  */
-
 class OnAuthRequiredDetails(
     val requestId: String,
     val url: String,
