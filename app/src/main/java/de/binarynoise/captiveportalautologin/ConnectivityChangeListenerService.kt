@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin
 
 import java.util.*
 import java.util.concurrent.atomic.*
+import kotlin.reflect.KProperty
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -27,6 +28,7 @@ import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.logger.Logger.log
 
@@ -63,7 +65,7 @@ class ConnectivityChangeListenerService : Service() {
             return START_STICKY
         }
         
-        if (running.getAndSet(true)) return START_STICKY
+        if (runningA.getAndSet(true)) return START_STICKY
         
         createNotificationChannel(channelId)
         notification = createNotification(channelId) {
@@ -129,7 +131,7 @@ class ConnectivityChangeListenerService : Service() {
         super.onDestroy()
         log("onDestroy")
         
-        if (!running.getAndSet(false)) return
+        if (!runningA.getAndSet(false)) return
         
         serviceListeners.forEach { it(false) }
         
@@ -192,7 +194,8 @@ class ConnectivityChangeListenerService : Service() {
         
         val networkListeners: MutableSet<(network: Network?, available: Boolean) -> Unit> = WeakSynchronizedSet()
         
-        var running: AtomicBoolean = AtomicBoolean(false)
+        private var runningA: AtomicBoolean = AtomicBoolean(false)
+        var running by runningA
         val serviceListeners: MutableSet<(running: Boolean) -> Unit> = WeakSynchronizedSet()
         
         private fun <T> WeakSynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
@@ -205,5 +208,17 @@ class ConnectivityChangeListenerService : Service() {
                 log("running: $running")
             }
         }
+        
+        fun start() {
+            ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+        }
+        
+        fun stop() {
+            applicationContext.stopService(Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+        }
     }
 }
+
+private operator fun AtomicBoolean.setValue(parent: Any, property: KProperty<*>, value: Boolean) = set(value)
+
+private operator fun AtomicBoolean.getValue(parent: Any, property: KProperty<*>): Boolean = get()

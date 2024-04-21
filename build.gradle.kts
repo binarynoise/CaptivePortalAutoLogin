@@ -15,7 +15,7 @@ val javaVersion = JavaVersion.VERSION_17
 buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:8.3.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
         classpath("org.kohsuke:github-api:1.316")
     }
     
@@ -180,14 +180,14 @@ allprojects {
                 val repo = properties["github_repo"]
                 val token = properties["github_api_key"]
                 
-                check(repo != null && repo is String) { "github_repo not provided in local.properties" }
-                check(token != null && token is String) { "github_api_key not provided in local.properties" }
-                
                 if (workingTreeClean && allCommitsPushed) {
                     dependsOn("assembleRelease")
                 }
                 
                 doFirst {
+                    check(repo != null && repo is String) { "github_repo not provided in local.properties" }
+                    check(token != null && token is String) { "github_api_key not provided in local.properties" }
+                    
                     check(workingTreeClean) { "Commit all changes before creating release" }
                     check(allCommitsPushed) { "Push to remote before creating release" }
                     
@@ -245,12 +245,14 @@ allprojects {
         if (isAndroid || isAndroidLib) {
             dependencies {
 //                add("compileOnly", "de.robv.android.xposed:api:82")
+                add("implementation", "androidx.annotation:annotation:1.7.1")
             }
         }
         
         if (isKotlinLib || isKotlinAndroid) {
             dependencies {
                 add("implementation", "org.jetbrains:annotations:24.1.0")
+                add("implementation", "org.jetbrains.kotlin:kotlin-bom")
             }
         }
     }

@@ -1,12 +1,11 @@
 package de.binarynoise.captiveportalautologin
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.core.content.ContextCompat
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityMainBinding
+import de.binarynoise.captiveportalautologin.util.startActivity
 import de.binarynoise.logger.Logger.log
 
 class MainActivity : ComponentActivity() {
@@ -34,29 +33,33 @@ class MainActivity : ComponentActivity() {
         log("added service listener")
         
         binding.startServiceButton.setOnClickListener {
-            if (ConnectivityChangeListenerService.running.get()) {
-                stopService(Intent(this, ConnectivityChangeListenerService::class.java))
+            if (ConnectivityChangeListenerService.running) {
+                ConnectivityChangeListenerService.stop()
             }
-            ContextCompat.startForegroundService(this, Intent(this, ConnectivityChangeListenerService::class.java))
+            ConnectivityChangeListenerService.start()
         }
         binding.stopServiceButton.setOnClickListener {
-            stopService(Intent(this, ConnectivityChangeListenerService::class.java))
+            ConnectivityChangeListenerService.stop()
         }
         binding.managePermissionsButton.setOnClickListener {
-            startActivity(Intent(this, PermissionActivity::class.java))
+            startActivity<PermissionActivity>()
         }
         binding.captureLoginButton.setOnClickListener {
-            startActivity(Intent(this, GeckoViewActivity::class.java))
+            startActivity<GeckoViewActivity>()
         }
         binding.exportLogsButton.setOnClickListener {
-            startActivity(Intent(this, LogExportActivity::class.java))
+            startActivity<LogExportActivity>()
+        }
+        
+        if (intent.getBooleanExtra("startService", true)) {
+            ConnectivityChangeListenerService.start()
         }
     }
     
     override fun onResume() {
         super.onResume()
         with(binding.serviceRunningText) {
-            if (ConnectivityChangeListenerService.running.get()) {
+            if (ConnectivityChangeListenerService.running) {
                 text = "Service is currently running"
             } else {
                 text = "Service is currently not running"
