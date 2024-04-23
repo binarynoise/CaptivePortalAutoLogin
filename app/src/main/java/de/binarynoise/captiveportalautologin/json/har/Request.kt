@@ -69,6 +69,30 @@ class Request(
         log("> $method $url")
     }
     
+    fun handleRequestHeaders(requestHeaders: Array<HttpHeader>?) {
+        if (requestHeaders == null) {
+            return
+        }
+        
+        fillInHeaders(requestHeaders)
+        fillInCookies(requestHeaders)
+    }
+    
+    private fun fillInHeaders(requestHeaders: Array<HttpHeader>) {
+        val modified = headers.addAll(requestHeaders.map { Header(it) })
+        if (modified) requestHeaders.forEach { log("> ${it.name}: ${it.value}") }
+    }
+    
+    private fun fillInCookies(requestHeaders: Array<HttpHeader>) {
+        val newCookies = requestHeaders.asSequence()
+            .filter { it.name.startsWith("SetCookie", ignoreCase = true) }
+            .flatMap { HttpCookie.parse(it.value) }
+            .map(::Cookie)
+            .toList()
+        val modified = cookies.addAll(newCookies)
+        if (modified) log("Filled in cookies: ${newCookies.size} new, ${cookies.size} total")
+    }
+    
     fun fillInPostData(body: RequestBody?) {
         if (body == null) return
         with(body) {
@@ -111,27 +135,5 @@ class Request(
                 }
             }
         }
-    }
-    
-    private fun fillInHeaders(requestHeaders: Array<HttpHeader>) {
-        headers += requestHeaders.map { Header(it) }
-        log("Filled in headers (${headers.size} headers)")
-    }
-    
-    private fun fillInCookies(requestHeaders: Array<HttpHeader>) {
-        cookies += requestHeaders.asSequence()
-            .filter { it.name.startsWith("SetCookie", ignoreCase = true) }
-            .flatMap { HttpCookie.parse(it.value) }
-            .map(::Cookie)
-        log("Filled in cookies (${cookies.size} cookies)")
-    }
-    
-    fun handleRequestHeaders(requestHeaders: Array<HttpHeader>?) {
-        if (requestHeaders == null) {
-            return
-        }
-        
-        fillInHeaders(requestHeaders)
-        fillInCookies(requestHeaders)
     }
 }

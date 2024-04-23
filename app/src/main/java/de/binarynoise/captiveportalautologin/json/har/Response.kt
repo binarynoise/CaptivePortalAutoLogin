@@ -6,11 +6,9 @@ import kotlinx.serialization.Serializable
 import android.util.Base64
 import de.binarynoise.captiveportalautologin.json.webRequest.HttpHeader
 import de.binarynoise.captiveportalautologin.json.webRequest.OnAuthRequiredDetails
-import de.binarynoise.captiveportalautologin.json.webRequest.OnBeforeRedirectDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnErrorOccurredDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDetails
-import de.binarynoise.logger.Logger
-import de.binarynoise.logger.Logger.dump
+import de.binarynoise.logger.Logger.log
 
 @Serializable
 class Response(
@@ -109,7 +107,7 @@ class Response(
     )
     
     init {
-        Logger.log("< $status $statusText")
+        log("< $status $statusText")
     }
     
     fun handleResponseHeaders(responseHeaders: Array<HttpHeader>?) {
@@ -122,16 +120,19 @@ class Response(
     }
     
     private fun fillInCookies(responseHeaders: Array<HttpHeader>) {
-        cookies += responseHeaders.asSequence()
+        val newCookies = responseHeaders.asSequence()
             .filter { it.name.startsWith("SetCookie", ignoreCase = true) }
             .flatMap { HttpCookie.parse(it.value) }
             .map(::Cookie)
+            .toList()
+        val modified = cookies.addAll(newCookies)
+        if (modified) log("Got cookies: ${newCookies.size} new, ${newCookies.size} total")
     }
     
     private fun fillInHeaders(responseHeaders: Array<HttpHeader>) {
-        headers += responseHeaders.map(::Header)
-        responseHeaders.dump("responseHeaders")
+        val modified = headers.addAll(responseHeaders.map(::Header))
         redirectURL = responseHeaders.find { it.name.lowercase() == "location" }?.value ?: ""
+        if (modified) responseHeaders.forEach { log("< ${it.name}: ${it.value}") }
     }
     
     fun setContent(contentString: String) {

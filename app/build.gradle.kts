@@ -108,7 +108,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 //    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.0.4")
     
-    // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/120.0.20231116134553/geckoview-120.0.20231116134553-sources.jar
+    // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
     implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423")
     
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

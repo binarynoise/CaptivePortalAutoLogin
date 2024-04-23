@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package de.binarynoise.captiveportalautologin
 
 import java.time.ZoneId
@@ -50,6 +52,7 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnResponseStartedDe
 import de.binarynoise.captiveportalautologin.json.webRequest.OnSendHeadersDetails
 import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.liberator.portalTestUrl
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -79,13 +82,14 @@ class GeckoViewActivity : ComponentActivity() {
     
     private var extension: WebExtension? = null
     
+    // TODO ask ConnectivityManager if current network has portal so service may be not always running
     private fun networkListener(@Suppress("UNUSED_PARAMETER") network: Network?, available: Boolean) = mainHandler.post {
         withThisAs(binding) {
             if (available) {
                 notUsingCaptivePortalWifiWarning.isVisible = false
                 
                 if (session.isOpen) {
-                    session.loadUri("http://am-i-captured.binarynoise.de/")
+                    session.loadUri(portalTestUrl)
                 }
                 
                 mainHandler.postDelayed(200) {
@@ -119,7 +123,7 @@ class GeckoViewActivity : ComponentActivity() {
         
         session.open(runtime)
         binding.geckoView.setSession(session)
-        
+        session.loadUri("about:blank")
         
         try {
             val alwaysReload = true
@@ -176,7 +180,7 @@ class GeckoViewActivity : ComponentActivity() {
                     )!!.activeNetwork
                     networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
                     
-                    mainHandler.postDelayed(1000) {
+                    mainHandler.post {
                         /*if (session.isOpen)*/ session.loadUri("https://am-i-captured.binarynoise.de/portal/")
                     }
                     true
@@ -247,7 +251,7 @@ class GeckoViewActivity : ComponentActivity() {
         }
         
         override fun onConnect(port: WebExtension.Port) {
-            log("onConnect")
+            log("onConnect ${port.hashCode().toHexString(HexFormat.UpperCase)}")
             this.port = port
             port.setDelegate(portDelegate)
             port.postMessage(JSONObject())
@@ -256,7 +260,7 @@ class GeckoViewActivity : ComponentActivity() {
     
     private val portDelegate = object : WebExtension.PortDelegate {
         override fun onDisconnect(port: WebExtension.Port) {
-            log("onDisconnect")
+            log("onDisconnect ${port.hashCode().toHexString(HexFormat.UpperCase)}")
         }
         
         override fun onPortMessage(message: Any, port: WebExtension.Port) {
