@@ -3,11 +3,7 @@
 package de.binarynoise.liberator
 
 import java.net.SocketTimeoutException
-import java.net.URLDecoder
-import java.nio.charset.Charset
 import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import de.binarynoise.logger.Logger.log
 import okhttp3.Cookie
 import okhttp3.FormBody
@@ -15,11 +11,10 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
+import kotlin.IllegalStateException as ISE
 
 const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
 
@@ -38,6 +33,11 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
         clientInit()
     }.build()
     
+    /**
+     * Intercepts the request, adds User-Agent, Connection and Cookie headers,
+     * logs request details, POST request body, proceeds with the request, logs response details,
+     * saves cookies and logs the response body
+     */
     private fun interceptRequest(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val newRequest = originalRequest.newBuilder().apply {
@@ -108,6 +108,12 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
         return response
     }
     
+    /**
+     * Attempts to liberate the user by making a series of HTTP requests to the portal.
+     *
+     * @return null if the user is not caught in the portal, the url of the portal otherwise
+     *         Returns "Timeout" if a socket timeout exception occurs during the requests.
+     */
     fun liberate(): String? {
         try {
             val response = client.get(portalTestUrl, null)
@@ -137,6 +143,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             // Germany, Dortmund, bus, Westfalenhallen
             // verified
             // DSW21-WLAN, "Hotspot Westfalenhallen"
+            //<editor-fold defaultstate="collapsed">
             //
             // https://controller.dokom21.de/?dst=...
             // https://hotspot.dokom21.de/bus~/?...
@@ -151,12 +158,13 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                 
                 val html1 = response1b.parseHtml()
                 
-                val __EVENTTARGET = html1.selectFirst("input[name=__EVENTTARGET]")!!.attr("value")
-                val __EVENTARGUMENT = html1.selectFirst("input[name=__EVENTARGUMENT]")!!.attr("value")
-                val __LASTFOCUS = html1.selectFirst("input[name=__LASTFOCUS]")!!.attr("value")
-                val __VIEWSTATE = html1.selectFirst("input[name=__VIEWSTATE]")!!.attr("value")
-                val __VIEWSTATEGENERATOR = html1.selectFirst("input[name=__VIEWSTATEGENERATOR]")!!.attr("value")
-                val __EVENTVALIDATION = html1.selectFirst("input[name=__EVENTVALIDATION]")!!.attr("value")
+                val __EVENTTARGET = html1.selectFirst("input[name=__EVENTTARGET]")?.attr("value") ?: throw ISE("no __EVENTTARGET")
+                val __EVENTARGUMENT = html1.selectFirst("input[name=__EVENTARGUMENT]")?.attr("value") ?: throw ISE("no __EVENTARGUMENT")
+                val __LASTFOCUS = html1.selectFirst("input[name=__LASTFOCUS]")?.attr("value") ?: throw ISE("no __LASTFOCUS")
+                val __VIEWSTATE = html1.selectFirst("input[name=__VIEWSTATE]")?.attr("value") ?: throw ISE("no __VIEWSTATE")
+                val __VIEWSTATEGENERATOR = html1.selectFirst("input[name=__VIEWSTATEGENERATOR]")?.attr("value")
+                    ?: throw ISE("no __VIEWSTATEGENERATOR")
+                val __EVENTVALIDATION = html1.selectFirst("input[name=__EVENTVALIDATION]")?.attr("value") ?: throw ISE("no __EVENTVALIDATION")
                 
                 val response2 = client.post(
                     null,
@@ -175,15 +183,17 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                         "ctl00\$GenericContent\$SubmitLogin" to "Einloggen",
                     ),
                 )
-                val url2 = response2.getLocation()!! // https://controller.dokom21.de/portal_api.php?action=authenticate&...
+                // https://controller.dokom21.de/portal_api.php?action=authenticate&...
+                val url2 = response2.getLocation() ?: throw ISE("no location 2")
                 val response3 = client.get(url2, response2.requestUrl)
-                val url3 = response3.getLocation()!! // https://hotspot.dokom21.de/bus~/?...
+                val url3 = response3.getLocation() ?: throw ISE("no location 3") // https://hotspot.dokom21.de/bus~/?...
                 val response4 = client.get(url3, response3.requestUrl)
-                val url4 = response4.getLocation()!! // https://hotspot.dokom21.de/bus~/Login
+                val url4 = response4.getLocation() ?: throw ISE("no location 4") // https://hotspot.dokom21.de/bus~/Login
                 val response5 = client.get(url4, response4.requestUrl)
                 response5.checkSuccess()
                 check(response5.readText().contains("Login erfolgreich."))
             }
+            //</editor-fold>
             
             // Germany, Deutsche Bahn
             //<editor-fold defaultstate="collapsed">
@@ -207,30 +217,30 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                 
                 val response3 = client.get(location2, response2.requestUrl)
                 
-                val csrfToken = cookies.find { it.name == "csrf" }!!.value
-                val location4 = client.post(
+                val csrfToken = cookies.find { it.name == "csrf" }?.value ?: throw ISE("no csrf")
+                client.post(
                     null, response3.requestUrl, mapOf(
                         "login" to "true",
                         "CSRFToken" to csrfToken,
                     )
-                ).getLocation()!! // https://iceportal.de
+                ).getLocation() // https://iceportal.de
             }
             
             // verified
             // WIFI@DB
-            "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.path -> {
+            "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.encodedPath -> {
                 val response1 = client.get(location, response.requestUrl)
                 val html1 = response1.parseHtml()
                 
-                val challenge = html1.selectFirst("input[name=challenge]")!!.attr("value")
-                val uamip = html1.selectFirst("input[name=uamip]")!!.attr("value")
-                val uamport = html1.selectFirst("input[name=uamport]")!!.attr("value")
-                val userurl = html1.selectFirst("input[name=userurl]")!!.attr("value")
-                val myLogin = html1.selectFirst("input[name=myLogin]")!!.attr("value")
-                val ll = html1.selectFirst("input[name=ll]")!!.attr("value")
-                val nasid = html1.selectFirst("input[name=nasid]")!!.attr("value")
-                val custom = html1.selectFirst("input[name=custom]")!!.attr("value")
-                val haveTerms = html1.selectFirst("input[name=haveTerms]")!!.attr("value")
+                val challenge = html1.selectFirst("input[name=challenge]")?.attr("value") ?: throw ISE("no challenge")
+                val uamip = html1.selectFirst("input[name=uamip]")?.attr("value") ?: throw ISE("no uamip")
+                val uamport = html1.selectFirst("input[name=uamport]")?.attr("value") ?: throw ISE("no uamport")
+                val userurl = html1.selectFirst("input[name=userurl]")?.attr("value") ?: throw ISE("no userurl")
+                val myLogin = html1.selectFirst("input[name=myLogin]")?.attr("value") ?: throw ISE("no myLogin")
+                val ll = html1.selectFirst("input[name=ll]")?.attr("value") ?: throw ISE("no ll")
+                val nasid = html1.selectFirst("input[name=nasid]")?.attr("value") ?: throw ISE("no nasid")
+                val custom = html1.selectFirst("input[name=custom]")?.attr("value") ?: throw ISE("no custom")
+                val haveTerms = html1.selectFirst("input[name=haveTerms]")?.attr("value") ?: throw ISE("no haveTerms")
                 
                 val response3 = client.post(
                     "https://www.hotsplots.de/auth/login.php", null, mapOf(
@@ -296,45 +306,62 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             //</editor-fold>
             
             // Germany, Kaufland, Rewe
+            // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
             //<editor-fold defaultstate="collapsed">
-            "(https?://[\\w-]+.conn4.com)/ident.*".toRegex().matches(location) -> {
-                val token = client.get("/", locationUrl).readText().let { html ->
-                    val wbsTokenIndex = html.indexOf("hotspot.wbsToken").takeIf { it != -1 } ?: return
-                    val jsObjectStart = html.indexOf("{", wbsTokenIndex) + 1
-                    val jsObjectEnd = html.indexOf("}", jsObjectStart)
+            (locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident") -> {
+                val site_id = locationUrl.queryParameter("site_id") ?: throw ISE("no site_id")
+                val response1 = client.get(null, locationUrl)
+                val location1 = response1.getLocation() // https://portal-eu-ffm01.conn4.com/#
+                
+                val response2 = client.get(location1, response1.requestUrl)
+                val token = response2.readText().let { html ->
+                    // find and parse
+                    // conn4.hotspot.wbsToken = { "token": "...", "urls": { "grant_url": null, "continue_url": null } };
+                    val wbsTokenIndex = html.indexOf("hotspot.wbsToken")
+                    check(wbsTokenIndex != -1) { "hotspot.wbsToken not found" }
+                    val jsObjectStart = html.indexOf("{", wbsTokenIndex)
+                    check(jsObjectStart != -1) { "jsObjectStart not found" }
+                    val jsObjectEnd = html.indexOf(";", jsObjectStart) - 1
+                    check(jsObjectEnd != -1) { "jsObjectEnd not found" }
                     
                     val jsObject = JSONObject(html.substring(jsObjectStart, jsObjectEnd))
                     jsObject.getString("token")
-                    
                 }
                 
-                val session = client.post(
-                    "/wbs/api/v1/create-session/", locationUrl, mapOf(
+                val response3 = client.post(
+                    "/wbs/api/v1/create-session/", locationUrl,
+                    mapOf(
                         "authorization" to "token=$token",
+                        "locale" to "de_DE",
+                        "locationId" to site_id,
+                        "session_id" to "",
                         "with-tariffs" to "1",
-                    )
-                ).readText().let { json ->
-                    JSONObject(json).getString("session")
-                }
+                    ),
+                )
+                val session = JSONObject(response3.readText()).getString("session") ?: throw ISE("no session")
                 
-                client.post(
-                    "/wbs/api/v1/register/free/", locationUrl, mapOf(
+                val response4 = client.post(
+                    "/wbs/api/v1/register/free/", locationUrl,
+                    mapOf(
                         "authorization" to "session:$session",
                         "registration_type" to "terms-only",
                         "registration[terms]" to "1",
-                    )
-                ).checkSuccess()
+                    ),
+                )
+                check(JSONObject(response4.readText()).getBoolean("ok"))
             }
             //</editor-fold>
             
             // IKEA
             // "IKEA WiFi"
             //<editor-fold defaultstate="collapsed">
-            "yo-wifi.net" == locationUrl.host && "/authen/" == locationUrl.path -> {
+            "yo-wifi.net" == locationUrl.host && "authen" == locationUrl.firstPathSegment -> {
                 val response1 = client.get(location, response.requestUrl)
-                val url1 = response1.getLocation()!! // https://cp7-wifi.net/?device_name=ide223&user_mac=96:c0:a0:2d:11:c0&device_hostname=yo-wifi.net&ssid=/#/login
-                val mac = response1.requestUrl.queryParameter("user_mac")!!
-                val deviceName = response1.requestUrl.queryParameter("device_name")!!
+                
+                // https://cp7-wifi.net/?device_name=ide223&user_mac=96:c0:a0:2d:11:c0&device_hostname=yo-wifi.net&ssid=/#/login
+                val url1 = response1.getLocation() ?: throw ISE("no location 1")
+                val mac = response1.requestUrl.queryParameter("user_mac") ?: throw ISE("no mac")
+                val deviceName = response1.requestUrl.queryParameter("device_name") ?: throw ISE("no deviceName")
                 
                 val response2 = client.get(url1, response1.requestUrl)
                 // html with js form
@@ -368,8 +395,8 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                         "password" to password,
                     ),
                 )
-                val url4 = response4.getLocation()!! // https://cp7-wifi.net/success?
-                val url5 = client.get(url4, response4.requestUrl).getLocation()!! // https://cp7-wifi.net/?...#/success
+                val url4 = response4.getLocation() ?: throw ISE("no location 4") // https://cp7-wifi.net/success?
+                val url5 = client.get(url4, response4.requestUrl).getLocation() ?: throw ISE("no location 5") // https://cp7-wifi.net/?...#/success
                 client.get(url5, response4.requestUrl).checkSuccess()
             }
             //</editor-fold>
@@ -378,12 +405,13 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             // media-kunden
             //<editor-fold defaultstate="collapsed">
             "192.0.2.1" == locationUrl.host -> { // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=00:a2:ee:a8:5c:a0&client_mac=2a:8a:49:3b:11:ce&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
-                val loginUrl = locationUrl.queryParameter("switch_url")!!
+                val switch_url = locationUrl.queryParameter("switch_url") ?: throw ISE("no login_url")
+                val redirect_url = locationUrl.queryParameter("redirect") ?: throw ISE("no redirect_url")
                 client.post(
-                    loginUrl, locationUrl,
+                    switch_url, locationUrl,
                     mapOf(
                         "del[]" to "on",
-                        "redirect_url" to locationUrl.queryParameter("redirect")!!,
+                        "redirect_url" to redirect_url,
                         "err_flag" to "0",
                         "buttonClicked" to "4",
                     ),
@@ -394,7 +422,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             // fritz.box guest wifi
             // verified
             //<editor-fold defaultstate="collapsed">
-            "/untrusted_guest.lua" == locationUrl.path -> {
+            "untrusted_guest.lua" == locationUrl.firstPathSegment -> {
                 val base = location.toHttpUrl()
                 client.get("/trustme.lua?accept=", base).checkSuccess()
                 
@@ -417,113 +445,3 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
         }
     }
 }
-
-fun OkHttpClient.get(
-    url: String?,
-    context: HttpUrl?,
-    queryParameters: Map<String, String> = emptyMap(),
-    preConnectSetup: Request.Builder.() -> Unit = {},
-): Response {
-    contract {
-        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
-    }
-    val request = Request.Builder().apply {
-        val urlBuilder = if (url == null) {
-            context?.newBuilder() ?: throw Error("url and context cannot both be null")
-        } else {
-            context?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
-        }
-        
-        queryParameters.forEach { (key, value) ->
-            urlBuilder.addQueryParameter(key, value)
-        }
-        url(urlBuilder.build())
-        
-        preConnectSetup()
-    }.build()
-    
-    return newCall(request).execute()
-}
-
-fun OkHttpClient.post(
-    url: String?,
-    context: HttpUrl?,
-    content: Map<String, String> = emptyMap(),
-    queryParameters: Map<String, String> = emptyMap(),
-    preConnectSetup: Request.Builder.() -> Unit = {},
-): Response {
-    contract {
-        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
-    }
-    val request = Request.Builder().apply {
-        val urlBuilder = if (url == null) {
-            context?.newBuilder() ?: throw Error("url and context cannot both be null")
-        } else {
-            context?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
-        }
-        queryParameters.forEach { (key, value) ->
-            urlBuilder.addQueryParameter(key, value)
-        }
-        url(urlBuilder.build())
-        
-        val formBodyBuilder = FormBody.Builder()
-        content.forEach { (key, value) ->
-            formBodyBuilder.add(key, value)
-        }
-        post(formBodyBuilder.build())
-        
-        preConnectSetup()
-    }.build()
-    
-    return newCall(request).execute()
-}
-
-fun Response.checkSuccess() {
-    check(code in 200..399) {
-        "HTTP error: $code $message"
-    }
-    val location = getLocation(skipStatusCheck = true)
-    if (location != null) {
-        val path = request.url.resolveOrThrow(location).path
-        val pathContains40x = arrayOf("401", "403").any { path.contains(it) }
-        check(!pathContains40x) {
-            "Redirect to 401 or 403: $path"
-        }
-    }
-}
-
-fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
-    if (!skipStatusCheck) checkSuccess()
-    val header = header("Location")
-    if (header != null) return header
-    
-    // parse html for redirect
-    val html = parseHtml(skipStatusCheck = true)
-    val meta = html.selectFirst("""meta[http-equiv="refresh"]""")
-    if (meta != null) {
-        return meta.attr("content").substringAfter(';').substringAfter('=').trim()
-    }
-    return null
-}
-
-fun Response.parseHtml(skipStatusCheck: Boolean = false): Document {
-    if (!skipStatusCheck) checkSuccess()
-    return Jsoup.parse(readText(skipStatusCheck = true), request.url.toString())
-}
-
-fun Response.readText(skipStatusCheck: Boolean = false): String {
-    if (!skipStatusCheck) checkSuccess()
-    val charset: Charset = body!!.contentType()?.charset() ?: Charsets.UTF_8
-    val source = body?.source() ?: return ""
-    source.request(Long.MAX_VALUE)
-    return source.buffer.clone().readString(charset)
-}
-
-val Response.requestUrl: HttpUrl
-    get() = this.request.url
-
-val HttpUrl.path: String
-    get() = URLDecoder.decode(encodedPath, "UTF-8")
-
-fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
-    newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")

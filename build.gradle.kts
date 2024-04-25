@@ -6,6 +6,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.gradle.BaseExtension
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.kohsuke.github.GHReleaseBuilder
 import org.kohsuke.github.GitHub
@@ -32,11 +33,10 @@ plugins {
 }
 
 idea {
-    project {
-        languageLevel = IdeaLanguageLevel(javaVersion)
-    }
     module {
         languageLevel = IdeaLanguageLevel(javaVersion)
+        isDownloadSources = true
+        isDownloadJavadoc = true
     }
 }
 allprojects {
@@ -44,6 +44,8 @@ allprojects {
     idea {
         module {
             languageLevel = IdeaLanguageLevel(javaVersion)
+            isDownloadSources = true
+            isDownloadJavadoc = true
         }
     }
 }
@@ -234,7 +236,7 @@ allprojects {
         }
         
         tasks.withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = javaVersion.toString()
+            compilerOptions.jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
         }
         
         tasks.withType<JavaCompile> {
