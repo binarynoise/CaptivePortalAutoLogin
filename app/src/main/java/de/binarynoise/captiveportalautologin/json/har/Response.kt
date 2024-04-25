@@ -121,7 +121,7 @@ class Response(
     
     private fun fillInCookies(responseHeaders: Array<HttpHeader>) {
         val newCookies = responseHeaders.asSequence()
-            .filter { it.name.startsWith("SetCookie", ignoreCase = true) }
+            .filter { it.name.contains("Cookie", ignoreCase = true) }
             .flatMap { HttpCookie.parse(it.value) }
             .map(::Cookie)
             .toList()

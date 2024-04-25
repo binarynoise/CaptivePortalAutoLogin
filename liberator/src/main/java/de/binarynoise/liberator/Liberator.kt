@@ -198,64 +198,26 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             }
             
             "wifi-bahn.de" == locationUrl.host //
-                    || "login.wifionice.de" == locationUrl.host -> {
-                var response1 = client.get(null, locationUrl)
-                val location1 = response1.getLocation()
-                if (location1 != null) {
-                    response1 = client.get(location1, response1.requestUrl)
-                }
-                val html = response1.parseHtml()
-                val csrfToken = html.selectFirst("input[name=CSRFToken]")!!.attr("value")
-                client.post(
-                    "http://wifi-bahn.de/", null, mapOf(
+                    || "login.wifionice.de" == locationUrl.host -> { // http://login.wifionice.de/?url=...
+                val response1 = client.get(null, locationUrl)
+                val location1 = response1.getLocation() // https://login.wifionice.de/?url=...
+                
+                val response2 = client.get(location1, response1.requestUrl)
+                val location2 = response2.getLocation() // https://login.wifionice.de/de/ | Cookie: csrf
+                
+                val response3 = client.get(location2, response2.requestUrl)
+                
+                val csrfToken = cookies.find { it.name == "csrf" }!!.value
+                val location4 = client.post(
+                    null, response3.requestUrl, mapOf(
                         "login" to "true",
                         "CSRFToken" to csrfToken,
                     )
-                ).checkSuccess()
+                ).getLocation()!! // https://iceportal.de
             }
             
             // verified
-            "192.168.44.1" == locationUrl.host && "/prelogin" == locationUrl.path -> {
-                val response1 = client.get(location, null)
-                val url1 = response1.getLocation()!! // https://www.hotsplots.de/auth/login.php?...
-                
-                val response2 = client.get(url1, response1.requestUrl)
-                val html2 = response2.parseHtml()
-                
-                val challenge = html2.selectFirst("input[name=challenge]")!!.attr("value")
-                val uamip = html2.selectFirst("input[name=uamip]")!!.attr("value")
-                val uamport = html2.selectFirst("input[name=uamport]")!!.attr("value")
-                val userurl = html2.selectFirst("input[name=userurl]")!!.attr("value")
-                val myLogin = html2.selectFirst("input[name=myLogin]")!!.attr("value")
-                val ll = html2.selectFirst("input[name=ll]")!!.attr("value")
-                val nasid = html2.selectFirst("input[name=nasid]")!!.attr("value")
-                val custom = html2.selectFirst("input[name=custom]")!!.attr("value")
-                val haveTerms = html2.selectFirst("input[name=haveTerms]")!!.attr("value")
-                
-                val response3 = client.post(
-                    "https://www.hotsplots.de/auth/login.php", null, mapOf(
-                        "termsOK" to "on",
-                        "termsChkbx" to "on",
-                        "challenge" to challenge,
-                        "uamip" to uamip,
-                        "uamport" to uamport,
-                        "userurl" to userurl,
-                        "myLogin" to myLogin,
-                        "ll" to ll,
-                        "nasid" to nasid,
-                        "custom" to custom,
-                        "haveTerms" to haveTerms
-                    )
-                )
-                
-                val url3 = response3.getLocation()!! // http://192.168.44.1:80/logon?...
-                
-                val response4 = client.get(url3, response3.requestUrl)
-                val url4 = response4.getLocation()!! // https://www.hotsplots.de/logon.php?res=success&...
-                val response5 = client.get(url4, response4.requestUrl)
-                response5.checkSuccess()
-            }
-            
+            // WIFI@DB
             "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.path -> {
                 val response1 = client.get(location, response.requestUrl)
                 val html1 = response1.parseHtml()

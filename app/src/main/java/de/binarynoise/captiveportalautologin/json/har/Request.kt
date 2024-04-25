@@ -85,7 +85,7 @@ class Request(
     
     private fun fillInCookies(requestHeaders: Array<HttpHeader>) {
         val newCookies = requestHeaders.asSequence()
-            .filter { it.name.startsWith("SetCookie", ignoreCase = true) }
+            .filter { it.name.contains("Cookie", ignoreCase = true) }
             .flatMap { HttpCookie.parse(it.value) }
             .map(::Cookie)
             .toList()
