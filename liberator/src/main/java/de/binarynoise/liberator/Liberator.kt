@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate") @file:OptIn(ExperimentalContracts::class)
+@file:Suppress("MemberVisibilityCanBePrivate", "UNREACHABLE_CODE") @file:OptIn(ExperimentalContracts::class)
 
 package de.binarynoise.liberator
 
@@ -207,8 +207,9 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                 ).checkSuccess()
             }
             
+            // http://login.wifionice.de/?url=...
             "wifi-bahn.de" == locationUrl.host //
-                    || "login.wifionice.de" == locationUrl.host -> { // http://login.wifionice.de/?url=...
+                    || "login.wifionice.de" == locationUrl.host -> {
                 val response1 = client.get(null, locationUrl)
                 val location1 = response1.getLocation() // https://login.wifionice.de/?url=...
                 
@@ -228,6 +229,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             
             // verified
             // WIFI@DB
+            // https://www.hotsplots.de/auth/login.php
             "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.encodedPath -> {
                 val response1 = client.get(location, response.requestUrl)
                 val html1 = response1.parseHtml()
@@ -270,44 +272,9 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             }
             //</editor-fold>
             
-            // Germany, Stuttgart, Messe
-            //<editor-fold defaultstate="collapsed">
-            /*    "https://wifi.berner-messe.de".isStartOf(location) -> { // no trailing '/'
-                    val chromeDesktopUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" // Chrome Desktop
-                    
-                    val json1 = network.post(
-                        "https://wifi.berner-messe.de/portal_api.php",
-                        mapOf(
-                            "action" to "subscribe",
-                            "type" to "one",
-                            "connect_policy_accept" to "true",
-                        ),
-                    ) {
-                        setRequestProperty("User-Agent", chromeDesktopUserAgent)
-                    }.readText()
-                    
-                    val subscribe = JSONObject(json1).getJSONObject("info").getJSONObject("subscribe")
-                    val login = subscribe.getString("login")
-                    val password = subscribe.getString("password")
-                    
-                    network.post(
-                        "https://wifi.berner-messe.de/portal_api.php",
-                        mapOf(
-                            "action" to "authenticate",
-                            "login" to login,
-                            "password" to password,
-                            "policy_accept" to "true",
-                            "from_ajax" to "true",
-                        ),
-                    ) {
-                        setRequestProperty("User-Agent", chromeDesktopUserAgent)
-                    }.checkSuccess()
-                }*/
-            //</editor-fold>
-            
             // Germany, Kaufland, Rewe
-            // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
             //<editor-fold defaultstate="collapsed">
+            // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
             (locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident") -> {
                 val site_id = locationUrl.queryParameter("site_id") ?: throw ISE("no site_id")
                 val response1 = client.get(null, locationUrl)
@@ -403,8 +370,9 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             
             // MediaMarkt / Saturn (?)
             // media-kunden
+            // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=...&client_mac...&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
             //<editor-fold defaultstate="collapsed">
-            "192.0.2.1" == locationUrl.host -> { // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=00:a2:ee:a8:5c:a0&client_mac=2a:8a:49:3b:11:ce&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
+            "192.0.2.1" == locationUrl.host -> {
                 val switch_url = locationUrl.queryParameter("switch_url") ?: throw ISE("no login_url")
                 val redirect_url = locationUrl.queryParameter("redirect") ?: throw ISE("no redirect_url")
                 client.post(
@@ -418,6 +386,88 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                 ).checkSuccess()
             }
             // </editor-fold>
+            
+            //
+            // "-free Milaneo Stuttgart"
+            // https://start.cloudwifi.de/?res=notyet&uamip=...&uamport=...&challenge=...&called=...&ip=...&nasid=...&sessionid=...&userurl=http%3a%2f%2fam-i-captured.binarynoise.de%2f&md=...
+            //<editor-fold defaultstate="collapsed">
+            "start.cloudwifi.de" == locationUrl.host -> {
+                val response1 = client.get(location, response.requestUrl)
+                val html1 = response1.parseHtml()
+                
+                val FX_lang = html1.selectFirst("input[name=FX_lang]")?.attr("value") ?: throw ISE("no FX_lang")
+                val FX_loginTemplate = html1.selectFirst("input[name=FX_loginTemplate]")?.attr("value") ?: throw ISE("no FX_loginTemplate")
+                val FX_loginType = html1.selectFirst("input[name=FX_loginType]")?.attr("value") ?: throw ISE("no FX_loginType")
+                val FX_password = html1.selectFirst("input[name=FX_password]")?.attr("value") ?: throw ISE("no FX_password")
+                val FX_username = html1.selectFirst("input[name=FX_username]")?.attr("value") ?: throw ISE("no FX_username")
+                val called = html1.selectFirst("input[name=called]")?.attr("value") ?: throw ISE("no called")
+                val cbQpC = html1.selectFirst("input[name=cbQpC]")?.attr("value") ?: throw ISE("no cbQpC")
+                val challenge = html1.selectFirst("input[name=challenge]")?.attr("value") ?: throw ISE("no challenge")
+                val ip = html1.selectFirst("input[name=ip]")?.attr("value") ?: throw ISE("no ip")
+                val mac = html1.selectFirst("input[name=mac]")?.attr("value") ?: throw ISE("no mac")
+                val nasid = html1.selectFirst("input[name=nasid]")?.attr("value") ?: throw ISE("no nasid")
+                val sessionid = html1.selectFirst("input[name=sessionid]")?.attr("value") ?: throw ISE("no sessionid")
+                val uamip = html1.selectFirst("input[name=uamip]")?.attr("value") ?: throw ISE("no uamip")
+                val uamport = html1.selectFirst("input[name=uamport]")?.attr("value") ?: throw ISE("no uamport")
+                val userurl = html1.selectFirst("input[name=userurl]")?.attr("value") ?: throw ISE("no userurl")
+                
+                val response2 = client.post(
+                    null, locationUrl, mapOf(
+                        "FX_lang" to FX_lang,
+                        "FX_loginTemplate" to FX_loginTemplate,
+                        "FX_loginType" to FX_loginType,
+                        "FX_password" to FX_password,
+                        "FX_username" to FX_username,
+                        "called" to called,
+                        "cbQpC" to cbQpC,
+                        "challenge" to challenge,
+                        "ip" to ip,
+                        "mac" to mac,
+                        "nasid" to nasid,
+                        "sessionid" to sessionid,
+                        "uamip" to uamip,
+                        "uamport" to uamport,
+                        "userurl" to userurl,
+                    )
+                )
+                
+                val html2 = response2.readText()
+                val src = html2
+                val start = src.indexOf("window.location.replace('")
+                val end = src.indexOf("')", start)
+                val url2 = src.substring(start + "window.location.replace('".length, end)
+                // http://192.168.182.1:3990/logon?username=kthjcnEYEhMnOvMgQ8VvsMKqScc%3D&password=64e6672d8c607bd73c40ecb63a537d13&userurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F
+                check(url2.isNotBlank()) { "no url2" }
+                
+                val response3 = client.get(url2, response.requestUrl)
+                val url3 = response3.getLocation() ?: throw ISE("no url3")
+                val res = url3.toHttpUrl().queryParameter("res")
+                check(res == "success") { "res=$res" }
+                client.get(url3, response.requestUrl).checkSuccess()
+            }
+            //</editor-fold>
+            
+            // Telekom
+            // Telekom_free
+            // https://hotspot.t-mobile.net/wlan/redirect.do?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
+            //<editor-fold defaultstate="collapsed">
+            "hotspot.t-mobile.net" == locationUrl.host && "wlan/redirect.do" == locationUrl.decodedPath -> {
+                val response1 = client.get(location, response.requestUrl)
+                val url1 = response1.getLocation() ?: throw ISE("no url1")
+                // https://hotspot.t-mobile.net/TCOM/hotspot/.../de_DE/index.html?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
+                
+                val response2 = client.get(url1, response.requestUrl)
+                response2.checkSuccess()
+                
+                //
+                
+                val response4 = client.post("https://hotspot.t-mobile.net/wlan/rest/freeLogin", null, mapOf())
+                
+                val json = JSONObject(response4.readText())
+                val loginStatus = json.getJSONObject("user").getString("wlanLoginStatus")
+                check(loginStatus == "online") { "wlanLoginStatus not online: $loginStatus" }
+            }
+            //</editor-fold>
             
             // fritz.box guest wifi
             // verified
