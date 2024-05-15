@@ -10,10 +10,14 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.ServiceConnection
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+import android.net.CaptivePortal
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -171,20 +175,25 @@ class ConnectivityChangeListenerService : Service() {
     
     @WorkerThread
     fun tryLiberate(network: Network) {
+        val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_LONG)
+        t.show()
+        
         try {
             val newLocation = Liberator { this.socketFactory(network.socketFactory) }.liberate()
             
             if (newLocation != null) {
                 log("Failed to liberate: still in portal: $newLocation")
-                
+                t.cancel()
                 Toast.makeText(applicationContext, "Failed to liberate: still in portal: $newLocation", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
+                t.cancel()
                 log("broke out of the portal")
             }
         } catch (e: Exception) {
             log("failed to liberate", e)
             val message = e.message ?: e.localizedMessage ?: "no error message"
+            t.cancel()
             Toast.makeText(applicationContext, "Failed to liberate: ${e::class.simpleName} - $message", Toast.LENGTH_LONG).show()
         }
     }
