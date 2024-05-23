@@ -16,7 +16,7 @@ val javaVersion = JavaVersion.VERSION_17
 buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:8.3.2") // don't update, r8debug breaks
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath("org.kohsuke:github-api:1.316")
     }
     
@@ -247,7 +247,7 @@ allprojects {
         if (isAndroid || isAndroidLib) {
             dependencies {
 //                add("compileOnly", "de.robv.android.xposed:api:82")
-                add("implementation", "androidx.annotation:annotation:1.7.1")
+                add("implementation", "androidx.annotation:annotation:1.8.0")
             }
         }
         

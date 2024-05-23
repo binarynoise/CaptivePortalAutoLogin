@@ -70,6 +70,11 @@ private const val extensionPath = "resource://android/assets/extension/" + "capt
 
 private const val extensionID = "captivePortalAutoLoginTrafficCapture@binarynoise.de"
 
+//private val portalTestUrl = "http://am-i-captured.binarynoise.de/"
+//private val portalTestHost = "am-i-captured.binarynoise.de"
+
+private val portalTestHost = "connectivitycheck.gstatic.com"
+
 class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
     private val binding: ActivityGeckoviewBinding by viewBinding(CreateMethod.INFLATE)
@@ -201,8 +206,7 @@ class GeckoViewActivity : ComponentActivity() {
                 val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
                 
                 val json = har.toJson()
-                val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != "am-i-captured.binarynoise.de" }
-                    ?: "am-i-captured.binarynoise.de"
+                val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
                 val format = "yyyy-MM-dd HH-mm"
                 val timestamp = java.time.LocalDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(format))
                 val fileName = "$host $timestamp.har"

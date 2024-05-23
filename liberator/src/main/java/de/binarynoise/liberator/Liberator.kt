@@ -16,7 +16,8 @@ import org.json.JSONObject
 import org.jsoup.Jsoup
 import kotlin.IllegalStateException as ISE
 
-const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
+//const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
+const val portalTestUrl = "http://http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
 
 class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
     
