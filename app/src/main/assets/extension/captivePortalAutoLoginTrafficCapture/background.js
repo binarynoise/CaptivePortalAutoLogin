@@ -1,31 +1,42 @@
-const port = browser.runtime.connectNative("browser")
-const realLog = console.log
+const port = browser.runtime.connectNative("browser");
+const realLog = console.log;
 
-const routeToApp = true
+const routeToApp = false;
 const blockWs = true;
 
+/**
+ * Posts a message to the app if the routeToApp flag is false or logs the message
+ *
+ * @param {string} event - The event name.
+ * @param {any} [details=undefined] - The details of the message.
+ */
 function postMessage(event, details = undefined) {
     if (routeToApp) {
         try {
-            port.postMessage({ event: event, details: details })
+            port.postMessage({ event: event, details: details });
         } catch (e) {
-            realLog(e)
-            realLog(event, details)
+            realLog(e);
+            realLog(event, details);
         }
     } else {
-        realLog(event, details)
+        realLog(event, details);
     }
 }
 
+/**
+ * Redirects logs to the app if routeToApp is set
+ *
+ * @param {...any} data - The data to be logged.
+ */
 console.log = function (...data) {
     if (routeToApp) {
         postMessage("log", data);
     } else {
         realLog(...data);
     }
-}
+};
 
-console.log("starting captivePortalAutoLoginTrafficCapture...")
+console.log("starting captivePortalAutoLoginTrafficCapture...");
 
 /**
  * RequestFilter
@@ -39,15 +50,17 @@ const filter = {
 let decoder = new TextDecoder();
 
 /**
+ * collects the response body of a web request.
+ *
  * @param {string} requestId
  */
 function setUpResponseBodyCollector(requestId) {
-    let filter = browser.webRequest.filterResponseData(requestId)
+    let filter = browser.webRequest.filterResponseData(requestId);
 
     /**
      * @type {string}
      */
-    let content = ""
+    let content = "";
 
     filter.ondata = (event) => {
         // console.log(`filter.ondata received ${event.data.byteLength} bytes`);
@@ -57,11 +70,11 @@ function setUpResponseBodyCollector(requestId) {
         // console.log(`filter.ondata decoded ${decoded.length} bytes`);
 
         filter.write(event.data);
-    }
+    };
     filter.onstop = (_) => {
         filter.close();
 
-        postMessage("filter.onStop", { requestId: requestId, content: content })
+        postMessage("filter.onStop", { requestId: requestId, content: content });
         content = "";
         console.log("filter.onstop");
     };
@@ -70,21 +83,21 @@ function setUpResponseBodyCollector(requestId) {
 }
 
 browser.webRequest.onBeforeRequest.addListener(details => {
-    postMessage("onBeforeRequest", details)
+    postMessage("onBeforeRequest", details);
     setUpResponseBodyCollector(details.requestId);
-}, filter, ["requestBody", "blocking"])
+}, filter, ["requestBody", "blocking"]);
 
-browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBeforeSendHeaders", details), filter, ["requestHeaders"])
-browser.webRequest.onSendHeaders.addListener(details => postMessage("onSendHeaders", details), filter, ["requestHeaders"])
+browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBeforeSendHeaders", details), filter, ["requestHeaders"]);
+browser.webRequest.onSendHeaders.addListener(details => postMessage("onSendHeaders", details), filter, ["requestHeaders"]);
 
-browser.webRequest.onHeadersReceived.addListener(details => postMessage("onHeadersReceived", details), filter, ["responseHeaders"])
-browser.webRequest.onResponseStarted.addListener(details => postMessage("onResponseStarted", details), filter, ["responseHeaders"])
-browser.webRequest.onCompleted.addListener(details => postMessage("onCompleted", details), filter, ["responseHeaders"])
+browser.webRequest.onHeadersReceived.addListener(details => postMessage("onHeadersReceived", details), filter, ["responseHeaders"]);
+browser.webRequest.onResponseStarted.addListener(details => postMessage("onResponseStarted", details), filter, ["responseHeaders"]);
+browser.webRequest.onCompleted.addListener(details => postMessage("onCompleted", details), filter, ["responseHeaders"]);
 
-browser.webRequest.onAuthRequired.addListener(details => postMessage("onAuthRequired", details), filter)
-browser.webRequest.onBeforeRedirect.addListener(details => postMessage("onBeforeRedirect", details), filter)
+browser.webRequest.onAuthRequired.addListener(details => postMessage("onAuthRequired", details), filter);
+browser.webRequest.onBeforeRedirect.addListener(details => postMessage("onBeforeRedirect", details), filter);
 
-browser.webRequest.onErrorOccurred.addListener(details => postMessage("onErrorOccurred", details), filter)
+browser.webRequest.onErrorOccurred.addListener(details => postMessage("onErrorOccurred", details), filter);
 
 // browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
 
@@ -109,4 +122,4 @@ if (blockWs) {
     }, wsFilter, ["blocking"]);
 }
 
-console.log("started captivePortalAutoLoginTrafficCapture")
+console.log("started captivePortalAutoLoginTrafficCapture");
