@@ -2,6 +2,7 @@ const port = browser.runtime.connectNative("browser")
 const realLog = console.log
 
 const routeToApp = true
+const blockWs = true;
 
 function postMessage(event, details = undefined) {
     if (routeToApp) {
@@ -32,7 +33,7 @@ console.log("starting captivePortalAutoLoginTrafficCapture...")
  */
 const filter = {
     urls: ["<all_urls>"], // "image", "sub_frame", "stylesheet", "script", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "beacon", "xml_dtd", "font", "media", "websocket", "csp_report", "imageset", "web_manifest", "speculative", "other",
-    types: ["sub_frame", "script", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "speculative", "other",]
+    types: ["sub_frame", "script", "main_frame", "object", "object_subrequest", "xmlhttprequest", "xslt", "ping", "speculative", "other", "websocket",],
 };
 
 let decoder = new TextDecoder();
@@ -86,5 +87,26 @@ browser.webRequest.onBeforeRedirect.addListener(details => postMessage("onBefore
 browser.webRequest.onErrorOccurred.addListener(details => postMessage("onErrorOccurred", details), filter)
 
 // browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
+
+if (blockWs) {
+    /**
+     * @type RequestFilter
+     */
+    const wsFilter = {
+        urls: ["<all_urls>"], types: ["websocket"],
+    };
+
+    browser.webRequest.onBeforeRequest.addListener((details) => {
+        /**
+         * @type {browser.webRequest.BlockingResponse}
+         */
+        const response = {
+            cancel: true
+        };
+        console.log("blocking ws request", details);
+
+        return response;
+    }, wsFilter, ["blocking"]);
+}
 
 console.log("started captivePortalAutoLoginTrafficCapture")
