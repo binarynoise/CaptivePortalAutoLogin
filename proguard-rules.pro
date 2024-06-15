@@ -8,6 +8,8 @@
 -dontobfuscate
 -allowaccessmodification
 -optimizations !code/simplification/arithmetic
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
 
 -keepattributes SourceFile, LineNumberTable, Exception, *Annotation*, InnerClasses, EnclosingMethod, Signature
 
