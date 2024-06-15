@@ -15,7 +15,7 @@ class UploadData(
     companion object {
         fun fromJson(json: JSONObject): UploadData {
             return UploadData(
-                json.optJSONArray("bytes")?.toList()?.map { it as Byte }?.toTypedArray(),
+                json.optJSONArray("bytes")?.toList()?.map { (it as Number).toByte() }?.toTypedArray(),
                 json.optString("file"),
             )
         }

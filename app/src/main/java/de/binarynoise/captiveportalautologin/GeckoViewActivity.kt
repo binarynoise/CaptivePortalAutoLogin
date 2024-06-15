@@ -2,11 +2,9 @@
 
 package de.binarynoise.captiveportalautologin
 
+import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -21,6 +19,8 @@ import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
@@ -88,36 +88,30 @@ class GeckoViewActivity : ComponentActivity() {
     private var extension: WebExtension? = null
     
     // TODO ask ConnectivityManager if current network has portal so service may be not always running
-    private fun networkListener(@Suppress("UNUSED_PARAMETER") network: Network?, available: Boolean) = mainHandler.post {
-        withThisAs(binding) {
-            if (available) {
-                notUsingCaptivePortalWifiWarning.isVisible = false
-                
-                if (session.isOpen) {
-                    session.loadUri(portalTestUrl)
-                }
-                
-                mainHandler.postDelayed(200) {
-                    geckoView.visibility = View.VISIBLE
-                }
-            } else {
-                notUsingCaptivePortalWifiWarning.isVisible = true
-                geckoView.visibility = View.INVISIBLE
-                
-                log("not using captive portal wifi")
-                if (session.isOpen) {
-                    session.loadUri("about:blank")
+    private fun networkListener(@Suppress("UNUSED_PARAMETER") network: Network?, available: Boolean): Unit {
+        mainHandler.post {
+            with(binding) {
+                if (available) {
+                    notUsingCaptivePortalWifiWarning.isVisible = false
+                    
+                    if (session.isOpen) {
+                        session.loadUri(portalTestUrl)
+                    }
+                    
+                    mainHandler.postDelayed(200) {
+                        geckoView.visibility = View.VISIBLE
+                    }
+                } else {
+                    notUsingCaptivePortalWifiWarning.isVisible = true
+                    geckoView.visibility = View.INVISIBLE
+                    
+                    log("not using captive portal wifi")
+                    if (session.isOpen) {
+                        session.loadUri("about:blank")
+                    }
                 }
             }
         }
-    }
-    
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withThisAs(receiver: T, block: T.() -> Unit) {
-        contract {
-            callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        }
-        receiver.block()
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -177,20 +171,26 @@ class GeckoViewActivity : ComponentActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gecko, menu)
         if (BuildConfig.DEBUG) {
-            menu.add("load form").also { menuItem ->
-                menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-                menuItem.setOnMenuItemClickListener {
-                    ConnectivityChangeListenerService.currentNetwork = ContextCompat.getSystemService(
-                        this, ConnectivityManager::class.java
-                    )!!.activeNetwork
-                    networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
-                    
-                    mainHandler.post {
-                        /*if (session.isOpen)*/ session.loadUri("https://am-i-captured.binarynoise.de/portal/")
+            fun addLoadSiteMenuEntry(menu: Menu, title: String, uri: String) {
+                menu.add(title).also { menuItem ->
+                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+                    menuItem.setOnMenuItemClickListener {
+                        ConnectivityChangeListenerService.currentNetwork = ContextCompat.getSystemService(
+                            this, ConnectivityManager::class.java
+                        )!!.activeNetwork
+                        networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
+                        
+                        mainHandler.post {
+                            session.loadUri(uri)
+                        }
+                        true
                     }
-                    true
                 }
             }
+            
+            addLoadSiteMenuEntry(menu, "about:config", "about:config")
+            addLoadSiteMenuEntry(menu, "load form", "https://am-i-captured.binarynoise.de/portal/")
+            addLoadSiteMenuEntry(menu, "test ws", "http://192.168.0.95:3000/")
         }
         return super.onCreateOptionsMenu(menu)
     }
@@ -241,6 +241,12 @@ class GeckoViewActivity : ComponentActivity() {
         }
     }
     
+    private val extensionConfig = mapOf(
+        "routeToApp" to true,
+        "stringify" to false,
+        "blockWs" to true,
+    )
+    
     private val messageDelegate = object : WebExtension.MessageDelegate {
         var port: WebExtension.Port? = null
         
@@ -255,16 +261,17 @@ class GeckoViewActivity : ComponentActivity() {
         }
         
         override fun onConnect(port: WebExtension.Port) {
-            log("onConnect ${port.hashCode().toHexString(HexFormat.UpperCase)}")
+            log("onConnect: ${port.hashCode().toHexString(HexFormat.UpperCase)}")
             this.port = port
             port.setDelegate(portDelegate)
-            port.postMessage(JSONObject())
+            port.postMessage(JSONObject(mapOf("event" to "config", "config" to extensionConfig)))
+            log("onConnect: sent config")
         }
     }
     
     private val portDelegate = object : WebExtension.PortDelegate {
         override fun onDisconnect(port: WebExtension.Port) {
-            log("onDisconnect ${port.hashCode().toHexString(HexFormat.UpperCase)}")
+            log("onDisconnect: ${port.hashCode().toHexString(HexFormat.UpperCase)}")
         }
         
         override fun onPortMessage(message: Any, port: WebExtension.Port) {
@@ -401,7 +408,7 @@ class GeckoViewActivity : ComponentActivity() {
                     finalizeResponse(requestIdWithRedirectCount, filterOnStopDetails.content)
                 }
                 else -> {
-                    log("unknown event: $eventType", NotImplementedError())
+                    log("unknown event", NotImplementedError(eventType))
                     message.dump("message")
                     return
                 }
@@ -415,12 +422,12 @@ class GeckoViewActivity : ComponentActivity() {
     private fun finalizeResponse(requestIdWithRedirectCount: String, content: String? = contentCache[requestIdWithRedirectCount]) {
         if (content == null) return
         
-        val request = requestCache[requestIdWithRedirectCount]!!
+        val request = requestCache[requestIdWithRedirectCount] ?: return
         
-        val response = responseCache[requestIdWithRedirectCount]!!
+        val response = responseCache[requestIdWithRedirectCount] ?: return
         response.setContent(content)
         
-        val startedDateTime = startTimeCache[requestIdWithRedirectCount]!!
+        val startedDateTime = startTimeCache[requestIdWithRedirectCount] ?: return
         log.entries.add(
             Entry(
                 null,
@@ -448,6 +455,7 @@ class GeckoViewActivity : ComponentActivity() {
             preferredColorScheme(GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM)
             remoteDebuggingEnabled(BuildConfig.DEBUG)
             consoleOutput(BuildConfig.DEBUG)
+            aboutConfigEnabled(BuildConfig.DEBUG)
         }.build()
         val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings)
     }

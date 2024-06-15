@@ -30,6 +30,7 @@
         <activity
             android:name=".GeckoViewActivity"
             android:parentActivityName=".MainActivity"
+            android:windowSoftInputMode="adjustResize"
             />
         
         <activity

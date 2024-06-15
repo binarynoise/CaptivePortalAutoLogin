@@ -17,7 +17,7 @@ import org.jsoup.Jsoup
 import kotlin.IllegalStateException as ISE
 
 //const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
-const val portalTestUrl = "http://http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
+const val portalTestUrl = "http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
 
 class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
     
@@ -36,7 +36,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
     
     /**
      * Intercepts the request, adds User-Agent, Connection and Cookie headers,
-     * logs request details, POST request body, proceeds with the request, logs response details,
+     * logs request details and POST request body, proceeds with the request, logs response details,
      * saves cookies and logs the response body
      */
     private fun interceptRequest(chain: Interceptor.Chain): Response {
@@ -273,6 +273,15 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             }
             //</editor-fold>
             
+            // Germany, DB Regio BW
+            // freeWIFIahead!
+            //<editor-fold defaultstate="collapsed">
+            // https://wasabi-splashpage.wifi.unwired.at?user_session_id=4a0f3546-2672-11ef-b3fd-ca250b43bcc7
+//            "wasabi-splashpage.wifi.unwired.at" == locationUrl.host -> {
+//
+//            }
+            //</editor-fold>
+            
             // Germany, Kaufland, Rewe
             //<editor-fold defaultstate="collapsed">
             // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
@@ -289,7 +298,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                     check(wbsTokenIndex != -1) { "hotspot.wbsToken not found" }
                     val jsObjectStart = html.indexOf("{", wbsTokenIndex)
                     check(jsObjectStart != -1) { "jsObjectStart not found" }
-                    val jsObjectEnd = html.indexOf(";", jsObjectStart) - 1
+                    val jsObjectEnd = html.indexOf(";", jsObjectStart)
                     check(jsObjectEnd != -1) { "jsObjectEnd not found" }
                     
                     val jsObject = JSONObject(html.substring(jsObjectStart, jsObjectEnd))
@@ -371,8 +380,8 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             
             // MediaMarkt / Saturn (?)
             // media-kunden
-            // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=...&client_mac...&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
             //<editor-fold defaultstate="collapsed">
+            // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=...&client_mac...&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
             "192.0.2.1" == locationUrl.host -> {
                 val switch_url = locationUrl.queryParameter("switch_url") ?: throw ISE("no login_url")
                 val redirect_url = locationUrl.queryParameter("redirect") ?: throw ISE("no redirect_url")
@@ -450,8 +459,8 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             
             // Telekom
             // Telekom_free
-            // https://hotspot.t-mobile.net/wlan/redirect.do?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
             //<editor-fold defaultstate="collapsed">
+            // https://hotspot.t-mobile.net/wlan/redirect.do?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
             "hotspot.t-mobile.net" == locationUrl.host && "wlan/redirect.do" == locationUrl.decodedPath -> {
                 val response1 = client.get(location, response.requestUrl)
                 val url1 = response1.getLocation() ?: throw ISE("no url1")

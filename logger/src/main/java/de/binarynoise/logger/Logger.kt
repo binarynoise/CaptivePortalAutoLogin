@@ -31,7 +31,7 @@ object Logger {
     
     var DEBUG = true // TODO BuildConfig.DEBUG
     
-    val backgroundHandler = createBackgroundHandler()
+    private val backgroundHandler = createBackgroundHandler()
     
     fun log(message: CharSequence) {
         val callingClassTag = callingClassTag
@@ -209,7 +209,7 @@ object Logger {
                 } else {
                     println()
                     keys.forEach {
-                        get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
+                        @Suppress("DEPRECATION") get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
                     }
                 }
             }
@@ -294,7 +294,7 @@ object Logger {
         //</editor-fold>
     }
     
-    var buffer = StringBuilder()
+    private var buffer = StringBuilder()
     
     private fun <T> println(msg: T) {
         buffer.append(msg)

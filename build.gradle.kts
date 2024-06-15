@@ -15,9 +15,9 @@ val javaVersion = JavaVersion.VERSION_17
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:8.3.2") // don't update, r8debug breaks
+        classpath("com.android.tools.build:gradle:8.4.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
-        classpath("org.kohsuke:github-api:1.316")
+        classpath("org.kohsuke:github-api:1.321")
     }
     
     repositories {
