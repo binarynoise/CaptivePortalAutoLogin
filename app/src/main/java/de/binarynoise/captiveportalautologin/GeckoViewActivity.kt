@@ -2,7 +2,6 @@
 
 package de.binarynoise.captiveportalautologin
 
-import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.datetime.Instant
@@ -19,8 +18,6 @@ import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.Window
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread

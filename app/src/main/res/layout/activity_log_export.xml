@@ -8,10 +8,10 @@
     >
     
     <ListView
+        android:id="@+id/logList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:listitem="@layout/item_log_export"
-        android:id="@+id/logList"
         />
 
 </LinearLayout>

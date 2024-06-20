@@ -18,27 +18,30 @@
         android:layout_height="wrap_content"
         tools:text="Service is currently running"
         />
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        >
         
-    <Button
-        android:id="@+id/startServiceButton"
-        style="@style/CaptivePortalAutoLogin.Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/start_service"
-        android:layout_weight="1"
-        />
-    <Button
-        android:id="@+id/stopServiceButton"
-        style="@style/CaptivePortalAutoLogin.Button.Outline"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/stop_service"
-        android:layout_weight="1"
-        />
+        <Button
+            android:id="@+id/startServiceButton"
+            style="@style/CaptivePortalAutoLogin.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_service"
+            android:layout_weight="1"
+            />
+        
+        <Button
+            android:id="@+id/stopServiceButton"
+            style="@style/CaptivePortalAutoLogin.Button.Outline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stop_service"
+            android:layout_weight="1"
+            />
     </LinearLayout>
     
     <Button
