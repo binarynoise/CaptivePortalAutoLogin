@@ -5,7 +5,7 @@ const config = {
     routeToApp: false,
     stringify: false,
     blockWs: true,
-}
+};
 
 port.onMessage.addListener((message) => {
     // ignore message if string
@@ -133,7 +133,7 @@ browser.webRequest.onBeforeRequest.addListener(details => {
     }
     postMessage("onBeforeRequest", details);
     setUpResponseBodyCollector(details.requestId);
-}, filter, ["blocking"]);
+}, filter, ["requestBody"]);
 
 browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBeforeSendHeaders", details), filter, ["requestHeaders"]);
 browser.webRequest.onSendHeaders.addListener(details => postMessage("onSendHeaders", details), filter, ["requestHeaders"]);

@@ -14,6 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:gravity="center"
+        android:divider="@drawable/divider8dp"
+        android:showDividers="middle"
         >
         
         <CheckBox
@@ -48,6 +51,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:divider="@drawable/divider8dp"
+        android:showDividers="middle"
         >
         
         <View />
@@ -61,5 +66,7 @@
             android:justificationMode="inter_word"
             tools:text="Just a lengthy description of why this permission is needed and how to enable it and which consequences it can have to not enabling it."
             />
+        
+        <View />
     </TableRow>
 </TableLayout>

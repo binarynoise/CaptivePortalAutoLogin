@@ -2,12 +2,12 @@
 
 package de.binarynoise.liberator
 
-import java.lang.IllegalStateException
 import java.net.URLDecoder
 import java.nio.charset.Charset
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import de.binarynoise.logger.Logger.log
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -183,3 +183,31 @@ val HttpUrl.firstPathSegment
  */
 fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
     newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")
+
+/**
+ * Casts the object to T.
+ * If T is nullable, a safe cast is performed.
+ */
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> Any.cast(): T {
+    return when {
+        null is T -> {
+            // T is nullable. Use safe cast.
+            // Casting as T again is needed because compiler doesn't know in advance that T is nullable and complains otherwise.
+            (this as? T) as T
+        }
+        else -> {
+            // T is not nullable. Use direct cast.
+            this as T
+        }
+    }
+}
+
+inline fun <T> tryOrNull(block: () -> T): T? {
+    try {
+        return block()
+    } catch (e: Exception) {
+        log("exception in tryOrNull", e)
+        return null
+    }
+}
