@@ -4,13 +4,13 @@ package de.binarynoise.captiveportalautologin
 
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.concurrent.withLock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.Network
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -49,6 +49,7 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnResponseStartedDe
 import de.binarynoise.captiveportalautologin.json.webRequest.OnSendHeadersDetails
 import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.liberator.portalTestUrl
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
@@ -76,8 +77,6 @@ class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
     private val binding: ActivityGeckoviewBinding by viewBinding(CreateMethod.INFLATE)
     
-    private val mainHandler = Handler(Looper.getMainLooper())
-    
     private val session = GeckoSession().apply {
         contentDelegate = object : GeckoSession.ContentDelegate {}
     }
@@ -85,7 +84,7 @@ class GeckoViewActivity : ComponentActivity() {
     private var extension: WebExtension? = null
     
     // TODO ask ConnectivityManager if current network has portal so service may be not always running
-    private fun networkListener(@Suppress("UNUSED_PARAMETER") network: Network?, available: Boolean): Unit {
+    private fun networkListener(@Suppress("UNUSED_PARAMETER") state: ConnectivityChangeListenerService.NetworkState?, available: Boolean): Unit {
         mainHandler.post {
             with(binding) {
                 if (available) {
@@ -136,7 +135,7 @@ class GeckoViewActivity : ComponentActivity() {
                     it.setMessageDelegate(messageDelegate, "browser")
                     
                     ConnectivityChangeListenerService.networkListeners.add(::networkListener)
-                    networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
+                    networkListener(ConnectivityChangeListenerService.networkState, ConnectivityChangeListenerService.networkState?.network != null)
                 }
             }, {
                 log("Error installing extension", it)
@@ -172,11 +171,19 @@ class GeckoViewActivity : ComponentActivity() {
                 menu.add(title).also { menuItem ->
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                     menuItem.setOnMenuItemClickListener {
-                        ConnectivityChangeListenerService.currentNetwork = ContextCompat.getSystemService(
-                            this, ConnectivityManager::class.java
-                        )!!.activeNetwork
-                        networkListener(ConnectivityChangeListenerService.currentNetwork, ConnectivityChangeListenerService.currentNetwork != null)
-                        
+                        ConnectivityChangeListenerService.networkStateLock.withLock {
+                            val activeNetwork = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!.activeNetwork
+                            if (activeNetwork == null) {
+                                ConnectivityChangeListenerService.networkState = null
+                            } else {
+                                ConnectivityChangeListenerService.networkState = ConnectivityChangeListenerService.NetworkState(
+                                    network = activeNetwork,
+                                    ssid = "",
+                                    liberating = false,
+                                    liberated = false,
+                                )
+                            }
+                        }
                         mainHandler.post {
                             session.loadUri(uri)
                         }
@@ -454,6 +461,10 @@ class GeckoViewActivity : ComponentActivity() {
             consoleOutput(BuildConfig.DEBUG)
             aboutConfigEnabled(BuildConfig.DEBUG)
         }.build()
-        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings)
+        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) // TODO: move to onCreate
+        
+        init {
+//            runtime.shutdown() // TODO: move to onDestroy
+        }
     }
 }

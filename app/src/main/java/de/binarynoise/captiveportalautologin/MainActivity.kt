@@ -12,15 +12,11 @@ class MainActivity : ComponentActivity() {
     private val binding: ActivityMainBinding by viewBinding(CreateMethod.INFLATE)
     
     // Don't inline
-    private val connectivityListener: (running: Boolean) -> Unit = { running ->
-        log("received service running: $running")
+    fun updateStatusText(state: ConnectivityChangeListenerService.ServiceState) {
+        log("received service state: $state")
         runOnUiThread {
             with(binding.serviceRunningText) {
-                if (running) {
-                    text = "Service is currently running"
-                } else {
-                    text = "Service is currently not running"
-                }
+                text = state.toString()
             }
         }
     }
@@ -29,14 +25,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         
-        ConnectivityChangeListenerService.serviceListeners.add(connectivityListener)
+        ConnectivityChangeListenerService.serviceListeners.add(::updateStatusText)
         log("added service listener")
         
         binding.startServiceButton.setOnClickListener {
-            if (ConnectivityChangeListenerService.running) {
-                ConnectivityChangeListenerService.stop()
-            }
-            ConnectivityChangeListenerService.start()
+            ConnectivityChangeListenerService.restart()
         }
         binding.stopServiceButton.setOnClickListener {
             ConnectivityChangeListenerService.stop()
@@ -58,12 +51,6 @@ class MainActivity : ComponentActivity() {
     
     override fun onResume() {
         super.onResume()
-        with(binding.serviceRunningText) {
-            if (ConnectivityChangeListenerService.running) {
-                text = "Service is currently running"
-            } else {
-                text = "Service is currently not running"
-            }
-        }
+        updateStatusText(ConnectivityChangeListenerService.serviceState)
     }
 }

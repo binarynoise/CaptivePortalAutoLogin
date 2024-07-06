@@ -1,8 +1,8 @@
 package de.binarynoise.captiveportalautologin
 
 import java.util.*
-import java.util.concurrent.atomic.*
-import kotlin.reflect.KProperty
+import java.util.concurrent.locks.*
+import kotlin.concurrent.withLock
 import android.Manifest.permission
 import android.app.Notification
 import android.app.NotificationChannel
@@ -23,16 +23,17 @@ import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.IBinder
 import android.widget.Toast
+import androidx.annotation.GuardedBy
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrNull
@@ -40,18 +41,24 @@ import de.binarynoise.logger.Logger.log
 
 class ConnectivityChangeListenerService : Service() {
     
-    val backgroundHandler = Handler(HandlerThread("Liberator").apply { start() }.looper)
+    val backgroundHandler = BackgroundHandler("ConnectivityChangeListenerService")
     
     private var notification: Notification? = null
     private val channelId = "ConnectivityChangeListenerService"
     
-    private fun bindNetworkToProcess(network: Network?, available: Boolean) {
+    private fun bindNetworkToProcess(state: NetworkState, available: Boolean) {
+        val network = state.network
         val success = connectivityManager.bindProcessToNetwork(if (available) network else null)
         log((if (available) "bound to" else "unbound from") + " network $network: ${if (success) "success" else "failed"}")
     }
     
+    private fun updateNofication(state: NetworkState, available: Boolean) {
+        // TODO update notification text with current state
+    }
+    
     init {
         networkListeners.add(::bindNetworkToProcess)
+        if (BuildConfig.DEBUG) networkListeners.add(::updateNofication)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -60,17 +67,26 @@ class ConnectivityChangeListenerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log("onStartCommand")
         
-        if (running && intent != null && intent.extras != null && intent.hasExtra("retry") && intent.extras!!.getBoolean("retry")) {
-            val network = currentNetwork
-            if (network != null) {
-                backgroundHandler.post(::tryLiberate)
-            } else {
-                Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
+        serviceStateLock.withLock {
+            if (serviceState.running) {
+                if (intent != null && intent.extras != null) {
+                    if (intent.hasExtra("retry") && intent.extras!!.getBoolean("retry")) {
+                        val network = networkState?.network
+                        if (network != null) {
+                            backgroundHandler.post(::tryLiberate)
+                        } else {
+                            Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    if (intent.hasExtra("restart") && intent.extras!!.getBoolean("restart")) {
+                        serviceState = ServiceState(running = true, restart = true)
+                        stopSelf()
+                    }
+                }
+                return START_STICKY
             }
-            return START_STICKY
+            serviceState = ServiceState(running = true, restart = false)
         }
-        
-        if (runningA.getAndSet(true)) return START_STICKY
         
         createNotificationChannel(channelId, getString(R.string.foreground_notification_channel_name))
         notification = createNotification(channelId) {
@@ -93,7 +109,7 @@ class ConnectivityChangeListenerService : Service() {
         
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         
-        notifyServiceListeners(true)
+        notifyServiceListeners()
         
         log("started")
         return START_STICKY
@@ -119,15 +135,23 @@ class ConnectivityChangeListenerService : Service() {
         super.onDestroy()
         log("onDestroy")
         
-        if (!runningA.getAndSet(false)) return
-        
-        notifyServiceListeners(false)
-        
-        connectivityManager.unregisterNetworkCallback(networkCallback)
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        notification?.actions?.forEach { it.actionIntent?.cancel() }
-        notification = null
-        log("stopped")
+        serviceStateLock.withLock {
+            serviceState = serviceState.copy(running = false)
+            notifyServiceListeners()
+            
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+            notification?.actions?.forEach { it.actionIntent?.cancel() }
+            notification = null
+            log("stopped")
+            
+            if (serviceState.restart) {
+                mainHandler.post {
+                    ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+                }
+                log("scheduled restart")
+            }
+        }
     }
     
     private val connectivityManager by lazy { ContextCompat.getSystemService(this, ConnectivityManager::class.java)!! }
@@ -165,28 +189,33 @@ class ConnectivityChangeListenerService : Service() {
             }?.let(::decodeSsid)
             
             if (ssid == null) return
-            currentNetwork = network
-            currentSsid = ssid
-            log("SSID: $ssid")
-            backgroundHandler.post(::tryLiberate)
             
-            notifyNetworkListeners(true)
+            networkStateLock.withLock {
+                val newState = NetworkState(network, ssid, false, false)
+                networkState = newState
+                log("SSID: $ssid")
+                notifyNetworkListeners(newState, true)
+                backgroundHandler.post(::tryLiberate)
+            }
         }
         
-        override fun onUnavailable() {
-            log("onUnavailable: $currentNetwork")
-            notifyNetworkListeners(false)
-            currentNetwork = null
-            currentSsid = null
-            liberatedCurrentNetwork = false
+        override fun onUnavailable() = networkStateLock.withLock {
+            val oldState = networkState ?: return
+            log("onUnavailable: ${oldState.network}")
+            notifyNetworkListeners(oldState, false)
+            networkState = null
         }
     }
     
     @WorkerThread
     fun tryLiberate() {
-        val network = currentNetwork ?: return
-        if (liberatedCurrentNetwork) return
-        if (currentlyLiberatingA.getAndSet(true)) return
+        val network = networkStateLock.withLock {
+            val state = networkState ?: return
+            if (state.liberated) return
+            if (state.liberating) return
+            networkState = state.copy(liberating = true)
+            state.network
+        }
         
         val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_LONG)
         t.show()
@@ -198,7 +227,9 @@ class ConnectivityChangeListenerService : Service() {
                 Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
                 t.cancel()
                 log("broke out of the portal")
-                liberatedCurrentNetwork = true
+                networkStateLock.withLock {
+                    networkState = networkState?.copy(liberated = true)
+                }
             } else {
                 log("Failed to liberate: still in portal: $newLocation")
                 t.cancel()
@@ -210,47 +241,56 @@ class ConnectivityChangeListenerService : Service() {
             t.cancel()
             Toast.makeText(applicationContext, "Failed to liberate: ${e::class.simpleName} - $message", Toast.LENGTH_LONG).show()
         } finally {
-            currentlyLiberatingA.set(false)
+            networkStateLock.withLock {
+                networkState = networkState?.copy(liberating = false)
+            }
         }
     }
     
     companion object {
-        private var runningA: AtomicBoolean = AtomicBoolean(false)
-        var running by runningA
         
-        var currentNetwork: Network? = null
-        var currentSsid: String? = null
+        val serviceListeners: MutableSet<(state: ServiceState) -> Unit> = WeakSynchronizedSet()
+        @GuardedBy("serviceStateLock")
+        var serviceState: ServiceState = ServiceState(false, false)
+            private set
+        val serviceStateLock: Lock = ReentrantLock()
         
-        private val currentlyLiberatingA = AtomicBoolean(false)
-        private var currentlyLiberating by currentlyLiberatingA
+        @GuardedBy("networkStateLock")
+        val networkListeners: MutableSet<(state: NetworkState, available: Boolean) -> Unit> = WeakSynchronizedSet()
+        var networkState: NetworkState? = null
+        val networkStateLock: Lock = ReentrantLock()
         
-        private val liberatedCurrentNetworkA = AtomicBoolean(false)
-        private var liberatedCurrentNetwork by liberatedCurrentNetworkA
-        
-        val serviceListeners: MutableSet<(running: Boolean) -> Unit> = WeakSynchronizedSet()
-        val networkListeners: MutableSet<(network: Network?, available: Boolean) -> Unit> = WeakSynchronizedSet()
-        
-        private fun notifyServiceListeners(running: Boolean) {
-            serviceListeners.forEach { it(running) }
+        private fun notifyServiceListeners() = serviceStateLock.withLock {
+            serviceListeners.forEach { it(serviceState) }
         }
         
-        private fun notifyNetworkListeners(available: Boolean) {
-            networkListeners.forEach { it(currentNetwork, available) }
+        private fun notifyNetworkListeners(state: NetworkState, available: Boolean) = networkStateLock.withLock {
+            networkListeners.forEach { it(state, available) }
         }
         
         fun start() {
-            if (running) return
-            if (ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                log("Permission not granted: ${permission.ACCESS_FINE_LOCATION}")
-                Toast.makeText(applicationContext, "Tried to start service without permission ${permission.ACCESS_FINE_LOCATION}", Toast.LENGTH_LONG)
-                    .show()
-                return
+            serviceStateLock.withLock {
+                if (serviceState.running || serviceState.restart) return
+                
+                if (ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    log("Permission not granted: ${permission.ACCESS_FINE_LOCATION}")
+                    Toast.makeText(
+                        applicationContext, "Tried to start service without permission ${permission.ACCESS_FINE_LOCATION}", Toast.LENGTH_LONG
+                    ).show()
+                    return
+                }
+                ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
             }
-            ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
         }
         
         fun stop() {
             applicationContext.stopService(Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+        }
+        
+        fun restart() {
+            val intent = Intent(applicationContext, ConnectivityChangeListenerService::class.java)
+            intent.putExtra("restart", true)
+            applicationContext.startService(intent)
         }
         
         init {
@@ -258,16 +298,39 @@ class ConnectivityChangeListenerService : Service() {
             serviceListeners.add(::logService)
         }
         
-        private fun logNetwork(network: Network?, available: Boolean) {
+        private fun logNetwork(state: NetworkState, available: Boolean) = with(state) {
             log("network: $network, available: $available")
         }
         
-        private fun logService(running: Boolean) {
-            log("running: $running")
+        private fun logService(state: ServiceState) = with(state) {
+            log("running: $running, restarting: $restart")
         }
+    }
+    
+    data class ServiceState(
+        val running: Boolean, val restart: Boolean
+    ) {
+        override fun toString(): String = buildString {
+            append("Service is currently ")
+            if (running) {
+                append("running")
+            } else {
+                append("not running")
+            }
+            if (restart) {
+                append(" and will be restarted")
+            }
+        }
+    }
+    
+    data class NetworkState(
+        val network: Network,
+        val ssid: String,
+        val liberating: Boolean,
+        val liberated: Boolean,
+    ) {
+    
     }
 }
 
-operator fun AtomicBoolean.setValue(parent: Any, property: KProperty<*>, value: Boolean) = set(value)
-operator fun AtomicBoolean.getValue(parent: Any, property: KProperty<*>): Boolean = get()
 fun <T> WeakSynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))

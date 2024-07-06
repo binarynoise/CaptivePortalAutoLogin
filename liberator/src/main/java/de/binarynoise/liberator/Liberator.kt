@@ -469,7 +469,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
                 val response2 = client.get(url1, response.requestUrl)
                 response2.checkSuccess()
                 
-                //
+                // TODO
                 
                 val response4 = client.post("https://hotspot.t-mobile.net/wlan/rest/freeLogin", null, mapOf())
                 
@@ -500,6 +500,7 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             else -> {
                 log("unknown captive portal: $location")
                 // follow redirects and try again
+                // TODO: recursion limit?
                 inner(client.get(location, response.requestUrl))
             }
         }
