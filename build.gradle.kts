@@ -111,7 +111,7 @@ allprojects {
                     versionName = "$commitCount${if (workingTreeClean) "-" else "+"}$commitHash"
                     
                     if (isAndroidLib) {
-                        proguardFiles("../proguard-rules.pro", "proguard-rules.pro")
+//                        proguardFiles("../proguard-rules.pro", "proguard-rules.pro")
                         consumerProguardFiles("consumer-rules.pro")
                     } else {
                         proguardFiles(getDefaultProguardFile("proguard-android.txt"), "../proguard-rules.pro")
@@ -120,7 +120,7 @@ allprojects {
                 
                 buildTypes {
                     getByName("release") {
-                        isMinifyEnabled = true
+                        isMinifyEnabled = !isAndroidLib
                         if (isAndroid) {
                             isShrinkResources = true
                         }

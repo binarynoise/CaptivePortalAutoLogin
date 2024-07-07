@@ -13,9 +13,11 @@
 
 -keepattributes SourceFile, LineNumberTable, Exception, *Annotation*, InnerClasses, EnclosingMethod, Signature
 
--keep class de.binarynoise.**.BuildConfig { *; }
--keep class de.binarynoise.**.R { *; }
--keep class de.binarynoise.**.R$* { *; }
+-keepclasseswithmembers,allowoptimization class de.binarynoise.** {
+    public <methods>;
+    public <fields>;
+}
+
 
 -keepclassmembers, allowoptimization class ** extends androidx.viewbinding.ViewBinding {
 	public static ** inflate(android.view.LayoutInflater);

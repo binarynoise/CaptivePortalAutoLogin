@@ -14,7 +14,6 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,6 +27,7 @@ import androidx.core.view.isVisible
 import FilterOnStopDetails
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.databinding.ActivityGeckoviewBinding
 import de.binarynoise.captiveportalautologin.json.har.Browser
 import de.binarynoise.captiveportalautologin.json.har.Cache
@@ -84,10 +84,11 @@ class GeckoViewActivity : ComponentActivity() {
     private var extension: WebExtension? = null
     
     // TODO ask ConnectivityManager if current network has portal so service may be not always running
-    private fun networkListener(@Suppress("UNUSED_PARAMETER") state: ConnectivityChangeListenerService.NetworkState?, available: Boolean): Unit {
+    @Suppress("UNUSED_PARAMETER")
+    private fun networkListener(oldState: NetworkState?, newState: NetworkState?): Unit {
         mainHandler.post {
             with(binding) {
-                if (available) {
+                if (newState != null) {
                     notUsingCaptivePortalWifiWarning.isVisible = false
                     
                     if (session.isOpen) {
@@ -114,6 +115,7 @@ class GeckoViewActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         
+        
         clearCache()
         
         session.open(runtime)
@@ -135,7 +137,7 @@ class GeckoViewActivity : ComponentActivity() {
                     it.setMessageDelegate(messageDelegate, "browser")
                     
                     ConnectivityChangeListenerService.networkListeners.add(::networkListener)
-                    networkListener(ConnectivityChangeListenerService.networkState, ConnectivityChangeListenerService.networkState?.network != null)
+                    networkListener(null, ConnectivityChangeListenerService.networkState)
                 }
             }, {
                 log("Error installing extension", it)
@@ -154,12 +156,17 @@ class GeckoViewActivity : ComponentActivity() {
     override fun onDestroy() {
         messageDelegate.port?.disconnect()
         messageDelegate.port?.setDelegate(null)
-        extension?.setMessageDelegate(null, "browser")
+        extension?.let {
+            it.setMessageDelegate(null, "browser")
+            session.webExtensionController.setMessageDelegate(it, null, "browser")
+        }
         
         binding.geckoView.releaseSession()
         session.close()
         
         clearCache()
+        
+        ConnectivityChangeListenerService.networkListeners.remove(::networkListener)
         
         super.onDestroy()
     }
@@ -176,13 +183,14 @@ class GeckoViewActivity : ComponentActivity() {
                             if (activeNetwork == null) {
                                 ConnectivityChangeListenerService.networkState = null
                             } else {
-                                ConnectivityChangeListenerService.networkState = ConnectivityChangeListenerService.NetworkState(
+                                ConnectivityChangeListenerService.networkState = NetworkState(
                                     network = activeNetwork,
                                     ssid = "",
                                     liberating = false,
                                     liberated = false,
                                 )
                             }
+                            
                         }
                         mainHandler.post {
                             session.loadUri(uri)
@@ -228,7 +236,8 @@ class GeckoViewActivity : ComponentActivity() {
             }
             true
         }
-        R.id.action_export -> {
+       /*
+       R.id.action_export -> {
             Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show()
             true
         }
@@ -236,6 +245,7 @@ class GeckoViewActivity : ComponentActivity() {
             Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show()
             true
         }
+        */
         android.R.id.home -> {
             finish()
             true
@@ -424,11 +434,13 @@ class GeckoViewActivity : ComponentActivity() {
     }
     
     private fun finalizeResponse(requestIdWithRedirectCount: String, content: String? = contentCache[requestIdWithRedirectCount]) {
-        if (content == null) return
+        if (content == null) {
+            log("content is null"); return
+        }
         
-        val request = requestCache[requestIdWithRedirectCount] ?: return
+        val request = requestCache[requestIdWithRedirectCount] ?: run { log("request is null"); return }
         
-        val response = responseCache[requestIdWithRedirectCount] ?: return
+        val response = responseCache[requestIdWithRedirectCount] ?: run { log("response is null"); return }
         response.setContent(content)
         
         val startedDateTime = startTimeCache[requestIdWithRedirectCount] ?: return

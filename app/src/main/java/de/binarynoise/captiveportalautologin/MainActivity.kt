@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.databinding.ActivityMainBinding
 import de.binarynoise.captiveportalautologin.util.startActivity
 import de.binarynoise.logger.Logger.log
@@ -11,12 +12,12 @@ import de.binarynoise.logger.Logger.log
 class MainActivity : ComponentActivity() {
     private val binding: ActivityMainBinding by viewBinding(CreateMethod.INFLATE)
     
-    // Don't inline
-    fun updateStatusText(state: ConnectivityChangeListenerService.ServiceState) {
-        log("received service state: $state")
+    @Suppress("UNUSED_PARAMETER")
+    fun updateStatusText(oldState: ServiceState?, newState: ServiceState) {
+        log("received service state: $newState")
         runOnUiThread {
             with(binding.serviceRunningText) {
-                text = state.toString()
+                text = newState.toString()
             }
         }
     }
@@ -51,6 +52,11 @@ class MainActivity : ComponentActivity() {
     
     override fun onResume() {
         super.onResume()
-        updateStatusText(ConnectivityChangeListenerService.serviceState)
+        updateStatusText(null, ConnectivityChangeListenerService.serviceState)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        ConnectivityChangeListenerService.serviceListeners.remove(::updateStatusText)
     }
 }

@@ -111,7 +111,7 @@ function setUpResponseBodyCollector(requestId) {
         console.log("filter.onstop");
     };
 
-    console.log("set up filter");
+    console.log("filter.onstart");
 }
 
 browser.webRequest.onBeforeRequest.addListener(details => {
@@ -133,7 +133,7 @@ browser.webRequest.onBeforeRequest.addListener(details => {
     }
     postMessage("onBeforeRequest", details);
     setUpResponseBodyCollector(details.requestId);
-}, filter, ["requestBody"]);
+}, filter, ["blocking", "requestBody"]);
 
 browser.webRequest.onBeforeSendHeaders.addListener(details => postMessage("onBeforeSendHeaders", details), filter, ["requestHeaders"]);
 browser.webRequest.onSendHeaders.addListener(details => postMessage("onSendHeaders", details), filter, ["requestHeaders"]);
