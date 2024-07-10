@@ -61,6 +61,7 @@ import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.GeckoSessionSettings
 import org.mozilla.geckoview.StorageController
 import org.mozilla.geckoview.WebExtension
 
@@ -77,7 +78,9 @@ class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
     private val binding: ActivityGeckoviewBinding by viewBinding(CreateMethod.INFLATE)
     
-    private val session = GeckoSession().apply {
+    private val session = GeckoSession(GeckoSessionSettings.Builder().apply {
+        usePrivateMode(true)
+    }.build()).apply {
         contentDelegate = object : GeckoSession.ContentDelegate {}
     }
     
@@ -179,18 +182,18 @@ class GeckoViewActivity : ComponentActivity() {
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                     menuItem.setOnMenuItemClickListener {
                         ConnectivityChangeListenerService.networkStateLock.withLock {
-                            val activeNetwork = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!.activeNetwork
+                            val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
+                            val activeNetwork = connectivityManager.activeNetwork
                             if (activeNetwork == null) {
                                 ConnectivityChangeListenerService.networkState = null
                             } else {
                                 ConnectivityChangeListenerService.networkState = NetworkState(
                                     network = activeNetwork,
-                                    ssid = "",
+                                    ssid = "debug ssid",
                                     liberating = false,
                                     liberated = false,
                                 )
                             }
-                            
                         }
                         mainHandler.post {
                             session.loadUri(uri)
@@ -217,11 +220,13 @@ class GeckoViewActivity : ComponentActivity() {
             backgroundHandler.post {
                 val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
                 
-                val json = har.toJson()
+                val ssid = ConnectivityChangeListenerService.networkState?.ssid
+                har.comment = ssid
                 val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
                 val format = "yyyy-MM-dd HH-mm"
                 val timestamp = java.time.LocalDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(format))
-                val fileName = "$host $timestamp.har"
+                val fileName = "$ssid $host $timestamp.har"
+                val json = har.toJson()
                 
                 try {
                     copyToSd(this, json, fileName, "application/har+json")
@@ -236,7 +241,8 @@ class GeckoViewActivity : ComponentActivity() {
             }
             true
         }
-       /*
+        
+        /*
        R.id.action_export -> {
             Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show()
             true
@@ -472,6 +478,7 @@ class GeckoViewActivity : ComponentActivity() {
             remoteDebuggingEnabled(BuildConfig.DEBUG)
             consoleOutput(BuildConfig.DEBUG)
             aboutConfigEnabled(BuildConfig.DEBUG)
+            globalPrivacyControlEnabled(false)
         }.build()
         val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) // TODO: move to onCreate
         

@@ -378,8 +378,9 @@ class Liberator(private val clientInit: OkHttpClient.Builder.() -> Unit) {
             }
             //</editor-fold>
             
-            // MediaMarkt / Saturn (?)
+            // MediaMarkt / Saturn
             // media-kunden
+            // verified
             //<editor-fold defaultstate="collapsed">
             // "http://192.0.2.1/fs/customwebauth/login.html?switch_url=http://192.0.2.1/login.html&ap_mac=...&client_mac...&wlan=media-kunden&redirect=am-i-captured.binarynoise.de/"
             "192.0.2.1" == locationUrl.host -> {

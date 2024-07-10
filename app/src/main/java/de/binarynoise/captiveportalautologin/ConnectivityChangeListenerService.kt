@@ -38,6 +38,7 @@ import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrNull
+import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 
 class ConnectivityChangeListenerService : Service() {
@@ -54,11 +55,6 @@ class ConnectivityChangeListenerService : Service() {
     
     private fun updateNofication(oldState: NetworkState?, newState: NetworkState?) {
         // TODO update notification text with current state
-    }
-    
-    init {
-        networkListeners.add(::bindNetworkToProcess)
-        if (BuildConfig.DEBUG) networkListeners.add(::updateNofication)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -107,9 +103,12 @@ class ConnectivityChangeListenerService : Service() {
             if (Build.VERSION.SDK_INT >= 29) FOREGROUND_SERVICE_TYPE_MANIFEST else 0,
         )
         
+        networkListeners.add(::bindNetworkToProcess)
+        if (BuildConfig.DEBUG) networkListeners.add(::updateNofication)
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         
         log("started")
+        check(serviceState.running)
         return START_STICKY
     }
     
@@ -137,10 +136,18 @@ class ConnectivityChangeListenerService : Service() {
             serviceState = serviceState.copy(running = false)
             
             connectivityManager.unregisterNetworkCallback(networkCallback)
+            networkListeners.remove(::bindNetworkToProcess)
+            networkListeners.remove(::updateNofication)
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
             notification?.actions?.forEach { it.actionIntent?.cancel() }
             notification = null
+            
+            backgroundHandler.looper.quit()
+            backgroundHandler.looper.thread.interrupt()
+            
             log("stopped")
+            
+            check(serviceState.running == false)
             
             if (serviceState.restart) {
                 mainHandler.post {
@@ -163,12 +170,6 @@ class ConnectivityChangeListenerService : Service() {
     }.build()
     
     private inner class NetworkCallback : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
-        fun decodeSsid(ssid: String): String {
-            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-                return ssid.substring(1, ssid.length - 1)
-            }
-            return "0x" + ssid
-        }
         
         override fun onAvailable(network: Network) {
             log("onAvailable: $network")
@@ -182,34 +183,46 @@ class ConnectivityChangeListenerService : Service() {
         
         // TODO: proper name
         private fun extracted(network: Network, networkCapabilities: NetworkCapabilities? = null) {
-            val ssid: String? = tryOrNull {
-                val capabilities = networkCapabilities ?: connectivityManager.getNetworkCapabilities(network)
-                capabilities?.transportInfo?.cast<WifiInfo?>()?.ssid?.takeIf { it != WifiManager.UNKNOWN_SSID }
-            }?.let(::decodeSsid)
+            val capabilities = tryOrNull { networkCapabilities ?: connectivityManager.getNetworkCapabilities(network) }
+            val wifiInfo = tryOrNull { capabilities?.transportInfo?.cast<WifiInfo?>() }
+            val ssid: String? = tryOrNull { wifiInfo?.ssid?.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid) }
             
-            if (ssid == null) return
+            if (ssid == null) {
+                capabilities.dump("capabilities")
+                wifiInfo.dump("wifiInfo")
+                log("SSID: null"); return
+            }
             
             networkStateLock.withLock {
                 val newState = NetworkState(network, ssid, false, false)
                 networkState = newState
                 log("SSID: $ssid")
-                backgroundHandler.post(::tryLiberate)
             }
+            
+            backgroundHandler.post(::tryLiberate)
         }
+
+//        override fun onUnavailable() = networkStateLock.withLock {
+//            log("onUnavailable: ${networkState?.network}")
+//            networkState = null
+//        }
         
-        override fun onUnavailable() = networkStateLock.withLock {
-            val oldState = networkState ?: return
-            log("onUnavailable: ${oldState.network}")
-            networkState = null
+        override fun onLost(network: Network) = networkStateLock.withLock {
+            log("onUnavailable: ${network}")
+            if (networkState?.network == network) networkState = null
         }
     }
     
     @WorkerThread
     fun tryLiberate() {
         val network = networkStateLock.withLock {
-            val state = networkState ?: return
-            if (state.liberated) return
-            if (state.liberating) return
+            val state = networkState ?: run { log("no network"); return }
+            if (state.liberated) {
+                log("already liberated"); return
+            }
+            if (state.liberating) {
+                log("already liberating"); return
+            }
             networkState = state.copy(liberating = true)
             state.network
         }
@@ -246,23 +259,25 @@ class ConnectivityChangeListenerService : Service() {
     
     companion object {
         
-        val serviceListeners: MutableSet<(oldState: ServiceState, newState: ServiceState) -> Unit> = WeakSynchronizedSet()
+        val serviceListeners: MutableSet<(oldState: ServiceState, newState: ServiceState) -> Unit> = SynchronizedSet()
         val serviceStateLock: Lock = ReentrantLock(true)
         
         @delegate:GuardedBy("serviceStateLock")
         var serviceState: ServiceState by Delegates.observable(ServiceState(false, false)) { _, oldState, newState ->
             serviceStateLock.withLock {
+                log("notifying ${serviceListeners.size} serviceListeners...")
                 serviceListeners.forEach { it(oldState, newState) }
             }
         }
             private set
         
-        val networkListeners: MutableSet<(oldState: NetworkState?, newState: NetworkState?) -> Unit> = WeakSynchronizedSet()
+        val networkListeners: MutableSet<(oldState: NetworkState?, newState: NetworkState?) -> Unit> = SynchronizedSet()
         val networkStateLock: Lock = ReentrantLock(true)
         
         @delegate:GuardedBy("networkStateLock")
         var networkState: NetworkState? by Delegates.observable<NetworkState?>(null) { _, oldState, newState ->
             networkStateLock.withLock {
+                log("notifying ${networkListeners.size} networkListeners...")
                 networkListeners.forEach { it(oldState, newState) }
             }
         }
@@ -343,4 +358,11 @@ class ConnectivityChangeListenerService : Service() {
     }
 }
 
-fun <T> WeakSynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
+fun <T> SynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(mutableSetOf())
+
+fun decodeSsid(ssid: String): String {
+    if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+        return ssid.substring(1, ssid.length - 1)
+    }
+    return "0x" + ssid
+}

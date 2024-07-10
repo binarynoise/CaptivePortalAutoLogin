@@ -7,6 +7,7 @@ import java.nio.charset.Charset
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.streams.asSequence
 import de.binarynoise.logger.Logger.log
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -15,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Comment
 import org.jsoup.nodes.Document
 
 /**
@@ -123,16 +125,25 @@ fun Response.checkSuccess() {
 /**
  * Retrieves the redirect location from the HTTP response.
  *
+ * Parses `<WISPAccessGatewayParam>`, Location Header and `meta[http-equiv="refresh"]`
+ *
  * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
  * @return The redirect URL from the response header or parsed from the HTML if present, null otherwise.
  */
 fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
     if (!skipStatusCheck) checkSuccess()
+    
+    val html = parseHtml(skipStatusCheck = true)
+    
+    // extract <LoginURL> from <WISPAccessGatewayParam>
+    val url: String? = html.nodeStream(Comment::class.java).asSequence().mapNotNull {
+        Jsoup.parse(it.data.trim()).selectFirst("LoginURL")?.data()
+    }.firstOrNull()
+    if (url != null) return url
+    
     val header = header("Location")
     if (header != null) return header
     
-    // parse html for redirect
-    val html = parseHtml(skipStatusCheck = true)
     val meta = html.selectFirst("""meta[http-equiv="refresh"]""")
     if (meta != null) {
         return meta.attr("content").substringAfter(';').substringAfter('=').trim()

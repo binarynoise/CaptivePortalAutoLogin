@@ -12,9 +12,11 @@ private val serializer = Json {
     this.explicitNulls = false
 }
 
+// http://www.softwareishard.com/blog/har-12-spec/
 @Serializable
 class HAR(
     @SerialName("log") var log: Log,
+    @SerialName("comment") var comment: String? = null,
 ) {
     fun toJson(): String {
         return serializer.encodeToString(this)
