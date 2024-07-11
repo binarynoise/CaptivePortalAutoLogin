@@ -222,3 +222,11 @@ inline fun <T> tryOrNull(block: () -> T): T? {
         return null
     }
 }
+
+inline fun <T> tryOrIgnore(block: () -> T): Unit {
+    try {
+        block()
+    } catch (e: Exception) {
+        log("exception in tryOrIgnore", e)
+    }
+}

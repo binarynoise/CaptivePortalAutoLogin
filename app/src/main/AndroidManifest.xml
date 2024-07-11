@@ -5,20 +5,20 @@
     tools:ignore="UnusedAttribute"
     >
     
-<!--    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />-->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<!--    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />-->
-<!--    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />-->
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-<!--    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />-->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"><!-- to access SSID when running in background --></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"><!-- for fine location permission --></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"><!-- to access SSID --></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"><!-- to access connectivityManager.getNetworkCapabilities(network) to access SSID --></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"><!-- for wifiManager.connectionInfo.ssid --></uses-permission>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"><!-- for connectedDevice service --></uses-permission>
+    <!--<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-<!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"><!-- for connectedDevice service --></uses-permission>
+    <!--<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />-->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"><!-- needed for notifications and Toasts --></uses-permission>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<!--    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />-->
+    <!--<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />-->
     
     <application
         android:allowBackup="true"

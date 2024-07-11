@@ -23,6 +23,7 @@ import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.core.os.postDelayed
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import FilterOnStopDetails
 import by.kirich1409.viewbindingdelegate.CreateMethod
@@ -99,11 +100,11 @@ class GeckoViewActivity : ComponentActivity() {
                     }
                     
                     mainHandler.postDelayed(200) {
-                        geckoView.visibility = View.VISIBLE
+                        geckoView.isVisible = true
                     }
                 } else {
                     notUsingCaptivePortalWifiWarning.isVisible = true
-                    geckoView.visibility = View.INVISIBLE
+                    geckoView.isInvisible = true
                     
                     log("not using captive portal wifi")
                     if (session.isOpen) {

@@ -4,7 +4,7 @@ import java.util.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.withLock
 import kotlin.properties.Delegates
-import android.Manifest.permission
+import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,9 +15,9 @@ import android.app.Service
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
 import android.net.ConnectivityManager
+import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
@@ -38,7 +38,6 @@ import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrNull
-import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 
 class ConnectivityChangeListenerService : Service() {
@@ -50,7 +49,13 @@ class ConnectivityChangeListenerService : Service() {
     
     private fun bindNetworkToProcess(oldState: NetworkState?, newState: NetworkState?) {
         val success = connectivityManager.bindProcessToNetwork(newState?.network)
-        log((if (newState?.network != null) "bound to" else "unbound from") + " network ${newState?.network ?: oldState?.network}): ${if (success) "success" else "failed"}")
+        log(buildString {
+            append(if (newState?.network != null) "bound to" else "unbound from")
+            append(" network ")
+            append(newState?.network ?: oldState?.network)
+            append(": ")
+            append(if (success) "success" else "failed")
+        })
     }
     
     private fun updateNofication(oldState: NetworkState?, newState: NetworkState?) {
@@ -161,56 +166,51 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     private val connectivityManager by lazy { ContextCompat.getSystemService(this, ConnectivityManager::class.java)!! }
-    private val networkCallback = NetworkCallback()
     private val networkRequest = NetworkRequest.Builder().apply {
         if (Build.VERSION.SDK_INT >= 31) {
             setIncludeOtherUidNetworks(true)
         }
         addCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
     }.build()
+    private val networkCallback = createNetworkCallback()
     
-    private inner class NetworkCallback : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
-        
-        override fun onAvailable(network: Network) {
-            log("onAvailable: $network")
-            extracted(network)
-        }
-        
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            log("onCapabilitiesChanged: $network")
-            extracted(network, networkCapabilities)
-        }
-        
-        // TODO: proper name
-        private fun extracted(network: Network, networkCapabilities: NetworkCapabilities? = null) {
-            val capabilities = tryOrNull { networkCapabilities ?: connectivityManager.getNetworkCapabilities(network) }
-            val wifiInfo = tryOrNull { capabilities?.transportInfo?.cast<WifiInfo?>() }
-            val ssid: String? = tryOrNull { wifiInfo?.ssid?.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid) }
-            
-            if (ssid == null) {
-                capabilities.dump("capabilities")
-                wifiInfo.dump("wifiInfo")
-                log("SSID: null"); return
+    private fun createNetworkCallback(): ConnectivityManager.NetworkCallback {
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                log("onAvailable: $network")
+                updateNetworkState(network)
             }
             
-            networkStateLock.withLock {
-                val newState = NetworkState(network, ssid, false, false)
-                networkState = newState
-                log("SSID: $ssid")
+            override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                log("onCapabilitiesChanged: $network")
+                updateNetworkState(network, networkCapabilities)
             }
             
-            backgroundHandler.post(::tryLiberate)
+            override fun onLost(network: Network) = networkStateLock.withLock {
+                log("onUnavailable: ${network}")
+                if (networkState?.network == network) networkState = null
+            }
         }
-
-//        override fun onUnavailable() = networkStateLock.withLock {
-//            log("onUnavailable: ${networkState?.network}")
-//            networkState = null
-//        }
         
-        override fun onLost(network: Network) = networkStateLock.withLock {
-            log("onUnavailable: ${network}")
-            if (networkState?.network == network) networkState = null
+        if (Build.VERSION.SDK_INT >= 31) {
+            return NetworkCallback31(callback)
+        } else return callback
+    }
+    
+    fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities? = null) {
+        val ssid = SsidCompat.getSsid(network, networkCapabilities)
+        if (ssid == null) {
+            log("SSID: null");
+            return
         }
+        
+        networkStateLock.withLock {
+            val newState = NetworkState(network, ssid, false, false)
+            networkState = newState
+            log("SSID: $ssid")
+        }
+        
+        backgroundHandler.post(::tryLiberate)
     }
     
     @WorkerThread
@@ -257,14 +257,85 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    companion object {
+    // includes FLAG_INCLUDE_LOCATION_INFO now avaliable pre API 31
+    @TargetApi(31)
+    class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+        //<editor-fold defaultstate="collapsed" desc="delegates">
+        override fun onAvailable(network: Network) {
+            wrapped.onAvailable(network)
+        }
         
+        override fun onLosing(network: Network, maxMsToLive: Int) {
+            wrapped.onLosing(network, maxMsToLive)
+        }
+        
+        override fun onLost(network: Network) {
+            wrapped.onLost(network)
+        }
+        
+        override fun onUnavailable() {
+            wrapped.onUnavailable()
+        }
+        
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            wrapped.onCapabilitiesChanged(network, networkCapabilities)
+        }
+        
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
+            wrapped.onLinkPropertiesChanged(network, linkProperties)
+        }
+        
+        override fun onBlockedStatusChanged(network: Network, blocked: Boolean) {
+            wrapped.onBlockedStatusChanged(network, blocked)
+        }
+        //</editor-fold>
+    }
+    
+    object SsidCompat {
+        private val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
+        private val connectivityManager by lazy { ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!! }
+        
+        fun getSsid(network: Network, networkCapabilities: NetworkCapabilities?): String? {
+            var ssid: String?
+            
+            // pre API 29, but try anyway
+            ssid = tryOrNull { @Suppress("DEPRECATION") wifiManager.connectionInfo.ssid.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid) }
+            if (ssid != null) {
+                log("got ssid from wifiManager.connectionInfo.ssid: $ssid")
+                return ssid
+            }
+            
+            // API 29+, doesn't always receive ssid on first try
+            if (Build.VERSION.SDK_INT >= 29) {
+                ssid = tryOrNull {
+                    val capabilities = networkCapabilities ?: connectivityManager.getNetworkCapabilities(network)
+                    val wifiInfo = capabilities?.transportInfo?.cast<WifiInfo?>()
+                    wifiInfo?.ssid?.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid)
+                }
+                if (ssid != null) {
+                    log("got ssid from networkCapabilities: $ssid")
+                    return ssid
+                }
+            }
+            
+            return null
+        }
+        
+        fun decodeSsid(ssid: String): String {
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                return ssid.substring(1, ssid.length - 1)
+            }
+            return "0x" + ssid
+        }
+    }
+    
+    companion object {
         val serviceListeners: MutableSet<(oldState: ServiceState, newState: ServiceState) -> Unit> = SynchronizedSet()
         val serviceStateLock: Lock = ReentrantLock(true)
         
         @delegate:GuardedBy("serviceStateLock")
         var serviceState: ServiceState by Delegates.observable(ServiceState(false, false)) { _, oldState, newState ->
-            serviceStateLock.withLock {
+            if (oldState != newState) serviceStateLock.withLock {
                 log("notifying ${serviceListeners.size} serviceListeners...")
                 serviceListeners.forEach { it(oldState, newState) }
             }
@@ -276,7 +347,7 @@ class ConnectivityChangeListenerService : Service() {
         
         @delegate:GuardedBy("networkStateLock")
         var networkState: NetworkState? by Delegates.observable<NetworkState?>(null) { _, oldState, newState ->
-            networkStateLock.withLock {
+            if (oldState != newState) networkStateLock.withLock {
                 log("notifying ${networkListeners.size} networkListeners...")
                 networkListeners.forEach { it(oldState, newState) }
             }
@@ -286,12 +357,13 @@ class ConnectivityChangeListenerService : Service() {
             serviceStateLock.withLock {
                 if (serviceState.running || serviceState.restart) return
                 
-                if (ContextCompat.checkSelfPermission(applicationContext, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    log("Permission not granted: ${permission.ACCESS_FINE_LOCATION}")
-                    Toast.makeText(
-                        applicationContext, "Tried to start service without permission ${permission.ACCESS_FINE_LOCATION}", Toast.LENGTH_LONG
-                    ).show()
-                    return
+                arrayOf(Permissions.fineLocation, Permissions.backgroundLocation).forEach { permission ->
+                    if (!permission.granted(applicationContext)) {
+                        val permissionName = permission.name ?: applicationContext.getString(permission.nameRes ?: 0)
+                        log("Permission not granted: $permissionName")
+                        Toast.makeText(applicationContext, "Tried to start service without permission $permissionName", Toast.LENGTH_LONG).show()
+                        return
+                    }
                 }
                 ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
             }
@@ -359,10 +431,3 @@ class ConnectivityChangeListenerService : Service() {
 }
 
 fun <T> SynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(mutableSetOf())
-
-fun decodeSsid(ssid: String): String {
-    if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
-        return ssid.substring(1, ssid.length - 1)
-    }
-    return "0x" + ssid
-}
