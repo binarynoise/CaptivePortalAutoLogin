@@ -23,3 +23,4 @@ rootProject.name = "CaptivePortalAutoLogin"
 include(":app")
 include(":liberator")
 include(":logger")
+include(":jsonDB")
