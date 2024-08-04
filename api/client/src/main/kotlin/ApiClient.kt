@@ -18,7 +18,7 @@ class ApiClient(val base: HttpUrl) : Api {
     override val har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {
             val json = har.toJson()
-            val response = httpClient.post("har/$name", base) {
+            val response = httpClient.post(base, "har/$name") {
                 post(json.toRequestBody(MEDIA_TYPE_JSON))
             }
             response.checkSuccess()

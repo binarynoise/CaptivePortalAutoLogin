@@ -127,7 +127,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
      */
     fun liberate(): String? {
         try {
-            val response = client.get(portalTestUrl, null)
+            val response = client.get(null, portalTestUrl)
             if (response.getLocation().isNullOrBlank()) {
                 log("not caught in portal")
                 return null
@@ -137,7 +137,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             
             Thread.sleep(1000)
             
-            return client.get(portalTestUrl, null).getLocation()
+            return client.get(null, portalTestUrl).getLocation()
         } catch (_: SocketTimeoutException) {
             return "Timeout"
         }
@@ -163,15 +163,15 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 val networkType = locationUrl.pathSegments.first() // bus~
                 
                 // https://hotspot.dokom21.de/bus~/Index | Cookie: ASP.NET_SessionId=...
-                val response1 = client.get(null, locationUrl)
+                val response1 = client.get(locationUrl, null)
                 
-                val response1b = client.get("/$networkType/Login", response1.requestUrl) // https://hotspot.dokom21.de/bus~/Login/
+                val response1b = client.get(response1.requestUrl, "/$networkType/Login") // https://hotspot.dokom21.de/bus~/Login/
                 
                 val html1 = response1b.parseHtml()
                 
                 val response2 = client.post(
-                    null,
-                    response1b.requestUrl, // https://hotspot.dokom21.de/bus~/Login/
+                    response1b.requestUrl,
+                    null, // https://hotspot.dokom21.de/bus~/Login/
                     mapOf(
                         "__EVENTTARGET" to html1.getInput("__EVENTTARGET"), // leer
                         "__EVENTARGUMENT" to html1.getInput("__EVENTARGUMENT"), // leer
@@ -188,11 +188,11 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 )
                 // https://controller.dokom21.de/portal_api.php?action=authenticate&...
                 val url2 = response2.getLocation() ?: error("no location 2")
-                val response3 = client.get(url2, response2.requestUrl)
+                val response3 = client.get(response2.requestUrl, url2)
                 val url3 = response3.getLocation() ?: error("no location 3") // https://hotspot.dokom21.de/bus~/?...
-                val response4 = client.get(url3, response3.requestUrl)
+                val response4 = client.get(response3.requestUrl, url3)
                 val url4 = response4.getLocation() ?: error("no location 4") // https://hotspot.dokom21.de/bus~/Login
-                val response5 = client.get(url4, response4.requestUrl)
+                val response5 = client.get(response4.requestUrl, url4)
                 response5.checkSuccess()
                 check(response5.readText().contains("Login erfolgreich."))
             }
@@ -202,9 +202,9 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             //<editor-fold defaultstate="collapsed">
             ("portal.wifi.bahn.de" == locationUrl.host || "wifi.bahn.de" == locationUrl.host) //
                     && "/" == locationUrl.encodedPath //
-                    && null == client.get(null, locationUrl).getLocation(true) -> {
+                    && null == client.get(locationUrl, null).getLocation(true) -> {
                 client.post(
-                    "/login", locationUrl, mapOf(
+                    locationUrl, "/login", mapOf(
                         "login" to "oneclick",
                         "oneSubscriptionForm_connect_policy_accept" to "on",
                     )
@@ -213,17 +213,17 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             
             // http://login.wifionice.de/?url=...
             "wifi-bahn.de" == locationUrl.host || "login.wifionice.de" == locationUrl.host -> {
-                val response1 = client.get(null, locationUrl)
+                val response1 = client.get(locationUrl, null)
                 val location1 = response1.getLocation() // https://login.wifionice.de/?url=...
                 
-                val response2 = client.get(location1, response1.requestUrl)
+                val response2 = client.get(response1.requestUrl, location1)
                 val location2 = response2.getLocation() // https://login.wifionice.de/de/ | Cookie: csrf
                 
-                val response3 = client.get(location2, response2.requestUrl)
+                val response3 = client.get(response2.requestUrl, location2)
                 
                 val csrfToken = cookies.find { it.name == "csrf" }?.value ?: error("no csrf")
                 client.post(
-                    null, response3.requestUrl, mapOf(
+                    response3.requestUrl, null, mapOf(
                         "login" to "true",
                         "CSRFToken" to csrfToken,
                     )
@@ -234,11 +234,11 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             // WIFI@DB
             // https://www.hotsplots.de/auth/login.php
             "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.encodedPath -> {
-                val response1 = client.get(location, response.requestUrl)
+                val response1 = client.get(response.requestUrl, location)
                 val html1 = response1.parseHtml()
                 
                 val response3 = client.post(
-                    "https://www.hotsplots.de/auth/login.php", null, mapOf(
+                    null, "https://www.hotsplots.de/auth/login.php", mapOf(
                         "termsOK" to "on",
                         "termsChkbx" to "on",
                         "challenge" to html1.getInput("challenge"),
@@ -257,7 +257,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 var locationW: String? = response3.getLocation()
                 
                 while (locationW != null) {
-                    responseW = client.get(locationW, responseW.requestUrl)
+                    responseW = client.get(responseW.requestUrl, locationW)
                     locationW = responseW.getLocation()
                 }
                 
@@ -279,10 +279,10 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
             (locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident") -> {
                 val site_id = locationUrl.queryParameter("site_id") ?: error("no site_id")
-                val response1 = client.get(null, locationUrl)
+                val response1 = client.get(locationUrl, null)
                 val location1 = response1.getLocation() // https://portal-eu-ffm01.conn4.com/#
                 
-                val response2 = client.get(location1, response1.requestUrl)
+                val response2 = client.get(response1.requestUrl, location1)
                 val token = response2.readText().let { html ->
                     // find and parse
                     // conn4.hotspot.wbsToken = { "token": "...", "urls": { "grant_url": null, "continue_url": null } };
@@ -298,7 +298,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 }
                 
                 val response3 = client.post(
-                    "/wbs/api/v1/create-session/", locationUrl,
+                    locationUrl, "/wbs/api/v1/create-session/",
                     mapOf(
                         "authorization" to "token=$token",
                         "locale" to "de_DE",
@@ -310,7 +310,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 val session = JSONObject(response3.readText()).getString("session") ?: error("no session")
                 
                 val response4 = client.post(
-                    "/wbs/api/v1/register/free/", locationUrl,
+                    locationUrl, "/wbs/api/v1/register/free/",
                     mapOf(
                         "authorization" to "session:$session",
                         "registration_type" to "terms-only",
@@ -325,19 +325,19 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             // "IKEA WiFi"
             //<editor-fold defaultstate="collapsed">
             "yo-wifi.net" == locationUrl.host && "authen" == locationUrl.firstPathSegment -> {
-                val response1 = client.get(location, response.requestUrl)
+                val response1 = client.get(response.requestUrl, location)
                 
                 // https://cp7-wifi.net/?device_name=ide223&user_mac=...&device_hostname=yo-wifi.net&ssid=/#/login
                 val url1 = response1.getLocation() ?: error("no location 1")
                 val mac = response1.requestUrl.queryParameter("user_mac") ?: error("no mac")
                 val deviceName = response1.requestUrl.queryParameter("device_name") ?: error("no deviceName")
                 
-                val response2 = client.get(url1, response1.requestUrl)
+                val response2 = client.get(response1.requestUrl, url1)
                 // html with js form
                 
                 val response3 = client.post(
-                    "/login/tc",
                     response2.requestUrl,
+                    "/login/tc",
                     queryParameters = mapOf(
                         "client_id" to "1",
                         "nasid" to deviceName,
@@ -357,16 +357,16 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 val userid = realm + "1\\" + username + "\\9"
                 
                 val response4 = client.get(
-                    "/authen/login/",
                     response3.requestUrl,
+                    "/authen/login/",
                     mapOf(
                         "userid" to userid,
                         "password" to password,
                     ),
                 )
                 val url4 = response4.getLocation() ?: error("no location 4") // https://cp7-wifi.net/success?
-                val url5 = client.get(url4, response4.requestUrl).getLocation() ?: error("no location 5") // https://cp7-wifi.net/?...#/success
-                client.get(url5, response4.requestUrl).checkSuccess()
+                val url5 = client.get(response4.requestUrl, url4).getLocation() ?: error("no location 5") // https://cp7-wifi.net/?...#/success
+                client.get(response4.requestUrl, url5).checkSuccess()
             }
             //</editor-fold>
             
@@ -379,7 +379,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 val switch_url = locationUrl.queryParameter("switch_url") ?: error("no login_url")
                 val redirect_url = locationUrl.queryParameter("redirect") ?: error("no redirect_url")
                 client.post(
-                    switch_url, locationUrl,
+                    locationUrl, switch_url,
                     mapOf(
                         "del[]" to "on",
                         "redirect_url" to redirect_url,
@@ -395,11 +395,11 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             // https://start.cloudwifi.de/?res=notyet&uamip=...&uamport=...&challenge=...&called=...&ip=...&nasid=...&sessionid=...&userurl=http%3a%2f%2fam-i-captured.binarynoise.de%2f&md=...
             //<editor-fold defaultstate="collapsed">
             "start.cloudwifi.de" == locationUrl.host -> {
-                val response1 = client.get(location, response.requestUrl)
+                val response1 = client.get(response.requestUrl, location)
                 val html1 = response1.parseHtml()
                 
                 val response2 = client.post(
-                    null, locationUrl, mapOf(
+                    locationUrl, null, mapOf(
                         "FX_lang" to html1.getInput("FX_lang"),
                         "FX_loginTemplate" to html1.getInput("FX_loginTemplate"),
                         "FX_loginType" to html1.getInput("FX_loginType"),
@@ -426,11 +426,11 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 // http://192.168.182.1:3990/logon?username=...%3D&password=...&userurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F
                 check(url2.isNotBlank()) { "no url2" }
                 
-                val response3 = client.get(url2, response.requestUrl)
+                val response3 = client.get(response.requestUrl, url2)
                 val url3 = response3.getLocation() ?: error("no url3")
                 val res = url3.toHttpUrl().queryParameter("res")
                 check(res == "success") { "res=$res" }
-                client.get(url3, response.requestUrl).checkSuccess()
+                client.get(response.requestUrl, url3).checkSuccess()
             }
             //</editor-fold>
             
@@ -439,16 +439,16 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             //<editor-fold defaultstate="collapsed">
             // https://hotspot.t-mobile.net/wlan/redirect.do?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
             "hotspot.t-mobile.net" == locationUrl.host && "wlan/redirect.do" == locationUrl.decodedPath -> {
-                val response1 = client.get(location, response.requestUrl)
+                val response1 = client.get(response.requestUrl, location)
                 val url1 = response1.getLocation() ?: error("no url1")
                 // https://hotspot.t-mobile.net/TCOM/hotspot/.../de_DE/index.html?origurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F&ts=...
                 
-                val response2 = client.get(url1, response.requestUrl)
+                val response2 = client.get(response.requestUrl, url1)
                 response2.checkSuccess()
                 
                 TODO("Not implemented yet")
                 
-                val response4 = client.post("https://hotspot.t-mobile.net/wlan/rest/freeLogin", null, mapOf())
+                val response4 = client.post(null, "https://hotspot.t-mobile.net/wlan/rest/freeLogin", mapOf())
                 
                 val json = JSONObject(response4.readText())
                 val loginStatus = json.getJSONObject("user").getString("wlanLoginStatus")
@@ -461,15 +461,15 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             //<editor-fold defaultstate="collapsed">
             "untrusted_guest.lua" == locationUrl.firstPathSegment -> {
                 val base = location.toHttpUrl()
-                client.get("/trustme.lua?accept=", base).checkSuccess()
+                client.get(base, "/trustme.lua?accept=").checkSuccess()
                 
                 Thread.sleep(100)
                 
                 if (true) { // TODO
-                    client.get(portalTestUrl, null).readText()
-                    client.get(portalTestUrl, null).parseHtml()
-                    client.post("https://am-i-captured.binarynoise.de/portal/index.html", null, mapOf("random" to "1")).checkSuccess()
-                    client.get("https://am-i-captured.binarynoise.de/portal/index.html", null, mapOf("random" to "1")).checkSuccess()
+                    client.get(null, portalTestUrl).readText()
+                    client.get(null, portalTestUrl).parseHtml()
+                    client.post(null, "https://am-i-captured.binarynoise.de/portal/index.html", mapOf("random" to "1")).checkSuccess()
+                    client.get(null, "https://am-i-captured.binarynoise.de/portal/index.html", mapOf("random" to "1")).checkSuccess()
                 }
             }
             //</editor-fold>
@@ -478,7 +478,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 log("unknown captive portal: $location")
                 // follow redirects and try again
                 // TODO: recursion limit?
-                inner(client.get(location, response.requestUrl))
+                inner(client.get(response.requestUrl, location))
             }
         }
     }

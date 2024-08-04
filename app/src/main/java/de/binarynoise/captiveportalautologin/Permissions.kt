@@ -31,15 +31,11 @@ object Permissions {
     val notifications = Permission(
         "Send Notifications", "Show a persistent status notification and show little messages at the bottom of the screen",
         { context ->
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                return@Permission true
-            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@Permission true
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                return@Permission
-            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return@Permission
             
             ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         },
@@ -60,13 +56,11 @@ object Permissions {
         "Background Location",
         "Collect the SSID of Portals. Required for the background service",
         { context ->
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                return@Permission true
-            }
+            if (Build.VERSION.SDK_INT < 34) return@Permission true
             ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return@Permission
+            if (Build.VERSION.SDK_INT < 29) return@Permission
             if (!fineLocation.granted(componentActivity)) {
                 Toast.makeText(componentActivity, "Cannot request background location without fine location permission", Toast.LENGTH_LONG).show()
                 return@Permission

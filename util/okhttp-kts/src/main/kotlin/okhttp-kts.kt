@@ -22,15 +22,15 @@ import org.jsoup.nodes.Document
  * Sends a GET request to the specified URL using the provided OkHttpClient.
  *
  * @param url The URL to send the request to. Can be null if context is provided.
- * @param context The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
  * @throws Error if both url and context are null.
  */
 fun OkHttpClient.get(
+    base: HttpUrl?,
     url: String?,
-    context: HttpUrl?,
     queryParameters: Map<String, String> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
@@ -39,9 +39,9 @@ fun OkHttpClient.get(
     }
     val request = Request.Builder().apply {
         val urlBuilder = if (url == null) {
-            context?.newBuilder() ?: throw Error("url and context cannot both be null")
+            base?.newBuilder() ?: throw Error("url and context cannot both be null")
         } else {
-            context?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
+            base?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
         }
         
         queryParameters.forEach { (key, value) ->
@@ -59,7 +59,7 @@ fun OkHttpClient.get(
  * Sends a POST request to the specified URL using the provided OkHttpClient.
  *
  * @param url The URL to send the request to. Can be null if context is provided.
- * @param context The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param content The key-value pairs to include in the request body. Defaults to an empty map.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
@@ -67,8 +67,8 @@ fun OkHttpClient.get(
  * @throws Error if both url and context are null.
  */
 fun OkHttpClient.post(
+    base: HttpUrl?,
     url: String?,
-    context: HttpUrl?,
     content: Map<String, String> = emptyMap(),
     queryParameters: Map<String, String> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
@@ -78,9 +78,9 @@ fun OkHttpClient.post(
     }
     val request = Request.Builder().apply {
         val urlBuilder = if (url == null) {
-            context?.newBuilder() ?: throw Error("url and context cannot both be null")
+            base?.newBuilder() ?: throw Error("url and context cannot both be null")
         } else {
-            context?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
+            base?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
         }
         queryParameters.forEach { (key, value) ->
             urlBuilder.addQueryParameter(key, value)

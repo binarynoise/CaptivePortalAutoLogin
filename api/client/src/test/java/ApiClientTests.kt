@@ -55,10 +55,10 @@ object ApiClientTests {
     @Test
     fun `test hello world`() {
         val client = OkHttpClient()
-        assertEquals("Hello World!", client.get(null, base).readText())
-        assertEquals("api/har/{name} here, name is test", client.get("har/test", apiBase) { method("echo", null) }.readText())
+        assertEquals("Hello World!", client.get(base, null).readText())
+        assertEquals("api/har/{name} here, name is test", client.get(apiBase, "har/test") { method("echo", null) }.readText())
         try {
-            client.post("har/test", apiBase) {
+            client.post(apiBase, "har/test") {
                 post("{}".toRequestBody(MEDIA_TYPE_JSON))
             }.checkSuccess()
             fail("Did not throw")
