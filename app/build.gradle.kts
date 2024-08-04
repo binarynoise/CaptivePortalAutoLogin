@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 android {
@@ -54,6 +54,7 @@ android {
         create("arm64") {
             dimension = "abi"
             ndk.abiFilters.add("arm64-v8a")
+            isDefault = true
         }
         create("x86") {
             dimension = "abi"
@@ -95,15 +96,16 @@ dependencies {
 //    implementation(project(":portalMetadata"))
     implementation(project(":logger"))
     implementation(project(":liberator"))
+    implementation(project(":api:client"))
     
     implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-full:1.5.9")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
     
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 //    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.0.4")

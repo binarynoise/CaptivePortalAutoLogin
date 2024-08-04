@@ -4,7 +4,8 @@ package de.binarynoise.captiveportalautologin
 
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.concurrent.withLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -16,29 +17,37 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
 import androidx.core.os.postDelayed
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import FilterOnStopDetails
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
+import de.binarynoise.captiveportalautologin.api.json.har.Browser
+import de.binarynoise.captiveportalautologin.api.json.har.Cache
+import de.binarynoise.captiveportalautologin.api.json.har.Creator
+import de.binarynoise.captiveportalautologin.api.json.har.Entry
+import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.json.har.Log
+import de.binarynoise.captiveportalautologin.api.json.har.Request
+import de.binarynoise.captiveportalautologin.api.json.har.Response
+import de.binarynoise.captiveportalautologin.api.json.har.Timings
 import de.binarynoise.captiveportalautologin.databinding.ActivityGeckoviewBinding
-import de.binarynoise.captiveportalautologin.json.har.Browser
-import de.binarynoise.captiveportalautologin.json.har.Cache
-import de.binarynoise.captiveportalautologin.json.har.Creator
-import de.binarynoise.captiveportalautologin.json.har.Entry
-import de.binarynoise.captiveportalautologin.json.har.HAR
-import de.binarynoise.captiveportalautologin.json.har.Log
-import de.binarynoise.captiveportalautologin.json.har.Request
-import de.binarynoise.captiveportalautologin.json.har.Response
-import de.binarynoise.captiveportalautologin.json.har.Timings
+import de.binarynoise.captiveportalautologin.json.Request
+import de.binarynoise.captiveportalautologin.json.Response
+import de.binarynoise.captiveportalautologin.json.filter.FilterOnStopDetails
+import de.binarynoise.captiveportalautologin.json.handleRequestHeaders
+import de.binarynoise.captiveportalautologin.json.handleResponseHeaders
+import de.binarynoise.captiveportalautologin.json.setContent
+import de.binarynoise.captiveportalautologin.json.toJson
 import de.binarynoise.captiveportalautologin.json.webRequest.OnAuthRequiredDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnBeforeRedirectDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnBeforeRequestDetails
@@ -77,7 +86,7 @@ private val portalTestHost = "connectivitycheck.gstatic.com"
 
 class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
-    private val binding: ActivityGeckoviewBinding by viewBinding(CreateMethod.INFLATE)
+    private val binding by viewBinding { ActivityGeckoviewBinding.inflate(layoutInflater) }
     
     private val session = GeckoSession(GeckoSessionSettings.Builder().apply {
         usePrivateMode(true)
@@ -94,6 +103,9 @@ class GeckoViewActivity : ComponentActivity() {
             with(binding) {
                 if (newState != null) {
                     notUsingCaptivePortalWifiWarning.isVisible = false
+                    notUsingCaptivePortalWifiWarningService.isVisible = false
+                    notUsingCaptivePortalWifiWarningMobileData.isVisible = false
+                    
                     
                     if (session.isOpen) {
                         session.loadUri(portalTestUrl)
@@ -104,7 +116,12 @@ class GeckoViewActivity : ComponentActivity() {
                     }
                 } else {
                     notUsingCaptivePortalWifiWarning.isVisible = true
-                    geckoView.isInvisible = true
+                    geckoView.isVisible = false
+                    if (serviceStateLock.read { serviceState.running }) {
+                        notUsingCaptivePortalWifiWarningMobileData.isVisible = true
+                    } else {
+                        notUsingCaptivePortalWifiWarningService.isVisible = true
+                    }
                     
                     log("not using captive portal wifi")
                     if (session.isOpen) {
@@ -119,12 +136,21 @@ class GeckoViewActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         
-        
         clearCache()
         
         session.open(runtime)
         binding.geckoView.setSession(session)
         session.loadUri("about:blank")
+        
+        fun handleError(it: Throwable?) {
+            log("Error installing extension", it)
+            mainHandler.post {
+                with(binding) {
+                    geckoError.isVisible = true
+                    geckoView.isVisible = false
+                }
+            }
+        }
         
         try {
             val alwaysReload = true
@@ -140,16 +166,14 @@ class GeckoViewActivity : ComponentActivity() {
                     session.webExtensionController.setMessageDelegate(it, messageDelegate, "browser")
                     it.setMessageDelegate(messageDelegate, "browser")
                     
-                    ConnectivityChangeListenerService.networkListeners.add(::networkListener)
-                    networkListener(null, ConnectivityChangeListenerService.networkState)
+                    networkListeners.add(::networkListener)
+                    networkListener(null, networkStateLock.read { networkState })
                 }
             }, {
-                log("Error installing extension", it)
-                finish()
+                handleError(it)
             })
         } catch (e: Exception) {
-            log("Error installing extension", e)
-            finish()
+            handleError(e)
         }
     }
     
@@ -170,7 +194,7 @@ class GeckoViewActivity : ComponentActivity() {
         
         clearCache()
         
-        ConnectivityChangeListenerService.networkListeners.remove(::networkListener)
+        networkListeners.remove(::networkListener)
         
         super.onDestroy()
     }
@@ -182,13 +206,13 @@ class GeckoViewActivity : ComponentActivity() {
                 menu.add(title).also { menuItem ->
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                     menuItem.setOnMenuItemClickListener {
-                        ConnectivityChangeListenerService.networkStateLock.withLock {
-                            val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
-                            val activeNetwork = connectivityManager.activeNetwork
+                        val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
+                        val activeNetwork = connectivityManager.activeNetwork
+                        networkStateLock.write {
                             if (activeNetwork == null) {
-                                ConnectivityChangeListenerService.networkState = null
+                                networkState = null
                             } else {
-                                ConnectivityChangeListenerService.networkState = NetworkState(
+                                networkState = NetworkState(
                                     network = activeNetwork,
                                     ssid = "debug ssid",
                                     liberating = false,
@@ -221,11 +245,11 @@ class GeckoViewActivity : ComponentActivity() {
             backgroundHandler.post {
                 val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
                 
-                val ssid = ConnectivityChangeListenerService.networkState?.ssid
+                val ssid = networkState?.ssid
                 har.comment = ssid
                 val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
-                val format = "yyyy-MM-dd HH-mm"
-                val timestamp = java.time.LocalDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern(format))
+                val format = DateTimeFormatter.ISO_INSTANT
+                val timestamp = java.time.LocalDateTime.now(ZoneId.of("UTC")).format(format)
                 val fileName = "$ssid $host $timestamp.har"
                 val json = har.toJson()
                 
@@ -344,7 +368,7 @@ class GeckoViewActivity : ComponentActivity() {
                     return
                 }
                 is JSONObject -> {
-                    //                    details.dump("details")
+//                    details.dump("details")
                 }
                 is JSONArray -> {
                     if (details.length() == 1 && details.get(0) is String) {

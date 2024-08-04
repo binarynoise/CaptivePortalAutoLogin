@@ -12,6 +12,14 @@
     >
     
     <TextView
+        android:id="@+id/abiMismatchError"
+        style="@style/CaptivePortalAutoLogin.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ABI mismatch. Install the correct apk!"
+        />
+    
+    <TextView
         android:id="@+id/serviceRunningText"
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"

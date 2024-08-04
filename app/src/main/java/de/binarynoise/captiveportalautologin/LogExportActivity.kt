@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import androidx.activity.ComponentActivity
-import by.kirich1409.viewbindingdelegate.CreateMethod
+
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityLogExportBinding
 import de.binarynoise.captiveportalautologin.databinding.ItemLogExportBinding
@@ -19,7 +19,7 @@ import de.binarynoise.logger.Logger.log
 
 class LogExportActivity : ComponentActivity() {
     
-    private val binding: ActivityLogExportBinding by viewBinding(CreateMethod.INFLATE)
+    private val binding by viewBinding { ActivityLogExportBinding.inflate(layoutInflater) }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

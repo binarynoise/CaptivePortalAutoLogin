@@ -2,7 +2,8 @@ package de.binarynoise.captiveportalautologin
 
 import java.util.*
 import java.util.concurrent.locks.*
-import kotlin.concurrent.withLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.properties.Delegates
 import android.annotation.TargetApi
 import android.app.Notification
@@ -23,6 +24,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
+import android.net.wifi.WifiSsid
 import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
@@ -68,11 +70,11 @@ class ConnectivityChangeListenerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log("onStartCommand")
         
-        serviceStateLock.withLock {
+        serviceStateLock.write {
             if (serviceState.running) {
                 if (intent != null && intent.extras != null) {
                     if (intent.hasExtra("retry") && intent.extras!!.getBoolean("retry")) {
-                        val network = networkState?.network
+                        val network = networkStateLock.read { networkState?.network }
                         if (network != null) {
                             backgroundHandler.post(::tryLiberate)
                         } else {
@@ -113,7 +115,6 @@ class ConnectivityChangeListenerService : Service() {
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         
         log("started")
-        check(serviceState.running)
         return START_STICKY
     }
     
@@ -137,7 +138,7 @@ class ConnectivityChangeListenerService : Service() {
         super.onDestroy()
         log("onDestroy")
         
-        serviceStateLock.withLock {
+        serviceStateLock.write {
             serviceState = serviceState.copy(running = false)
             
             connectivityManager.unregisterNetworkCallback(networkCallback)
@@ -152,12 +153,11 @@ class ConnectivityChangeListenerService : Service() {
             
             log("stopped")
             
-            check(serviceState.running == false)
-            
             if (serviceState.restart) {
                 mainHandler.post {
                     ContextCompat.startForegroundService(
-                        applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java)
+                        applicationContext,
+                        Intent(applicationContext, ConnectivityChangeListenerService::class.java),
                     )
                 }
                 log("scheduled restart")
@@ -186,7 +186,7 @@ class ConnectivityChangeListenerService : Service() {
                 updateNetworkState(network, networkCapabilities)
             }
             
-            override fun onLost(network: Network) = networkStateLock.withLock {
+            override fun onLost(network: Network) = networkStateLock.write {
                 log("onUnavailable: ${network}")
                 if (networkState?.network == network) networkState = null
             }
@@ -204,10 +204,9 @@ class ConnectivityChangeListenerService : Service() {
             return
         }
         
-        networkStateLock.withLock {
-            val newState = NetworkState(network, ssid, false, false)
-            networkState = newState
+        networkStateLock.write {
             log("SSID: $ssid")
+            networkState = NetworkState(network, ssid, false, false)
         }
         
         backgroundHandler.post(::tryLiberate)
@@ -215,7 +214,7 @@ class ConnectivityChangeListenerService : Service() {
     
     @WorkerThread
     fun tryLiberate() {
-        val network = networkStateLock.withLock {
+        val network = networkStateLock.write {
             val state = networkState ?: run { log("no network"); return }
             if (state.liberated) {
                 log("already liberated"); return
@@ -231,13 +230,13 @@ class ConnectivityChangeListenerService : Service() {
         t.show()
         
         try {
-            val newLocation = Liberator { this.socketFactory(network.socketFactory) }.liberate()
+            val newLocation = Liberator { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) }.liberate()
             
             if (newLocation == null) {
                 Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
                 t.cancel()
                 log("broke out of the portal")
-                networkStateLock.withLock {
+                networkStateLock.write {
                     networkState = networkState?.copy(liberated = true)
                 }
             } else {
@@ -251,7 +250,7 @@ class ConnectivityChangeListenerService : Service() {
             t.cancel()
             Toast.makeText(applicationContext, "Failed to liberate: ${e::class.simpleName} - $message", Toast.LENGTH_LONG).show()
         } finally {
-            networkStateLock.withLock {
+            networkStateLock.write {
                 networkState = networkState?.copy(liberating = false)
             }
         }
@@ -295,11 +294,13 @@ class ConnectivityChangeListenerService : Service() {
         private val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
         private val connectivityManager by lazy { ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!! }
         
+        const val UNKNOWN_SSID = "<unknown ssid>"
+        
         fun getSsid(network: Network, networkCapabilities: NetworkCapabilities?): String? {
             var ssid: String?
             
             // pre API 29, but try anyway
-            ssid = tryOrNull { @Suppress("DEPRECATION") wifiManager.connectionInfo.ssid.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid) }
+            ssid = tryOrNull { @Suppress("DEPRECATION") wifiManager.connectionInfo.ssid.takeIf { it != UNKNOWN_SSID }?.let(::decodeSsid) }
             if (ssid != null) {
                 log("got ssid from wifiManager.connectionInfo.ssid: $ssid")
                 return ssid
@@ -310,7 +311,7 @@ class ConnectivityChangeListenerService : Service() {
                 ssid = tryOrNull {
                     val capabilities = networkCapabilities ?: connectivityManager.getNetworkCapabilities(network)
                     val wifiInfo = capabilities?.transportInfo?.cast<WifiInfo?>()
-                    wifiInfo?.ssid?.takeIf { it != WifiManager.UNKNOWN_SSID }?.let(::decodeSsid)
+                    wifiInfo?.ssid?.takeIf { it != UNKNOWN_SSID }?.let(::decodeSsid)
                 }
                 if (ssid != null) {
                     log("got ssid from networkCapabilities: $ssid")
@@ -331,11 +332,11 @@ class ConnectivityChangeListenerService : Service() {
     
     companion object {
         val serviceListeners: MutableSet<(oldState: ServiceState, newState: ServiceState) -> Unit> = SynchronizedSet()
-        val serviceStateLock: Lock = ReentrantLock(true)
+        val serviceStateLock = ReentrantReadWriteLock(true)
         
         @delegate:GuardedBy("serviceStateLock")
         var serviceState: ServiceState by Delegates.observable(ServiceState(false, false)) { _, oldState, newState ->
-            if (oldState != newState) serviceStateLock.withLock {
+            if (oldState != newState) serviceStateLock.read {
                 log("notifying ${serviceListeners.size} serviceListeners...")
                 serviceListeners.forEach { it(oldState, newState) }
             }
@@ -343,37 +344,34 @@ class ConnectivityChangeListenerService : Service() {
             private set
         
         val networkListeners: MutableSet<(oldState: NetworkState?, newState: NetworkState?) -> Unit> = SynchronizedSet()
-        val networkStateLock: Lock = ReentrantLock(true)
+        val networkStateLock = ReentrantReadWriteLock(true)
         
         @delegate:GuardedBy("networkStateLock")
         var networkState: NetworkState? by Delegates.observable<NetworkState?>(null) { _, oldState, newState ->
-            if (oldState != newState) networkStateLock.withLock {
+            if (oldState != newState) {
                 log("notifying ${networkListeners.size} networkListeners...")
                 networkListeners.forEach { it(oldState, newState) }
             }
         }
         
-        fun start() {
-            serviceStateLock.withLock {
-                if (serviceState.running || serviceState.restart) return
-                
-                arrayOf(Permissions.fineLocation, Permissions.backgroundLocation).forEach { permission ->
-                    if (!permission.granted(applicationContext)) {
-                        val permissionName = permission.name ?: applicationContext.getString(permission.nameRes ?: 0)
-                        log("Permission not granted: $permissionName")
-                        Toast.makeText(applicationContext, "Tried to start service without permission $permissionName", Toast.LENGTH_LONG).show()
-                        return
-                    }
+        fun start() = serviceStateLock.read {
+            if (serviceState.running || serviceState.restart) return
+            arrayOf(Permissions.fineLocation, Permissions.backgroundLocation).forEach { permission ->
+                if (!permission.granted(applicationContext)) {
+                    val permissionName = permission.name ?: applicationContext.getString(permission.nameRes ?: 0)
+                    log("Permission not granted: $permissionName")
+                    Toast.makeText(applicationContext, "Tried to start service without permission $permissionName", Toast.LENGTH_LONG).show()
+                    return
                 }
-                ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
             }
+            ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
         }
         
         fun stop() {
             applicationContext.stopService(Intent(applicationContext, ConnectivityChangeListenerService::class.java))
         }
         
-        fun restart() {
+        fun restart() = serviceStateLock.read {
             if (serviceState.running) {
                 val intent = Intent(applicationContext, ConnectivityChangeListenerService::class.java)
                 intent.putExtra("restart", true)

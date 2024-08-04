@@ -1,20 +1,17 @@
 package de.binarynoise.captiveportalautologin
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.activity.ComponentActivity
-import androidx.annotation.StringRes
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import by.kirich1409.viewbindingdelegate.CreateMethod
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityPermissionsBinding
 import de.binarynoise.captiveportalautologin.databinding.ItemPermissionBinding
 
 class PermissionActivity : ComponentActivity() {
-    private val binding: ActivityPermissionsBinding by viewBinding(CreateMethod.INFLATE)
+    private val binding by viewBinding { ActivityPermissionsBinding.inflate(layoutInflater) }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -1,15 +1,19 @@
 package de.binarynoise.captiveportalautologin
 
+import kotlin.concurrent.read
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import by.kirich1409.viewbindingdelegate.CreateMethod
+import androidx.core.view.isVisible
+
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.databinding.ActivityMainBinding
 import de.binarynoise.captiveportalautologin.util.startActivity
+import de.binarynoise.logger.Logger.log
 
 class MainActivity : ComponentActivity() {
-    private val binding: ActivityMainBinding by viewBinding(CreateMethod.INFLATE)
+    private val binding by viewBinding { ActivityMainBinding.inflate(layoutInflater) }
     
     @Suppress("UNUSED_PARAMETER")
     fun updateStatusText(oldState: ServiceState?, newState: ServiceState) {
@@ -27,20 +31,27 @@ class MainActivity : ComponentActivity() {
         
         ConnectivityChangeListenerService.serviceListeners.add(::updateStatusText)
         
-        binding.startServiceButton.setOnClickListener {
-            ConnectivityChangeListenerService.restart()
-        }
-        binding.stopServiceButton.setOnClickListener {
-            ConnectivityChangeListenerService.stop()
-        }
-        binding.managePermissionsButton.setOnClickListener {
-            startActivity<PermissionActivity>()
-        }
-        binding.captureLoginButton.setOnClickListener {
-            startActivity<GeckoViewActivity>()
-        }
-        binding.exportLogsButton.setOnClickListener {
-            startActivity<LogExportActivity>()
+        with(binding) {
+            startServiceButton.setOnClickListener {
+                ConnectivityChangeListenerService.restart()
+            }
+            stopServiceButton.setOnClickListener {
+                ConnectivityChangeListenerService.stop()
+            }
+            managePermissionsButton.setOnClickListener {
+                startActivity<PermissionActivity>()
+            }
+            captureLoginButton.setOnClickListener {
+                startActivity<GeckoViewActivity>()
+            }
+            exportLogsButton.setOnClickListener {
+                startActivity<LogExportActivity>()
+            }
+            
+            val deviceIs64Bit = Build.SUPPORTED_ABIS.any { abi -> abi.contains("64") }
+            val librariesAre64Bit = applicationInfo.nativeLibraryDir.contains("64")
+            log("device is 64 bit: $deviceIs64Bit, libraries are 64 bit: $librariesAre64Bit")
+            abiMismatchError.isVisible = deviceIs64Bit != librariesAre64Bit
         }
         
         if (intent.getBooleanExtra("startService", true)) {
@@ -50,7 +61,7 @@ class MainActivity : ComponentActivity() {
     
     override fun onResume() {
         super.onResume()
-        updateStatusText(null, ConnectivityChangeListenerService.serviceState)
+        updateStatusText(null, ConnectivityChangeListenerService.serviceStateLock.read { ConnectivityChangeListenerService.serviceState })
     }
     
     override fun onDestroy() {

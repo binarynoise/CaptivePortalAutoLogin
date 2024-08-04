@@ -1,5 +1,7 @@
 <manifest
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
     
     <application>
         
@@ -7,7 +9,15 @@
             android:name=".ExperimentActivity"
             android:exported="true"
             />
-    
-    
+        
+        <!-- Get rid of stuff -->
+        <!--suppress AndroidDomInspection -->
+        <activity-alias
+            android:name="leakcanary.internal.activity.LeakLauncherActivity"
+            android:exported="true"
+            android:targetActivity="leakcanary.internal.activity.LeakActivity"
+            >
+            <intent-filter tools:node="removeAll" />
+        </activity-alias>
     </application>
 </manifest>

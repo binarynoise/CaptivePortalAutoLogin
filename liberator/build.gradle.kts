@@ -13,6 +13,7 @@ android {
 
 dependencies {
     implementation(project(":logger"))
+    implementation(project(":util:okhttp-kts"))
     
     implementation("org.jsoup:jsoup:1.18.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

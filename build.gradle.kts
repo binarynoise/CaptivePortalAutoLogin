@@ -15,7 +15,7 @@ val javaVersion = JavaVersion.VERSION_17
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:8.5.0")
+        classpath("com.android.tools.build:gradle:8.5.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath("org.kohsuke:github-api:1.321")
     }
@@ -162,21 +162,30 @@ allprojects {
                     disable += "MissingApplicationIcon"
                     disable += "UnusedAttribute"
                 }
+                
+                packaging {
+                    resources.excludes += listOf(
+                        "**/*.kotlin_builtins",
+                        "**/*.kotlin_metadata",
+                        "**/*.kotlin_module",
+                        "kotlin-tooling-metadata.json",
+                    )
+                }
             }
         }
         
         if (isAndroidLib) {
-            val common = extensions.getByType<LibraryExtension>()
-            with(common) {
+            val library = extensions.getByType<LibraryExtension>()
+            with(library) {
                 compileSdk = 34
             }
         }
         
         if (isAndroid) {
             val android = extensions.getByType<BaseExtension>()
-            var logString: String? = null
             
             tasks.register("createGithubRelease") {
+                var logString: String? = null
                 val properties = Properties()
                 val file = rootProject.file("local.properties")
                 if (file.exists()) {
@@ -227,15 +236,6 @@ allprojects {
                         println(logString)
                     }
                 }
-            }
-            
-            android.packagingOptions {
-                resources.excludes += listOf(
-                    "**/*.kotlin_builtins",
-                    "**/*.kotlin_metadata",
-                    "**/*.kotlin_module",
-                    "kotlin-tooling-metadata.json",
-                )
             }
         }
         

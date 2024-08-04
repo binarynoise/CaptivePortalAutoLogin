@@ -1,3 +1,5 @@
+package de.binarynoise.captiveportalautologin.json.filter
+
 import kotlinx.serialization.SerialName
 import org.json.JSONObject
 
