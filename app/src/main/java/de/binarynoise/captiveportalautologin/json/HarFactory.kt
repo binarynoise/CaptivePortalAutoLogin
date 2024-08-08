@@ -201,7 +201,20 @@ fun Response.handleResponseHeaders(responseHeaders: Array<HttpHeader>?) {
 fun Response.fillInCookies(responseHeaders: Array<HttpHeader>) {
     val newCookies = responseHeaders.asSequence()
         .filter { it.name.contains("Cookie", ignoreCase = true) }
-        .flatMap { HttpCookie.parse(it.value) }
+        .flatMap { it.value?.lineSequence() ?: emptySequence() }
+        .flatMap {
+            try {
+                HttpCookie.parse(it)
+            } catch (e: Exception) {
+                try {
+                    log("Failed to parse cookie: ${it}, trying fallback")
+                    HttpCookie.parse(it.substringBefore(";"))
+                } catch (e: Exception) {
+                    log("Failed to parse cookie, fallback failed")
+                    emptyList<HttpCookie>()
+                }
+            }
+        }
         .map(::Cookie)
         .toList()
     val modified = cookies.addAll(newCookies)

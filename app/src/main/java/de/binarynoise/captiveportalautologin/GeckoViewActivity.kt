@@ -2,7 +2,6 @@
 
 package de.binarynoise.captiveportalautologin
 
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -105,6 +104,7 @@ class GeckoViewActivity : ComponentActivity() {
                     notUsingCaptivePortalWifiWarning.isVisible = false
                     notUsingCaptivePortalWifiWarningService.isVisible = false
                     notUsingCaptivePortalWifiWarningMobileData.isVisible = false
+                    notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = false
                     
                     
                     if (session.isOpen) {
@@ -116,6 +116,7 @@ class GeckoViewActivity : ComponentActivity() {
                     }
                 } else {
                     notUsingCaptivePortalWifiWarning.isVisible = true
+                    notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = true
                     geckoView.isVisible = false
                     if (serviceStateLock.read { serviceState.running }) {
                         notUsingCaptivePortalWifiWarningMobileData.isVisible = true
@@ -142,7 +143,7 @@ class GeckoViewActivity : ComponentActivity() {
         binding.geckoView.setSession(session)
         session.loadUri("about:blank")
         
-        fun handleError(it: Throwable?) {
+        fun handleError(it: Throwable) {
             log("Error installing extension", it)
             mainHandler.post {
                 with(binding) {
@@ -170,7 +171,7 @@ class GeckoViewActivity : ComponentActivity() {
                     networkListener(null, networkStateLock.read { networkState })
                 }
             }, {
-                handleError(it)
+                handleError(it!!)
             })
         } catch (e: Exception) {
             handleError(e)
@@ -229,8 +230,10 @@ class GeckoViewActivity : ComponentActivity() {
             }
             
             addLoadSiteMenuEntry(menu, "about:config", "about:config")
-            addLoadSiteMenuEntry(menu, "load form", "https://am-i-captured.binarynoise.de/portal/")
-            addLoadSiteMenuEntry(menu, "test ws", "http://192.168.0.95:3000/")
+            addLoadSiteMenuEntry(menu, "load form", "http://am-i-captured.binarynoise.de/portal/")
+            addLoadSiteMenuEntry(menu, "load form https", "https://am-i-captured.binarynoise.de/portal/")
+//            addLoadSiteMenuEntry(menu, "test ws", "http://192.168.0.95:3000/")
+            addLoadSiteMenuEntry(menu, "jstest", "http://dev.jeffersonscher.com/jstest.asp")
         }
         return super.onCreateOptionsMenu(menu)
     }
@@ -248,8 +251,7 @@ class GeckoViewActivity : ComponentActivity() {
                 val ssid = networkState?.ssid
                 har.comment = ssid
                 val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
-                val format = DateTimeFormatter.ISO_INSTANT
-                val timestamp = java.time.LocalDateTime.now(ZoneId.of("UTC")).format(format)
+                val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
                 val fileName = "$ssid $host $timestamp.har"
                 val json = har.toJson()
                 

@@ -54,7 +54,6 @@ android {
         create("arm64") {
             dimension = "abi"
             ndk.abiFilters.add("arm64-v8a")
-            isDefault = true
         }
         create("x86") {
             dimension = "abi"
@@ -67,6 +66,7 @@ android {
         create("universal") {
             dimension = "abi"
             // no filters
+            isDefault = true
         }
     }
     
@@ -98,9 +98,9 @@ dependencies {
     implementation(project(":liberator"))
     implementation(project(":api:client"))
     
-    implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
     
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")

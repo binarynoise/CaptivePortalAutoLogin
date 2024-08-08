@@ -1,6 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
 import java.io.FileInputStream
+import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
@@ -66,6 +69,7 @@ allprojects {
 //        if (isKotlinLib) println("kotlin lib")
 //        if (isKotlinAndroid) println("kotlin android")
         
+        val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         val commitCount = getCommitCount()
         val commitHash = getCommitHash()
         val workingTreeClean = getWorkingTreeClean()
@@ -108,7 +112,7 @@ allprojects {
                 
                 defaultConfig {
                     versionCode = commitCount
-                    versionName = "$commitCount${if (workingTreeClean) "-" else "+"}$commitHash"
+                    versionName = "$commitCount${if (workingTreeClean) "-" else "+"}$commitHash-$date"
                     
                     if (isAndroidLib) {
 //                        proguardFiles("../proguard-rules.pro", "proguard-rules.pro")
@@ -251,7 +255,7 @@ allprojects {
         if (isAndroid || isAndroidLib) {
             dependencies {
 //                add("compileOnly", "de.robv.android.xposed:api:82")
-                add("implementation", "androidx.annotation:annotation:1.8.0")
+                add("implementation", "androidx.annotation:annotation:1.8.1")
             }
         }
         
@@ -327,10 +331,9 @@ fun Project.getAllCommitsPushedExec(): ExecOutput {
         isIgnoreExitValue = true
     }
 }
+fun Project.getCommitCount() = try { getCommitCountExec().standardOutput.asText.get().trim().toInt() } catch (e: Exception) { 0 }
 
-fun Project.getCommitCount() = getCommitCountExec().standardOutput.asText.get().trim().toInt()
-
-fun Project.getCommitHash() = getCommitHashExec().standardOutput.asText.get().trim()
+fun Project.getCommitHash() = try { getCommitHashExec().standardOutput.asText.get().trim() } catch (e: Exception) { "" }
 
 fun Project.getWorkingTreeClean() = getWorkingTreeCleanExec().result.orNull?.exitValue == 0
 

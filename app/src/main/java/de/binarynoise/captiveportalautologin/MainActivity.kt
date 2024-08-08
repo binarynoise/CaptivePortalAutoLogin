@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.isVisible
 
 import by.kirich1409.viewbindingdelegate.viewBinding
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.databinding.ActivityMainBinding
 import de.binarynoise.captiveportalautologin.util.startActivity
@@ -19,8 +20,17 @@ class MainActivity : ComponentActivity() {
     fun updateStatusText(oldState: ServiceState?, newState: ServiceState) {
 //        log("received service state: $newState")
         runOnUiThread {
-            with(binding.serviceRunningText) {
-                text = newState.toString()
+            with(binding) {
+                serviceStateText.text = newState.toString()
+            }
+        }
+    }
+    
+    @Suppress("UNUSED_PARAMETER")
+    fun updateNetworkText(oldState: NetworkState?, newState: NetworkState?) {
+        runOnUiThread {
+            with(binding) {
+                networkStateText.text = newState.toString()
             }
         }
     }
@@ -30,6 +40,7 @@ class MainActivity : ComponentActivity() {
         setContentView(binding.root)
         
         ConnectivityChangeListenerService.serviceListeners.add(::updateStatusText)
+        ConnectivityChangeListenerService.networkListeners.add(::updateNetworkText)
         
         with(binding) {
             startServiceButton.setOnClickListener {
@@ -67,5 +78,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         ConnectivityChangeListenerService.serviceListeners.remove(::updateStatusText)
+        ConnectivityChangeListenerService.networkListeners.remove(::updateNetworkText)
     }
 }

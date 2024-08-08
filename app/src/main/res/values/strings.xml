@@ -6,6 +6,7 @@
     <string name="not_using_captive_portal_wifi_warning">Captive portal not detected.</string>
     <string name="not_using_captive_portal_wifi_warning_service">Enable the Service and try again.</string>
     <string name="not_using_captive_portal_wifi_warning_mobile_data">Disable mobile data and try again.</string>
+    <string name="not_using_captive_portal_wifi_warning_already_liberated">The network could also be already liberated.</string>
     <string name="start_service">(Re-)Start Service</string>
     <string name="stop_service">Stop Service</string>
     <string name="capture_captive_portal_login">Capture Captive Portal Login</string>

@@ -22,6 +22,7 @@ rootProject.name = "CaptivePortalAutoLogin"
 
 include(":app")
 include(":liberator")
+include(":linux")
 include(":logger")
 include(":fileDB")
 include(":api")

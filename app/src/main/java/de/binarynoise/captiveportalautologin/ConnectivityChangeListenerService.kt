@@ -24,7 +24,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
-import android.net.wifi.WifiSsid
 import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
@@ -34,6 +33,7 @@ import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.SsidCompat.connectivityManager
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
@@ -50,7 +50,7 @@ class ConnectivityChangeListenerService : Service() {
     private val channelId = "ConnectivityChangeListenerService"
     
     private fun bindNetworkToProcess(oldState: NetworkState?, newState: NetworkState?) {
-        if(oldState?.network == newState?.network) return
+        if (oldState?.network == newState?.network) return
         
         val success = connectivityManager.bindProcessToNetwork(newState?.network)
         log(buildString {
@@ -144,6 +144,7 @@ class ConnectivityChangeListenerService : Service() {
             serviceState = serviceState.copy(running = false)
             
             connectivityManager.unregisterNetworkCallback(networkCallback)
+            networkState = null
             networkListeners.remove(::bindNetworkToProcess)
             networkListeners.remove(::updateNofication)
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -167,7 +168,6 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    private val connectivityManager by lazy { ContextCompat.getSystemService(this, ConnectivityManager::class.java)!! }
     private val networkRequest = NetworkRequest.Builder().apply {
         if (Build.VERSION.SDK_INT >= 31) {
             setIncludeOtherUidNetworks(true)
@@ -207,6 +207,8 @@ class ConnectivityChangeListenerService : Service() {
         }
         
         networkStateLock.write {
+            if (networkState?.network == network) return
+            
             log("SSID: $ssid")
             networkState = NetworkState(network, ssid, false, false)
         }
@@ -232,14 +234,20 @@ class ConnectivityChangeListenerService : Service() {
         t.show()
         
         try {
-            val newLocation = Liberator { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) }.liberate()
+            val (newLocation, tried) = Liberator { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) }.liberate()
             
             if (newLocation == null) {
-                Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
-                t.cancel()
-                log("broke out of the portal")
-                networkStateLock.write {
-                    networkState = networkState?.copy(liberated = true)
+                if (tried) {
+                    Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
+                    t.cancel()
+                    log("broke out of the portal")
+                    networkStateLock.write {
+                        networkState = networkState?.copy(liberated = true)
+                    }
+                } else {
+                    log("not caught in portal")
+                    t.cancel()
+                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_LONG).show()
                 }
             } else {
                 log("Failed to liberate: still in portal: $newLocation")
@@ -258,7 +266,7 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    // includes FLAG_INCLUDE_LOCATION_INFO now avaliable pre API 31
+    // FLAG_INCLUDE_LOCATION_INFO not avaliable pre API 31
     @TargetApi(31)
     class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
         //<editor-fold defaultstate="collapsed" desc="delegates">
@@ -293,8 +301,8 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     object SsidCompat {
-        private val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
-        private val connectivityManager by lazy { ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!! }
+        val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
+        val connectivityManager by lazy { ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!! }
         
         const val UNKNOWN_SSID = "<unknown ssid>"
         

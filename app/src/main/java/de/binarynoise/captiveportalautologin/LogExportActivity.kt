@@ -25,7 +25,7 @@ class LogExportActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         
-        val logFiles = Logger.logFolder.listFiles()?.sortedByDescending { it.name } ?: emptyList()
+        val logFiles = Logger.Config.folder!!.listFiles()?.sortedByDescending { it.name } ?: emptyList()
         
         log("Found ${logFiles.size} log files")
         

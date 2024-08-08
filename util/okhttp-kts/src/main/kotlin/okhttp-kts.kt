@@ -134,12 +134,6 @@ fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
     
     val html = parseHtml(skipStatusCheck = true)
     
-    // extract <LoginURL> from <WISPAccessGatewayParam>
-    val url: String? = html.nodeStream(Comment::class.java).asSequence().mapNotNull {
-        Jsoup.parse(it.data.trim()).selectFirst("LoginUrl")?.text()
-    }.firstOrNull()
-    if (url != null) return url
-    
     val header = header("Location")
     if (header != null) return header
     
@@ -148,6 +142,14 @@ fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
         val metaUrl = meta.attr("content").substringAfter(';').substringAfter('=').trim()
         return metaUrl
     }
+    
+    // extract <LoginURL> from <WISPAccessGatewayParam>
+    val url: String? = html.nodeStream(Comment::class.java).asSequence().mapNotNull {
+        Jsoup.parse(it.data.trim()).selectFirst("LoginUrl")?.text()
+    }.firstOrNull()
+    if (url != null) return url
+    
+    
     return null
 }
 
@@ -196,3 +198,15 @@ val HttpUrl.firstPathSegment
  */
 fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
     newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")
+
+fun Response.followRedirects(client: OkHttpClient): Response {
+    val location = this.getLocation(false)
+    if (location == null) return this
+    
+    val newRequest = this.request.newBuilder()
+    if (code == 303) {
+        newRequest.method("GET", null)
+    }
+    
+    return client.newCall(newRequest.build()).execute().followRedirects(client)
+}

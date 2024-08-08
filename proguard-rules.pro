@@ -18,6 +18,10 @@
     public <fields>;
 }
 
+-keep class de.binarynoise.** {
+    public static void main(***);
+}
+
 
 -keepclassmembers, allowoptimization class ** extends androidx.viewbinding.ViewBinding {
 	public static ** inflate(android.view.LayoutInflater);

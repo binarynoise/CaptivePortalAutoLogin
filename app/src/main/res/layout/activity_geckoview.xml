@@ -43,6 +43,17 @@
         />
     
     <TextView
+        android:id="@+id/notUsingCaptivePortalWifiWarningAlreadyLiberated"
+        style="@style/CaptivePortalAutoLogin.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:paddingHorizontal="@dimen/padding"
+        android:text="@string/not_using_captive_portal_wifi_warning_already_liberated"
+        tools:visibility="visible"
+        />
+    
+    <TextView
         android:id="@+id/geckoError"
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"

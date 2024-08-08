@@ -10,58 +10,60 @@ import java.lang.reflect.Modifier
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.reflect.KClass
-import android.os.BaseBundle
-import android.util.Log
-import android.util.Log.getStackTraceString
-import android.util.SparseArray
-import android.util.SparseBooleanArray
-import android.util.SparseIntArray
-import android.util.SparseLongArray
-import android.view.View
-import android.view.ViewGroup
-import androidx.collection.SparseArrayCompat
-import androidx.collection.forEach
-import androidx.core.util.forEach
-import androidx.core.util.isEmpty
-import androidx.core.view.children
-import org.json.JSONArray
-import org.json.JSONObject
 
 object Logger {
     
-    var DEBUG = true // TODO BuildConfig.DEBUG
-    
-    private val backgroundHandler = createBackgroundHandler()
+    object Config {
+        var toSOut: Boolean = true
+        var debugDump = false
+        
+        var toFile: Boolean = false
+        var folder: File? = null
+        
+        object Include {
+            var location: Boolean = true
+            var threadName: Boolean = false
+            var processName: Boolean = false
+        }
+    }
     
     fun log(message: CharSequence) {
         val callingClassTag = callingClassTag
-        if (DEBUG) {
-            message.toString().lines().forEach {
-                Log.v("Logger", "$callingClassTag: $it")
-            }
-        }
+        log(callingClassTag, message.toString())
+        
         logToFile(message.toString(), "D", callingClassTag)
     }
     
-    fun log(message: CharSequence, t: Throwable?) {
+    fun log(message: CharSequence, t: Throwable) {
         val callingClassTag = callingClassTag
-        val stackTraceString = getStackTraceString(t)
-        if (DEBUG) {
-            message.lines().forEach {
-                Log.e("Logger", "$callingClassTag: $it:")
-            }
-            stackTraceString.lines().forEach {
-                Log.e("Logger", it)
-            }
-        }
+        val stackTraceString = t.stackTraceToString()
+        
+        logErr(callingClassTag, message.toString())
+        logErr(callingClassTag, stackTraceString)
+        
         logToFile("" + message + "\n" + stackTraceString, "E", callingClassTag)
     }
     
-    val logFolder = applicationContext.filesDir.resolve("logs").apply { mkdir() }
+    internal fun log(callingClassTag: String, message: String) {
+        if (!Config.toSOut) return
+        message.lines().forEach {
+            platform.println("$callingClassTag: $it")
+        }
+    }
     
-    private fun logToFile(logString: String, level: String, callingClassTag: String) {
+    internal fun logErr(callingClassTag: String, message: String) {
+        if (!Config.toSOut) return
+        message.lines().forEach {
+            platform.printlnErr("$callingClassTag: $it")
+        }
+    }
+    
+    internal fun logToFile(logString: String, level: String, callingClassTag: String) {
+        if (!Config.toFile) return
+        val logFolder = Config.folder ?: return
+        
         val currentTimeString = currentTimeString
-        backgroundHandler.post {
+        platform.runInBackground {
             try {
                 logString.lines().forEach {
                     val file: File = logFolder.resolve("$currentDateString.log")
@@ -69,7 +71,7 @@ object Logger {
                     file.appendText("$currentTimeString $level $callingClassTag: $it\n")
                 }
             } catch (e: Exception) {
-                Log.e("Logger", null, e)
+                log("", e)
             }
         }
     }
@@ -79,15 +81,15 @@ object Logger {
     private val currentTimeString get() = SimpleDateFormat("HH:mm:ss,SSS", Locale.GERMAN).format(Date()).toString()
     
     fun Any?.dump(name: String, forceInclude: Set<Any> = emptySet(), forceIncludeClasses: Set<Class<*>> = emptySet()) {
-        if (!DEBUG) return
         log("dumping $name")
+        if (!Config.debugDump) return
         dump(name, 0, mutableSetOf(), forceInclude, forceIncludeClasses)
         System.out.flush()
     }
     
-    private fun Any?.dump(name: String, indent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>) {
+    internal fun Any?.dump(name: String, indent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>) {
         //<editor-fold defaultstate="collapsed" desc="...">
-        if (!DEBUG) return
+        if (!Config.debugDump) return
         
         val tabs = " ".repeat(indent * 2)
         val nextIndent = indent + 1
@@ -132,48 +134,7 @@ object Logger {
                     println(Arrays::class.java.getMethod("toString", this::class.java).invoke(null, this))
                 }
             }
-            //region SparseArrays
-            this is SparseArray<*> -> {
-                if (this.isEmpty()) {
-                    println("[]")
-                } else {
-                    println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-                }
-            }
-            this is SparseIntArray -> {
-                if (this.isEmpty()) {
-                    println("[]")
-                } else {
-                    println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-                }
-            }
-            this is SparseLongArray -> {
-                if (this.isEmpty()) {
-                    println("[]")
-                } else {
-                    println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-                }
-            }
-            this is SparseBooleanArray -> {
-                if (this.isEmpty()) {
-                    println("[]")
-                } else {
-                    println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-                }
-            }
-            this is SparseArrayCompat<*> -> {
-                if (this.isEmpty) {
-                    println("[]")
-                } else {
-                    println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-                }
-            }
-            //endregion
+            
             this is Collection<*> -> {
                 if (this.isEmpty()) {
                     println("[]")
@@ -190,55 +151,26 @@ object Logger {
                     this.forEach { (k, v) -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            this is JSONObject -> {
-                println()
-                this.keys().forEach {
-                    this.get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
-                }
-            }
-            this is JSONArray -> {
-                println()
-                for (i in 0 until this.length()) {
-                    this.get(i).dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
-                }
-            }
-            this is BaseBundle -> {
-                val keys = keySet()
-                if (keys.isNullOrEmpty()) {
-                    println("[]")
-                } else {
-                    println()
-                    keys.forEach {
-                        @Suppress("DEPRECATION") get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
-                    }
-                }
-            }
-            this is View.BaseSavedState -> {
-                println(this.toString())
-            }
-            this is ViewGroup -> {
-                println()
-                children.forEachIndexed { view, i -> view.dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
-            }
+            
             forceInclude.none { it == this } && forceIncludeClasses.none { it.isInstance(this) } && listOf(
+                "android.app.ActivityManager",
                 "android.content.Context",
-                "android.view.View",
-                "androidx.fragment.app.Fragment",
-                "android.os.Handler",
+                "android.content.res.ApkAssets",
                 "android.content.res.Resources",
+                "android.content.res.ResourcesImpl",
+                "android.os.Handler",
+                "android.view.accessibility.AccessibilityManager",
+                "android.view.View",
+                "android.view.View.AttachInfo",
+                "androidx.appcompat.app.AppCompatDelegate",
+                "androidx.fragment.app.Fragment",
+                "j\$.time.LocalDateTime",
+                "java.lang.ClassLoader",
+                "java.lang.reflect.Member",
                 "java.lang.Thread",
                 "java.lang.ThreadGroup",
-                "java.lang.ClassLoader",
-                "android.content.res.ResourcesImpl",
-                "android.content.res.ApkAssets",
                 "kotlin.Function",
-                "android.app.ActivityManager",
-                "androidx.appcompat.app.AppCompatDelegate",
-                "android.view.accessibility.AccessibilityManager",
-                "android.view.View.AttachInfo",
-                "java.lang.reflect.Member",
                 "kotlinx.datetime.LocalDateTime",
-                "j\$.time.LocalDateTime",
             ).any { this::class.qualifiedName == it } -> {
                 println("i: $this")
             }
@@ -255,6 +187,9 @@ object Logger {
             }
             this::class.java.declaredFields.find { it.name.equals("INSTANCE", true) } != null -> {
                 println("kotlin object")
+                return
+            }
+            platform.platformSpecificDump(this, name, nextIndent, processed, forceInclude, forceIncludeClasses) -> {
                 return
             }
             else -> {
@@ -294,45 +229,37 @@ object Logger {
         //</editor-fold>
     }
     
-    private var buffer = StringBuilder()
-    
-    private fun <T> println(msg: T) {
-        buffer.append(msg)
-        log(buffer.toString())
-        buffer.clear()
-    }
-    
-    private fun println() {
-        log(buffer.toString())
-        buffer.clear()
-    }
-    
-    private fun print(msg: Any) {
-        buffer.append(msg)
-    }
-    
-    fun View.dump(indent: Int = 0) {
-        println(" ".repeat(indent * 2) + this)
-        if (this is ViewGroup) {
-            children.forEach {
-                it.dump(indent + 1)
-            }
-        }
-    }
-    
     private val callingClassTag: String
         get() {
             val stackTraceElement = callingClassStackTraceElement
-            
             val simpleClassName = stackTraceElement.simpleClassName
-            return if (DEBUG) {
-                val lineNumber = stackTraceElement.lineNumber
-                val file = stackTraceElement.fileName ?: "unknown"
-//                val substringAfterLast = proc.substringAfterLast(":", missingDelimiterValue = "x")
-//                val proc = if (substringAfterLast != "x") "$substringAfterLast:" else ""
-//                val thread = Thread.currentThread().name
-                simpleClassName.padEnd(35) + " " + (" ($file:$lineNumber)").padStart(45)
-            } else simpleClassName
+            
+            return buildString {
+                if (Config.Include.processName) {
+                    val fullProcess = ProcessHandle.current().info().command().orElse("")
+                    val index = fullProcess.indexOfLast { it == ':' }
+                    if (index != -1) {
+                        val process = fullProcess.substring(index)
+                        append(process)
+                    }
+                    padEnd(15)
+                    append(" ")
+                }
+                if (Config.Include.threadName) {
+                    val thread = Thread.currentThread().name
+                    append(thread.padEnd(20))
+                    append(" ")
+                }
+                
+                append(simpleClassName.padEnd(35))
+                append(" ")
+                
+                if (Config.Include.location) {
+                    val lineNumber = stackTraceElement.lineNumber
+                    val file = stackTraceElement.fileName ?: "unknown"
+                    append("($file:$lineNumber)".padStart(45))
+                }
+            }
         }
     
     private val StackTraceElement.simpleClassName: String
@@ -352,7 +279,9 @@ object Logger {
                 }
             }
             
-            Log.w("Logger", stackTrace.joinToString("\t\n"))
+            platform.printlnErr(stackTrace.joinToString("\t\n"))
+            
+            
             throw IllegalStateException("invalid stack")
         }
 }

@@ -14,13 +14,14 @@
     <!--<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"><!-- for connectedDevice service --></uses-permission>
-<!--    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION">&lt;!&ndash;TODO check if alternative to background location&ndash;&gt;</uses-permission>-->
+    <!--<uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION">&lt;!&ndash;TODO check if alternative to background location&ndash;&gt;</uses-permission>-->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"><!-- needed for notifications and Toasts --></uses-permission>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!--<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />-->
     
     <application
+        android:name="de.binarynoise.captiveportalautologin.Application"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

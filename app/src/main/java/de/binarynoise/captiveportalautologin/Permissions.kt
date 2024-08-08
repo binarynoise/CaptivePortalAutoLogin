@@ -2,8 +2,12 @@ package de.binarynoise.captiveportalautologin
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.UserManager
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
@@ -35,7 +39,7 @@ object Permissions {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return@Permission
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@Permission
             
             ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         },
@@ -70,9 +74,25 @@ object Permissions {
         },
     )
     
+    val openSettings = Permission(
+        "Open Settings",
+        "Open the app settings",
+        { context ->
+            !ContextCompat.getSystemService(context, UserManager::class.java)!!.isUserAGoat
+        },
+        { componentActivity ->
+            val intent = Intent().apply {
+                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                data = Uri.fromParts("package", componentActivity.packageName, null)
+            }
+            componentActivity.startActivity(intent)
+        },
+    )
+    
     val all: List<Permission> = listOf(
         notifications,
         fineLocation,
         backgroundLocation,
+        openSettings,
     )
 }
