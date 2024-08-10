@@ -1,1 +1,0 @@
--assumenosideeffects class de.binarynoise.logger.Logger { *; }

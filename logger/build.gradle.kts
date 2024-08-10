@@ -16,7 +16,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 //add Android-specific dependencies here
-                implementation("androidx.collection:collection-ktx:1.4.2")
+                implementation("androidx.collection:collection-ktx:1.4.3")
                 implementation("androidx.core:core-ktx:1.13.1")
             }
         }
@@ -34,11 +34,11 @@ android {
     defaultConfig {
         minSdk = 21
     }
-//    compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
-//    }
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
 }
 
-//dependencies {
-//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.0.4")
-//}
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+}

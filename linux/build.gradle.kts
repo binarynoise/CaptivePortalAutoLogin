@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     kotlin("jvm")
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    application
 }
 
 val javaVersion = JavaVersion.VERSION_17
@@ -15,9 +16,11 @@ dependencies {
     r8("com.android.tools:r8:+")
 }
 
+val mainClass = "de.binarynoise.captiveportalautologin.MainKt"
+application.mainClass = mainClass
 tasks.withType<Jar> {
     manifest {
-        attributes(mapOf("Main-Class" to "de.binarynoise.captiveportalautologin.MainKt"))
+        attributes(mapOf("Main-Class" to mainClass))
     }
 }
 

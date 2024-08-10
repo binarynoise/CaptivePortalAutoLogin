@@ -34,7 +34,7 @@ android {
             
             isMinifyEnabled = false
             isShrinkResources = false
-            versionNameSuffix = "-dev"
+            versionNameSuffix = "-qr"
         }
         create("r8debug") {
             initWith(getByName("debug"))
@@ -42,6 +42,7 @@ android {
             
             isMinifyEnabled = true
             isShrinkResources = true
+            versionNameSuffix = "-r8d"
         }
     }
     

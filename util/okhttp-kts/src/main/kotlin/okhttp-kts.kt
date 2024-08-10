@@ -11,12 +11,16 @@ import kotlin.streams.asSequence
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Comment
 import org.jsoup.nodes.Document
+
+val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
+
 
 /**
  * Sends a GET request to the specified URL using the provided OkHttpClient.
@@ -204,6 +208,7 @@ fun Response.followRedirects(client: OkHttpClient): Response {
     if (location == null) return this
     
     val newRequest = this.request.newBuilder()
+    newRequest.url(request.url.resolveOrThrow(location))
     if (code == 303) {
         newRequest.method("GET", null)
     }

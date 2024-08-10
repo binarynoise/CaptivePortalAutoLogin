@@ -5,6 +5,7 @@ package de.binarynoise.liberator
 import java.net.SocketTimeoutException
 import kotlin.contracts.ExperimentalContracts
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.okhttp.MEDIA_TYPE_JSON
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.firstPathSegment
@@ -23,12 +24,13 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import org.jsoup.Jsoup
 import org.json.JSONObject
+import org.jsoup.Jsoup
 
-//const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
-const val portalTestUrl = "http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
+const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
+//const val portalTestUrl = "http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
 
 class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     
@@ -208,6 +210,15 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 ).followRedirects(client).checkSuccess()
             }
             
+            "login.wifionice.de" == locationUrl.host && "cna" == locationUrl.firstPathSegment -> {
+                val response1 = response.followRedirects(client)
+                val response2 = client.post(response1.requestUrl, "/cna/logon") {
+                    post("{}".toRequestBody(MEDIA_TYPE_JSON))
+                }
+                check(JSONObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
+            }
+            
+            /*
             // http://login.wifionice.de/?url=...
             "wifi-bahn.de" == locationUrl.host || "login.wifionice.de" == locationUrl.host -> {
                 // https://login.wifionice.de/?url=...
@@ -222,6 +233,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                     )
                 ).followRedirects(client)
             }
+            */
             
             // verified
             // WIFI@DB
@@ -485,7 +497,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 log("unknown captive portal: $location")
                 // follow redirects and try again
                 // TODO: recursion limit?
-               return inner(client.get(response.requestUrl, location))
+                return inner(client.get(response.requestUrl, location))
             }
         }
         return true
