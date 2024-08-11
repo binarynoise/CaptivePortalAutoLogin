@@ -1,5 +1,7 @@
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import de.binarynoise.util.okhttp.createDummyResponse
 import de.binarynoise.util.okhttp.getLocation
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
@@ -21,6 +23,7 @@ class Redirects {
     }
     
     @Test
+    @Ignore("Moved directly to the respective site")
     fun LoginURL() {
         val redirect = "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
         
@@ -72,13 +75,5 @@ class Redirects {
         
         val response = createDummyResponse().body(html.toResponseBody("text/html".toMediaType())).build()
         assertEquals(redirect, response.getLocation())
-    }
-    
-    private fun createDummyResponse(): Response.Builder = Response.Builder().apply {
-        code(200)
-        request(Request.Builder().url("http://abc.de").build())
-        protocol(Protocol.HTTP_1_0)
-        message("OK")
-        body("".toResponseBody())
     }
 }

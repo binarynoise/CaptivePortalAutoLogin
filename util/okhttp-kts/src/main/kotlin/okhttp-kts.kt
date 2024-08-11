@@ -7,20 +7,21 @@ import java.nio.charset.Charset
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.streams.asSequence
+import de.binarynoise.logger.Logger.log
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Comment
 import org.jsoup.nodes.Document
+import org.jsoup.parser.Parser
 
 val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
-
 
 /**
  * Sends a GET request to the specified URL using the provided OkHttpClient.
@@ -147,13 +148,6 @@ fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
         return metaUrl
     }
     
-    // extract <LoginURL> from <WISPAccessGatewayParam>
-    val url: String? = html.nodeStream(Comment::class.java).asSequence().mapNotNull {
-        Jsoup.parse(it.data.trim()).selectFirst("LoginUrl")?.text()
-    }.firstOrNull()
-    if (url != null) return url
-    
-    
     return null
 }
 
@@ -203,15 +197,29 @@ val HttpUrl.firstPathSegment
 fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
     newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")
 
-fun Response.followRedirects(client: OkHttpClient): Response {
+tailrec fun Response.followRedirects(client: OkHttpClient): Response {
     val location = this.getLocation(false)
     if (location == null) return this
     
+    log("following redirect: ${this.requestUrl} -> $location")
+    
     val newRequest = this.request.newBuilder()
     newRequest.url(request.url.resolveOrThrow(location))
-    if (code == 303) {
+    if (code < 300 || code == 303 || code >= 400) {
         newRequest.method("GET", null)
     }
     
     return client.newCall(newRequest.build()).execute().followRedirects(client)
 }
+
+fun createDummyResponse(): Response.Builder = Response.Builder().apply {
+    code(200)
+    request(Request.Builder().url("http://_").build())
+    protocol(Protocol.HTTP_1_0)
+    message("OK")
+    body("".toResponseBody())
+}
+
+fun Response.Builder.setLocation(location: String) = this.header("Location", location)
+
+fun String.httpDecode(): String = Parser.unescapeEntities(this, false)

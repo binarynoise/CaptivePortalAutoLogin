@@ -7,6 +7,7 @@ import kotlin.contracts.ExperimentalContracts
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.MEDIA_TYPE_JSON
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.createDummyResponse
 import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
@@ -18,6 +19,7 @@ import de.binarynoise.util.okhttp.post
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.resolveOrThrow
+import de.binarynoise.util.okhttp.setLocation
 import okhttp3.Cookie
 import okhttp3.FormBody
 import okhttp3.HttpUrl
@@ -255,7 +257,8 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                         "ll" to html1.getInput("ll"),
                         "nasid" to html1.getInput("nasid"),
                         "custom" to html1.getInput("custom"),
-                        "haveTerms" to html1.getInput("haveTerms")
+                        "haveTerms" to html1.getInput("haveTerms"),
+//                        "button" to html1.getInput("button"),
                     )
                 ).followRedirects(client)
             }
@@ -270,6 +273,12 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
 //
 //            }
             //</editor-fold>
+            
+            // Germany, DB Regio RR
+            // RRX Hotspot
+            "portal.iob.de" == locationUrl.host -> {
+                return inner(createDummyResponse().setLocation("http://192.168.44.1/prelogin").build())
+            }
             
             // Germany, Kaufland, Rewe
             //<editor-fold defaultstate="collapsed">
