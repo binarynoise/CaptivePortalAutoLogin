@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
     fun updateNetworkText(oldState: NetworkState?, newState: NetworkState?) {
         runOnUiThread {
             with(binding) {
-                networkStateText.text = newState.toString()
+                networkStateText.text = newState?.toString()
             }
         }
     }
@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         updateStatusText(null, ConnectivityChangeListenerService.serviceStateLock.read { ConnectivityChangeListenerService.serviceState })
+        updateNetworkText(null, ConnectivityChangeListenerService.networkStateLock.read { ConnectivityChangeListenerService.networkState })
     }
     
     override fun onDestroy() {

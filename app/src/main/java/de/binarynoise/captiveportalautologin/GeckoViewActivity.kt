@@ -81,7 +81,7 @@ private const val extensionID = "captivePortalAutoLoginTrafficCapture@binarynois
 //private val portalTestUrl = "http://am-i-captured.binarynoise.de/"
 //private val portalTestHost = "am-i-captured.binarynoise.de"
 
-private val portalTestHost = "connectivitycheck.gstatic.com"
+private val portalTestHost = portalTestUrl.toHttpUrl().host
 
 class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
@@ -215,7 +215,7 @@ class GeckoViewActivity : ComponentActivity() {
                             } else {
                                 networkState = NetworkState(
                                     network = activeNetwork,
-                                    ssid = "debug ssid",
+                                    ssid = "debug ssid (${networkState?.ssid}",
                                     liberating = false,
                                     liberated = false,
                                 )

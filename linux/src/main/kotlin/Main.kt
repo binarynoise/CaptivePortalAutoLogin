@@ -3,7 +3,7 @@ package de.binarynoise.captiveportalautologin
 import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
 import de.binarynoise.liberator.Liberator
-
+import de.binarynoise.liberator.tryOrIgnore
 import de.binarynoise.logger.Logger.log
 
 fun main() {
@@ -34,11 +34,40 @@ fun main() {
         process.errorReader().useLines { it.forEach { log(it) } }
         log("process ${process.info().command().getOrNull()} finished")
     }
+    
+    thread {
+        while (true) {
+            val char = System.`in`.read()
+            if (char == -1) break
+            
+            when (char.toChar()) {
+                'r' -> {
+                    processBuilder.command("nmcli", "networking", "off").start().waitFor()
+                    processBuilder.command("nmcli", "networking", "on").start().waitFor()
+                    log("restarted networking")
+                }
+            }
+        }
+    }
 }
 
 fun onConnectivityChanged(connectivity: String) {
-    log("onConnectivityChanged: $connectivity")
-    if (connectivity == "portal") {
-        Liberator({}).liberate()
+    try {
+        log("onConnectivityChanged: $connectivity")
+        if (connectivity == "portal") {
+            val (newLocation, tried) = Liberator({}).liberate()
+            
+            if (newLocation == null) {
+                if (tried) {
+                    log("broke out of the portal")
+                } else {
+                    log("not caught in portal")
+                }
+            } else {
+                log("Failed to liberate: still in portal: $newLocation")
+            }
+        }
+    } catch (e: Exception) {
+        log("failed to liberate", e)
     }
 }

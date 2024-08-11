@@ -139,7 +139,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             
             Thread.sleep(1000)
             
-            return client.get(null, portalTestUrl).getLocation() to res
+            return (client.get(null, portalTestUrl).getLocation() ?: client.get(null, portalTestUrl.replace("http:", "https:")).getLocation()) to res
         } catch (_: SocketTimeoutException) {
             return "Timeout" to true
         }
@@ -210,7 +210,8 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
                 ).followRedirects(client).checkSuccess()
             }
             
-            "login.wifionice.de" == locationUrl.host && "cna" == locationUrl.firstPathSegment -> {
+            ("login.wifionice.de" == locationUrl.host || "wifi.bahn.de" == locationUrl.host) //
+                    && "cna" == locationUrl.firstPathSegment -> {
                 val response1 = response.followRedirects(client)
                 val response2 = client.post(response1.requestUrl, "/cna/logon") {
                     post("{}".toRequestBody(MEDIA_TYPE_JSON))
