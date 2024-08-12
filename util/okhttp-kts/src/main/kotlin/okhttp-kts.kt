@@ -203,13 +203,26 @@ tailrec fun Response.followRedirects(client: OkHttpClient): Response {
     
     log("following redirect: ${this.requestUrl} -> $location")
     
+    var post = request.method == "POST"
+    
     val newRequest = this.request.newBuilder()
     newRequest.url(request.url.resolveOrThrow(location))
     if (code < 300 || code == 303 || code >= 400) {
         newRequest.method("GET", null)
+        post = false
     }
     
-    return client.newCall(newRequest.build()).execute().followRedirects(client)
+    var newResponse: Response = client.newCall(newRequest.build()).execute()
+    
+    // some servers don't send the correct status code if they want to change POST to GET
+    // because of legacy reasons so we follow the out-of-spec behaviour if necessary.
+    if (post && newResponse.code == 405) {
+        log("got 405 for following the redirect with POST, trying GET")
+        newRequest.method("GET", null)
+        newResponse = client.newCall(newRequest.build()).execute()
+    }
+    
+    return newResponse.followRedirects(client)
 }
 
 fun createDummyResponse(): Response.Builder = Response.Builder().apply {
