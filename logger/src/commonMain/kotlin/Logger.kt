@@ -1,9 +1,8 @@
-@file:Suppress(/*"unused",*/ "MemberVisibilityCanBePrivate")
-
 package de.binarynoise.logger
 
 import java.io.File
 import java.lang.ref.Reference
+import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -13,16 +12,47 @@ import kotlin.reflect.KClass
 
 object Logger {
     
+    /**
+     * Configuration for the logger
+     */
     object Config {
+        /**
+         * Log to System.out?
+         */
         var toSOut: Boolean = true
-        var debugDump = false
         
+        /**
+         * Allow dumping of objects?
+         */
+        var debugDump: Boolean = false
+        
+        /**
+         * Log to file?
+         */
         var toFile: Boolean = false
+        
+        /**
+         * The folder to log to
+         */
         var folder: File? = null
         
+        /**
+         *
+         */
         object Include {
+            /**
+             * Include the location of the caller?
+             */
             var location: Boolean = true
+            
+            /**
+             * Include the thread name?
+             */
             var threadName: Boolean = false
+            
+            /**
+             * Include the process name?
+             */
             var processName: Boolean = false
         }
     }
@@ -41,7 +71,7 @@ object Logger {
         logErr(callingClassTag, message.toString())
         logErr(callingClassTag, stackTraceString)
         
-        logToFile("" + message + "\n" + stackTraceString, "E", callingClassTag)
+        logToFile("$message\n$stackTraceString", "E", callingClassTag)
     }
     
     internal fun log(callingClassTag: String, message: String) {
@@ -60,7 +90,7 @@ object Logger {
     
     internal fun logToFile(logString: String, level: String, callingClassTag: String) {
         if (!Config.toFile) return
-        val logFolder = Config.folder ?: return
+        val logFolder = Config.folder ?: error("no log folder set()")
         
         val currentTimeString = currentTimeString
         platform.runInBackground {
@@ -71,7 +101,7 @@ object Logger {
                     file.appendText("$currentTimeString $level $callingClassTag: $it\n")
                 }
             } catch (e: Exception) {
-                log("", e)
+                log("failed to log to file " + e.message)
             }
         }
     }
@@ -80,6 +110,13 @@ object Logger {
     private val currentDateString get() = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date()).toString()
     private val currentTimeString get() = SimpleDateFormat("HH:mm:ss,SSS", Locale.GERMAN).format(Date()).toString()
     
+    /**
+     * Dumps the contents of this object.
+     *
+     * @param name The name of the object
+     * @param forceInclude A set of objects that should be included, even if they would be skipped otherwise
+     * @param forceIncludeClasses A set of classes that should be included, even if they would be skipped otherwise
+     */
     fun Any?.dump(name: String, forceInclude: Set<Any> = emptySet(), forceIncludeClasses: Set<Class<*>> = emptySet()) {
         log("dumping $name")
         if (!Config.debugDump) return
@@ -94,7 +131,8 @@ object Logger {
         val tabs = " ".repeat(indent * 2)
         val nextIndent = indent + 1
         print("$tabs$name ")
-        if (this == null || this is Nothing? || this::class.qualifiedName == "null") {
+        
+        if (this == null) {
             println("-> null")
             return
         }
@@ -110,7 +148,7 @@ object Logger {
             return
         }
         
-        print("(${this::class.qualifiedName}@${hashCode()}) -> ")
+        print("(${this::class.java.canonicalNameOrName}@${hashCode()}) -> ")
         
         if (processed.contains(this)) {
             println("already dumped")
@@ -131,10 +169,10 @@ object Logger {
                         this.forEachIndexed { index, value -> value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                     }
                 } else { // primitive Array like int[]
+                    // println(Arrays.toString(this))
                     println(Arrays::class.java.getMethod("toString", this::class.java).invoke(null, this))
                 }
             }
-            
             this is Collection<*> -> {
                 if (this.isEmpty()) {
                     println("[]")
@@ -151,7 +189,20 @@ object Logger {
                     this.forEach { (k, v) -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            
+            this is Method -> {
+                println(
+                    this.modifiers.toString() + " " + this.returnType + " " + (this.declaringClass.canonicalNameOrName) + "." + this.name + "(" + this.parameterTypes.joinToString(
+                        ", "
+                    ) + ")"
+                )
+            }
+            this is Constructor<*> -> {
+                println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}(${this.parameterTypes.joinToString(", ")})")
+            }
+            this is Field -> {
+                println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}.${this.type} ${this.name}")
+            }
+            // skip classes that produce a lot of non-useful output, if not forced
             forceInclude.none { it == this } && forceIncludeClasses.none { it.isInstance(this) } && listOf(
                 "android.app.ActivityManager",
                 "android.content.Context",
@@ -171,19 +222,18 @@ object Logger {
                 "java.lang.ThreadGroup",
                 "kotlin.Function",
                 "kotlinx.datetime.LocalDateTime",
-            ).any { this::class.qualifiedName == it } -> {
+            ).any { this::class.java.canonicalNameOrName == it } -> {
                 println("i: $this")
             }
             this is Reference<*> -> {
-//                println(get().toString())
                 println()
                 get().dump("referenced", nextIndent, processed, forceInclude, forceIncludeClasses)
             }
             this is Class<*> -> {
-                println(this.canonicalName)
+                println(canonicalNameOrName)
             }
             this is KClass<*> -> {
-                println(this.java.canonicalName)
+                println(this.java.canonicalNameOrName)
             }
             this::class.java.declaredFields.find { it.name.equals("INSTANCE", true) } != null -> {
                 println("kotlin object")
@@ -196,11 +246,10 @@ object Logger {
                 println()
                 val fields = mutableSetOf<Field>()
                 val methods = mutableSetOf<Method>()
-                var cls: Class<*>? = this::class.java
-                while (cls != null && cls != Any::class.java && cls != Object::class.java) {
+                
+                generateSequence<Class<*>>(this::class.java) { it.superclass }.forEach { cls ->
                     fields.addAll(cls.declaredFields.filterNot { Modifier.isStatic(it.modifiers) })
-                    methods.addAll(cls.declaredMethods.filter { !Modifier.isStatic(it.modifiers) && it.name.startsWith("get") && it.parameterCount == 0 })
-                    cls = cls.superclass
+                    methods.addAll(cls.declaredMethods.filter { !Modifier.isStatic(it.modifiers) && it.parameterCount == 0 })
                 }
                 
                 fields.sortedBy { it.name }.forEach {
@@ -213,7 +262,7 @@ object Logger {
                 }
                 
                 val fieldNames = fields.map { it.name.lowercase() }.toSortedSet()
-                methods -= methods.filter { it.name.removePrefix("get").lowercase() in fieldNames }.toSet()
+                methods.removeIf { val methodName = it.name.lowercase().removePrefix("get"); fieldNames.any { methodName.endsWith(it) } }
                 
                 methods.sortedBy { it.name }.forEach {
                     it.isAccessible = true
@@ -228,6 +277,9 @@ object Logger {
 //        processed.remove(this)
         //</editor-fold>
     }
+    
+    private val Class<*>.canonicalNameOrName: String?
+        get() = this.canonicalName ?: this.name
     
     private val callingClassTag: String
         get() {
@@ -281,7 +333,8 @@ object Logger {
             
             platform.printlnErr(stackTrace.joinToString("\t\n"))
             
-            
-            throw IllegalStateException("invalid stack")
+            val e = Exception()
+            e.stackTrace = stackTrace
+            throw IllegalStateException("invalid stack", e)
         }
 }

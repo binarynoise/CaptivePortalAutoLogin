@@ -45,8 +45,6 @@
 -dontwarn java.beans.IntrospectionException
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
-
--keep class java.lang.**
 -dontwarn java.lang.**
 
 # Okhttp

@@ -1,2 +1,3 @@
 -keep class de.binarynoise.logger.Logger { public *; }
+-keep,allowoptimization class de.binarynoise.logger.Logger { private *** callingClassStackTraceElement(...); }
 -dontwarn java.lang.invoke.StringConcatFactory

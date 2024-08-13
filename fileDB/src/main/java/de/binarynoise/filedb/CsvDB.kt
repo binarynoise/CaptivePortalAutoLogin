@@ -6,6 +6,14 @@ import kotlin.io.path.exists
 import kotlin.io.path.readLines
 import kotlin.io.path.writeText
 
+
+/**
+ * A simple CSV database
+ *
+ * @property root Path to the root directory of the database.
+ * @property dbName Name of the database file (without extension).
+ * @property delimiter Delimiter used in the CSV file.
+ */
 class CsvDB(
     val root: Path,
     val dbName: String,
@@ -14,7 +22,7 @@ class CsvDB(
     fun load(key: List<String>): List<String>? {
         val file = root.resolve(dbName)
         if (!file.exists()) {
-            println("file ${file.absolutePathString()} for ${dbName::class.simpleName} with key $key does not exist")
+            println("file ${file.absolutePathString()} for $dbName with key $key does not exist")
             return null
         }
         
@@ -30,7 +38,7 @@ class CsvDB(
     fun loadAll(): List<List<String>> {
         val file = root.resolve(dbName)
         if (!file.exists()) {
-            println("file ${file.absolutePathString()} for ${dbName::class.simpleName} does not exist")
+            println("file ${file.absolutePathString()} for $dbName does not exist")
             return emptyList()
         }
         return file.readLines().filter { it.isNotEmpty() }.map { it.split(delimiter) }
@@ -39,7 +47,7 @@ class CsvDB(
     fun store(key: List<String>, value: List<String>) {
         val file = root.resolve(dbName)
         file.writeText(key.joinToString(delimiter) + "\n" + value.joinToString(delimiter))
-        println("wrote ${dbName::class.simpleName} with key $key to ${file.absolutePathString()}")
+        println("wrote $dbName with key $key to ${file.absolutePathString()}")
     }
     
     fun storeAll(values: List<List<String>>) {

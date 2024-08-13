@@ -6,6 +6,7 @@ import android.util.SparseArray
 import android.util.SparseBooleanArray
 import android.util.SparseIntArray
 import android.util.SparseLongArray
+import android.view.AbsSavedState
 import android.view.View
 import android.view.ViewGroup
 import androidx.collection.SparseArrayCompat
@@ -51,6 +52,7 @@ class PlatformImpl : Platform {
         obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>
     ): Boolean = with(obj) {
         when {
+            //<editor-fold desc="this is SparseArray<*> -> { ... }" defaultstate="collapsed"
             this is SparseArray<*> -> {
                 if (this.isEmpty()) {
                     println("[]")
@@ -91,6 +93,7 @@ class PlatformImpl : Platform {
                     this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
+            //</editor-fold>
             this is JSONObject -> {
                 println()
                 this.keys().forEach {
@@ -104,7 +107,7 @@ class PlatformImpl : Platform {
                 }
             }
             this is BaseBundle -> {
-                val keys = keySet()
+                val keys = this.keySet()
                 if (keys.isNullOrEmpty()) {
                     println("[]")
                 } else {
@@ -114,18 +117,18 @@ class PlatformImpl : Platform {
                     }
                 }
             }
-            this is View.BaseSavedState -> {
+            this is AbsSavedState -> {
                 println(this.toString())
             }
             this is ViewGroup -> {
                 println()
-                children.forEachIndexed { view, i -> view.dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                this.children.forEachIndexed { view, i -> view.dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
             }
             
-            else -> return@with false
+            else -> return false
         }
         
-        return@with true
+        return true
     }
     
     val backgroundHandler = createBackgroundHandler()

@@ -2,6 +2,8 @@ package de.binarynoise.liberator
 
 import de.binarynoise.logger.Logger.log
 
+// TODO: move somewhere else
+
 /**
  * Casts the object to T.
  * If T is nullable, a safe cast is performed.
@@ -21,19 +23,42 @@ inline fun <reified T> Any.cast(): T {
     }
 }
 
+/**
+ * Executes the given block and returns its result.
+ * If an exception is thrown, returns null instead.
+ *
+ * @param block The block to execute.
+ * @return The result of the block or null if an exception was thrown.
+ */
 inline fun <T> tryOrNull(block: () -> T): T? {
     try {
         return block()
     } catch (e: Exception) {
-        log("exception in tryOrNull", e)
         return null
     }
 }
 
+/**
+ * Executes the given block and ignores any exceptions thrown.
+ *
+ * @param block The block to execute.
+ */
 inline fun <T> tryOrIgnore(block: () -> T): Unit {
     try {
         block()
     } catch (e: Exception) {
-        log("exception in tryOrIgnore", e)
+    }
+}
+
+/**
+ * Executes the given block and logs any exceptions thrown.
+ *
+ * @param block The block to execute.
+ */
+inline fun <T> tryOrLog(block: () -> T): Unit {
+    try {
+        block()
+    } catch (e: Exception) {
+        log("exception in tryOrLog", e)
     }
 }

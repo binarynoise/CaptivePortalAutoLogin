@@ -15,6 +15,13 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+
+/**
+ * A simple JSON database
+ *
+ * @property root Path to the root directory of the database.
+ * @property serializer JSON serializer.
+ */
 class JsonDB(
     val root: Path, val serializer: Json = Json {
         encodeDefaults = false

@@ -1,0 +1,1 @@
+-keep,allowoptimization class de.binarynoise.logger.Logger { private *** callingClassStackTraceElement(...); }

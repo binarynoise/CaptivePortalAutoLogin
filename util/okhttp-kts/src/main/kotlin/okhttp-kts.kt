@@ -21,6 +21,9 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
 
+/**
+ * Media type for JSON with UTF-8 character set for sending JSON data.
+ */
 val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
 /**
@@ -63,9 +66,9 @@ fun OkHttpClient.get(
 /**
  * Sends a POST request to the specified URL using the provided OkHttpClient.
  *
- * @param url The URL to send the request to. Can be null if context is provided.
  * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
- * @param content The key-value pairs to include in the request body. Defaults to an empty map.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param content The key-value pairs to include in the request body for form-encoded data. Defaults to an empty map.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
@@ -178,12 +181,27 @@ fun Response.readText(skipStatusCheck: Boolean = false): String {
     return source.buffer.clone().readString(charset)
 }
 
+/**
+ * Returns the URL of the request this response is for.
+ *
+ * @return the URL of the request
+ */
 val Response.requestUrl: HttpUrl
     get() = this.request.url
 
+/**
+ * Decodes the path of the HttpUrl.
+ *
+ * @return the decoded path of the HttpUrl
+ */
 val HttpUrl.decodedPath: String
     get() = URLDecoder.decode(encodedPath, "UTF-8")
 
+/**
+ * Returns the first path segment of the HttpUrl.
+ *
+ * @return the first path segment of the HttpUrl, or null if the path is empty
+ */
 val HttpUrl.firstPathSegment
     get() = pathSegments.firstOrNull()
 
@@ -197,6 +215,12 @@ val HttpUrl.firstPathSegment
 fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
     newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")
 
+/**
+ * Follows redirects until the final non-redirect response is received.
+ *
+ * @param client the OkHttpClient to use for the redirects
+ * @return the final non-redirect response
+ */
 tailrec fun Response.followRedirects(client: OkHttpClient): Response {
     val location = this.getLocation(false)
     if (location == null) return this
@@ -235,4 +259,18 @@ fun createDummyResponse(): Response.Builder = Response.Builder().apply {
 
 fun Response.Builder.setLocation(location: String) = this.header("Location", location)
 
-fun String.httpDecode(): String = Parser.unescapeEntities(this, false)
+/**
+ * Decodes HTML entities in the given string.
+ *
+ * @receiver The string to decode.
+ * @return The decoded string.
+ */
+fun String.decodeHtml(): String = Parser.unescapeEntities(this, false)
+
+/**
+ * Decodes URL-encoded characters in the given string.
+ *
+ * @receiver The string to decode.
+ * @return The decoded string.
+ */
+fun String.decodeUrl(): String = URLDecoder.decode(this, "UTF-8")

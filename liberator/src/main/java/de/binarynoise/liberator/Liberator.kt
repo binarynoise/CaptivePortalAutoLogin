@@ -41,8 +41,8 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     private var client = OkHttpClient.Builder().apply {
         cache(null)
         retryOnConnectionFailure(true)
-        followRedirects(false)
-        followSslRedirects(true)
+        followRedirects(false) // we do that manually if needed
+//        followSslRedirects(true) // doesn't work as followRedirects is set to false
         
         addInterceptor(::interceptRequest)
         
@@ -50,9 +50,12 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     }.build()
     
     /**
-     * Intercepts the request, adds User-Agent, Connection and Cookie headers,
-     * logs request details and POST request body, proceeds with the request, logs response details,
-     * saves cookies and logs the response body
+     * Intercepts the request, to
+     * - add User-Agent, Connection and Cookie headers,
+     * - log request details and POST request body,
+     * - proceed with the request,
+     * - log the response details and body,
+     * - save cookies
      */
     private fun interceptRequest(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
@@ -127,7 +130,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     /**
      * Attempts to liberate the user by making a series of HTTP requests to the portal.
      *
-     * @return null if the user is not caught in the portal, the url of the portal otherwise
+     * @return null if the user is not caught in the portal or was successfully liberated, the url of the portal otherwise.
      *         Returns "Timeout" if a socket timeout exception occurs during the requests.
      */
     fun liberate(): Pair<String?, Boolean> {
@@ -141,6 +144,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
             
             Thread.sleep(1000)
             
+            // check if the user is still in the portal, try both http and https to avoid false positives
             return (client.get(null, portalTestUrl).getLocation() ?: client.get(null, portalTestUrl.replace("http:", "https:")).getLocation()) to res
         } catch (_: SocketTimeoutException) {
             return "Timeout" to true
