@@ -32,6 +32,7 @@
         android:usesCleartextTraffic="true"
         >
         <activity android:name=".MainActivity" />
+        <activity android:name=".preferences.NewMainActivity" />
         
         <activity
             android:name=".GeckoViewActivity"

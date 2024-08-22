@@ -102,6 +102,7 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.9.1")
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
     
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")

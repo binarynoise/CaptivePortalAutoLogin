@@ -20,15 +20,24 @@ class Permission private constructor(
     val description: String?,
     @StringRes val descriptionRes: Int?,
     val granted: (Context) -> Boolean,
-    val request: (ComponentActivity) -> Unit
+    val request: (ComponentActivity) -> Unit,
+    val enabled: (Context) -> Boolean,
 ) {
-    constructor(name: String, description: String, granted: (Context) -> Boolean, request: (ComponentActivity) -> Unit) : this(
-        name, null, description, null, granted, request
-    )
+    constructor(
+        name: String,
+        description: String,
+        granted: (Context) -> Boolean,
+        request: (ComponentActivity) -> Unit,
+        enabled: (Context) -> Boolean = { true }
+    ) : this(name, null, description, null, granted, request, enabled)
     
-    constructor(nameRes: Int, descriptionRes: Int, granted: (Context) -> Boolean, request: (ComponentActivity) -> Unit) : this(
-        null, nameRes, null, descriptionRes, granted, request
-    )
+    constructor(
+        nameRes: Int,
+        descriptionRes: Int,
+        granted: (Context) -> Boolean,
+        request: (ComponentActivity) -> Unit,
+        enabled: (Context) -> Boolean = { true }
+    ) : this(null, nameRes, null, descriptionRes, granted, request, enabled)
 }
 
 object Permissions {
@@ -56,23 +65,20 @@ object Permissions {
         },
     )
     
-    val backgroundLocation = Permission(
-        "Background Location",
-        "Collect the SSID of Portals. Required for the background service",
-        { context ->
-            if (Build.VERSION.SDK_INT < 34) return@Permission true
-            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
-        },
-        { componentActivity ->
-            if (Build.VERSION.SDK_INT < 29) return@Permission
-            if (!fineLocation.granted(componentActivity)) {
-                Toast.makeText(componentActivity, "Cannot request background location without fine location permission", Toast.LENGTH_LONG).show()
-                return@Permission
-            }
-            
-            ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 0)
-        },
-    )
+    val backgroundLocation = Permission("Background Location", "Collect the SSID of Portals. Required for the background service", { context ->
+        if (Build.VERSION.SDK_INT < 34) return@Permission true
+        ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }, { componentActivity ->
+        if (Build.VERSION.SDK_INT < 29) return@Permission
+        if (!fineLocation.granted(componentActivity)) {
+            Toast.makeText(componentActivity, "Cannot request background location without fine location permission", Toast.LENGTH_LONG).show()
+            return@Permission
+        }
+        
+        ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 0)
+    }, { context ->
+        fineLocation.granted(context)
+    })
     
     val openSettings = Permission(
         "Open Settings",
