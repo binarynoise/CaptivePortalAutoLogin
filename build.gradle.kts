@@ -1,7 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import java.io.FileInputStream
-import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -18,7 +17,7 @@ val javaVersion = JavaVersion.VERSION_17
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.2")
+        classpath("com.android.tools.build:gradle:8.5.2")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath("org.kohsuke:github-api:1.321")
     }
