@@ -40,12 +40,11 @@
     public static int println(...);
 }
 
--dontwarn java.beans.BeanInfo
--dontwarn java.beans.FeatureDescriptor
--dontwarn java.beans.IntrospectionException
--dontwarn java.beans.Introspector
--dontwarn java.beans.PropertyDescriptor
+-dontwarn java.beans.**
 -dontwarn java.lang.**
+-dontwarn com.google.android.gms.**
+-dontwarn org.checkerframework.checker.**
+-dontwarn j$.**
 
 # Okhttp
 

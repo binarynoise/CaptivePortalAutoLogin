@@ -113,7 +113,9 @@ dependencies {
 //    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.0.4")
     
     // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
-    implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423")
+    implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423") {
+        exclude("com.google.android.gms","play-services-fido")
+    }
     
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
