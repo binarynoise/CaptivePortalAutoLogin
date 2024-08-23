@@ -97,7 +97,7 @@ class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
                 summaryOff = "Please grant all permissions to use the app."
             }
             
-            addPreference(ViewHolderPreference(ctx, R.layout.layout_preference_accent)) {
+            addPreference(ViewHolderPreference(ctx, R.layout.preference_accent)) {
                 title = "Capture Captive Portal Login"
                 intent = Intent(ctx, GeckoViewActivity::class.java)
             }

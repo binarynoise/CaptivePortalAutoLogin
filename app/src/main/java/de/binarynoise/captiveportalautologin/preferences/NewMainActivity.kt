@@ -2,18 +2,22 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.R
 
-class NewMainActivity : FragmentActivity() {
+class NewMainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fragment_container)
         
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                add(R.id.fragmentContainerView, NewMainActivityFragment())
+                replace(R.id.fragmentContainerView, NewMainActivityFragment())
+                fillInAnimation()
             }
         }
         
@@ -42,4 +46,19 @@ class NewMainActivity : FragmentActivity() {
         
         return super.onNavigateUp()
     }
+    
+    override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
+        supportFragmentManager.commit {
+            fillInAnimation()
+            val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, pref.fragment ?: return false)
+            replace(R.id.fragmentContainerView, fragment, pref.key)
+            addToBackStack(null)
+        }
+        return true
+    }
+    
+    fun FragmentTransaction.fillInAnimation() {
+        setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+    }
+    
 }

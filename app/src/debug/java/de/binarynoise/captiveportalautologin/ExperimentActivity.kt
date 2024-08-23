@@ -21,5 +21,6 @@ class ExperimentActivity : ComponentActivity() {
         }
         
         startActivity(Intent(this, NewMainActivity::class.java))
+        finish()
     }
 }
