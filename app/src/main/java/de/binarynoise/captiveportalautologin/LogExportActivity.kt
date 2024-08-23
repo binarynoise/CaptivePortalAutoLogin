@@ -57,7 +57,7 @@ class LogExportActivity : ComponentActivity() {
             }
             
             with(binding) {
-                name.text = logFiles[position].name
+//                name.text = logFiles[position].name
                 
                 shareButton.setOnClickListener {
                     share(logFiles[position])

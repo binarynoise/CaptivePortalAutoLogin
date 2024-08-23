@@ -11,8 +11,10 @@ class NewMainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fragment_container)
         
-        supportFragmentManager.commit {
-            add(R.id.fragmentContainerView, NewMainActivityFragment())
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                add(R.id.fragmentContainerView, NewMainActivityFragment())
+            }
         }
         
         val actionBar = actionBar
