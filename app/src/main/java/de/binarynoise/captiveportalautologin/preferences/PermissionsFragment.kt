@@ -24,10 +24,15 @@ class PermissionsFragment : AutoCleanupPreferenceFragment() {
                             false
                         }
                         
+                        fun update() {
+                            isChecked = permission.granted(context)
+                            isEnabled = permission.enabled(context)
+                        }
+                        
+                        update()
                         lifecycle.addObserver(object : DefaultLifecycleObserver {
                             override fun onResume(owner: LifecycleOwner) {
-                                isChecked = permission.granted(context)
-                                isEnabled = permission.enabled(context)
+                                update()
                             }
                         })
                     }

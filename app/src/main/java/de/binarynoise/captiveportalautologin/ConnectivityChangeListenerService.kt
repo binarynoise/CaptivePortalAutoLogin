@@ -13,6 +13,7 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
+import android.content.ComponentName
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -93,12 +94,12 @@ class ConnectivityChangeListenerService : Service() {
             serviceState = ServiceState(running = true, restart = false)
         }
         
-        createNotificationChannel(channelId, getString(R.string.foreground_notification_channel_name))
+        createNotificationChannel(channelId, "persistent notification")
         notification = createNotification(channelId) {
-            // start MainActivity on click
-            val launchMainIntent = Intent(this, MainActivity::class.java)
-            launchMainIntent.addFlags(FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK)
-            it.setContentIntent(PendingIntent.getActivity(this, 0, launchMainIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE))
+            // start HomeActivity on click
+            val launchHomeIntent = Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
+            launchHomeIntent.addFlags(FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK)
+            it.setContentIntent(PendingIntent.getActivity(this, 0, launchHomeIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE))
             
             // add button to try liberating again
             val retryIntent = Intent(this, this::class.java)
@@ -122,8 +123,8 @@ class ConnectivityChangeListenerService : Service() {
     
     private fun createNotification(channelId: String, initializer: (NotificationCompat.Builder) -> Unit = {}): Notification =
         NotificationCompat.Builder(this, channelId)
-            .setContentTitle(getString(R.string.foreground_notification_title))
-            .setContentText(getString(R.string.foreground_notification_content))
+            .setContentTitle("Captive Portal detection")
+            .setContentText("Running in background")
             .setSmallIcon(R.drawable.wifi_lock_open)
             .apply(initializer)
             .build()
@@ -238,7 +239,7 @@ class ConnectivityChangeListenerService : Service() {
             
             if (newLocation == null) {
                 if (tried) {
-                    Toast.makeText(applicationContext, R.string.quote_short, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
                     t.cancel()
                     log("broke out of the portal")
                     networkStateLock.write {

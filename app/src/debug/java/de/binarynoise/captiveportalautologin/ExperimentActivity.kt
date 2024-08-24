@@ -7,7 +7,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityExperimentBinding
-import de.binarynoise.captiveportalautologin.preferences.NewMainActivity
 
 class ExperimentActivity : ComponentActivity() {
     val binding by viewBinding { ActivityExperimentBinding.inflate(layoutInflater) }
@@ -19,8 +18,5 @@ class ExperimentActivity : ComponentActivity() {
         with(binding) {
         
         }
-        
-        startActivity(Intent(this, NewMainActivity::class.java))
-        finish()
     }
 }

@@ -15,9 +15,10 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.S
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences.liberator_automatically_liberate
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
-class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
+class MainFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
@@ -43,11 +44,9 @@ class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
                 }
                 
                 @Suppress("UNUSED_PARAMETER")
-                fun updateStatusText(oldState: ServiceState?, newState: ServiceState) {
-                    runOnUiThread {
-                        summary = newState.toString()
-                        isChecked = newState.running
-                    }
+                fun updateStatusText(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
+                    summary = newState.toString()
+                    isChecked = newState.running
                 }
                 
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -65,10 +64,8 @@ class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
                 title = "Network Status"
                 
                 @Suppress("UNUSED_PARAMETER")
-                fun updateStatusText(oldState: NetworkState?, newState: NetworkState?) {
-                    runOnUiThread {
-                        summary = newState.toString()
-                    }
+                fun updateStatusText(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
+                    summary = newState?.toString() ?: "Not connected to Network with Captive Portal"
                 }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
                     override fun onResume(owner: LifecycleOwner) {
@@ -83,6 +80,46 @@ class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
                     }
                 })
             }
+            addPreference(SwitchPreference(ctx)) {
+                title = "Liberator Status"
+                summaryOn = "Automatically liberating Captive Portals"
+                summaryOff = "Not automatically liberating Captive Portals"
+                apply(SharedPreferences.liberator_automatically_liberate)
+                isEnabled = false
+            }
+            addPreference(Preference(ctx)) {
+                title = "Liberate me now!"
+                summary = "Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled."
+                
+                setOnPreferenceClickListener {
+                    val retryIntent = Intent(context, ConnectivityChangeListenerService::class.java)
+                    retryIntent.putExtra("retry", true)
+                    context.startService(retryIntent)
+                    true
+                }
+                
+                @Suppress("UNUSED_PARAMETER")
+                fun updateStatus(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
+                    isEnabled = newState.running
+                }
+                
+                lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onResume(owner: LifecycleOwner) {
+                        ConnectivityChangeListenerService.serviceListeners.add(::updateStatus)
+                        updateStatus(null, ConnectivityChangeListenerService.serviceState)
+                    }
+                    
+                    override fun onDestroy(owner: LifecycleOwner) {
+                        ConnectivityChangeListenerService.serviceListeners.remove(::updateStatus)
+                    }
+                })
+            }
+            
+            addPreference(ViewHolderPreference(ctx, R.layout.preference_accent)) {
+                title = "Capture Captive Portal Login"
+                summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
+                intent = Intent(ctx, GeckoViewActivity::class.java)
+            }
             
             addPreference(CheckBoxPreference(ctx)) {
                 title = "Permissions"
@@ -93,14 +130,10 @@ class NewMainActivityFragment : AutoCleanupPreferenceFragment() {
                         isChecked = Permissions.all.all { it.granted(context) }
                     }
                 })
-                summaryOn = ""
-                summaryOff = "Please grant all permissions to use the app."
+                summaryOn = "All permissions granted \uD83D\uDE0A"
+                summaryOff = "Please grant all permissions to use the app"
             }
             
-            addPreference(ViewHolderPreference(ctx, R.layout.preference_accent)) {
-                title = "Capture Captive Portal Login"
-                intent = Intent(ctx, GeckoViewActivity::class.java)
-            }
             
             addPreference(Preference(ctx)) {
                 title = "Export Logs"

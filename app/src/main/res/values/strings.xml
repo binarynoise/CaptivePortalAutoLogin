@@ -1,18 +1,3 @@
 <resources>
     <string name="app_name">CaptivePortalAutoLogin</string>
-    <string name="foreground_notification_title">CaptivePortal detection</string>
-    <string name="foreground_notification_content">Running in background, you can safely disable this notification</string>
-    <string name="foreground_notification_channel_name">persistent Notification</string>
-    <string name="not_using_captive_portal_wifi_warning">Captive portal not detected.</string>
-    <string name="not_using_captive_portal_wifi_warning_service">Enable the Service and try again.</string>
-    <string name="not_using_captive_portal_wifi_warning_mobile_data">Disable mobile data and try again.</string>
-    <string name="not_using_captive_portal_wifi_warning_already_liberated">The network could also be already liberated.</string>
-    <string name="start_service">(Re-)Start Service</string>
-    <string name="stop_service">Stop Service</string>
-    <string name="capture_captive_portal_login">Capture Captive Portal Login</string>
-    <string name="export_logs">Export Logs</string>
-    <string name="manage_permissions">Manage permissions</string>
-    <string name="quote_short">Free at last</string>
-    <string name="gecko_error">Error setting up the browser. Please Force Close the app and try again.</string>
-
 </resources>

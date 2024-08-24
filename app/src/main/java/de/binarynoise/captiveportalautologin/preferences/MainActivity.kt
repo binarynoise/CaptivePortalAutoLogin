@@ -9,27 +9,31 @@ import androidx.preference.PreferenceFragmentCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.R
 
-class NewMainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fragment_container)
         
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(R.id.fragmentContainerView, NewMainActivityFragment())
+                replace(R.id.fragmentContainerView, MainFragment())
                 fillInAnimation()
             }
         }
         
         val actionBar = actionBar
-        if (actionBar != null) supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount > 0) {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setHomeButtonEnabled(true);
-            } else {
-                actionBar.setDisplayHomeAsUpEnabled(false);
-                actionBar.setHomeButtonEnabled(false);
+        if (actionBar != null) {
+            fun updateActionBar() {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                    actionBar.setHomeButtonEnabled(true);
+                } else {
+                    actionBar.setDisplayHomeAsUpEnabled(false);
+                    actionBar.setHomeButtonEnabled(false);
+                }
             }
+            supportFragmentManager.addOnBackStackChangedListener(::updateActionBar)
+            updateActionBar()
         }
         
         if (intent.getBooleanExtra("startService", true)) {
@@ -60,5 +64,4 @@ class NewMainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenc
     fun FragmentTransaction.fillInAnimation() {
         setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
     }
-    
 }

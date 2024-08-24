@@ -60,6 +60,7 @@ import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.liberator.portalTestUrl
+import de.binarynoise.liberator.tryOrLog
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -266,6 +267,10 @@ class GeckoViewActivity : ComponentActivity() {
                 }
                 
             }
+            true
+        }
+        R.id.action_reload_page -> {
+            session.reload(GeckoSession.LOAD_FLAGS_BYPASS_CACHE)
             true
         }
         

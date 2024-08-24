@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="AppCompatResource"
+    >
+    
+    <item
+        android:id="@+id/action_reload_page"
+        android:title="Reload page"
+        android:icon="@android:drawable/ic_menu_rotate"
+        android:showAsAction="always"
+        />
     
     <item
         android:id="@+id/action_reload"
         android:title="Restart"
         android:icon="@android:drawable/ic_menu_revert"
-        android:showAsAction="always" />
+        android:showAsAction="ifRoom"
+        />
+    
     <item
         android:id="@+id/action_save"
         android:title="Save HAR"
         android:icon="@android:drawable/ic_menu_save"
-        android:showAsAction="ifRoom" />
+        android:showAsAction="always"
+        />
+    
     
     <!--
     <item

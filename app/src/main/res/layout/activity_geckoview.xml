@@ -16,7 +16,7 @@
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
         android:paddingTop="@dimen/padding"
-        android:text="@string/not_using_captive_portal_wifi_warning"
+        android:text="Captive Portal not detected."
         tools:visibility="visible"
         />
     
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="@string/not_using_captive_portal_wifi_warning_service"
+        android:text="Enable the Service and try again."
         tools:visibility="visible"
         />
     
@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="@string/not_using_captive_portal_wifi_warning_mobile_data"
+        android:text="You may need to disable mobile data and try again."
         tools:visibility="visible"
         />
     
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="@string/not_using_captive_portal_wifi_warning_already_liberated"
+        android:text="The network could also be already liberated. If you just liberated the network, save the capture now."
         tools:visibility="visible"
         />
     
@@ -60,7 +60,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="@string/gecko_error"
+        android:text="Error setting up the browser. Please Force Close the app and try again."
         tools:visibility="visible"
         />
     

@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.UserManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -62,8 +61,8 @@ class Permission private constructor(
     ) : this(null, nameRes, null, descriptionRes, granted, request, enabled, minSdk)
 }
 
+@SuppressLint("InlinedApi")
 object Permissions {
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     val notifications = Permission(
         "Send Notifications", "Show a persistent status notification and show little messages at the bottom of the screen",
         { context ->
@@ -86,7 +85,6 @@ object Permissions {
         },
     )
     
-    @RequiresApi(Build.VERSION_CODES.Q)
     val backgroundLocation = Permission(
         "Background Location", "Collect the SSID of Portals. Required for the background service",
         { context ->

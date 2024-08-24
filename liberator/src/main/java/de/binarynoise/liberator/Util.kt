@@ -55,7 +55,7 @@ inline fun <T> tryOrIgnore(block: () -> T): Unit {
  *
  * @param block The block to execute.
  */
-inline fun <T> tryOrLog(block: () -> T): Unit {
+inline fun tryOrLog(block: () -> Unit): Unit {
     try {
         block()
     } catch (e: Exception) {

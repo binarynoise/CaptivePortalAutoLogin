@@ -31,8 +31,8 @@
         android:theme="@style/CaptivePortalAutoLogin"
         android:usesCleartextTraffic="true"
         >
-        <activity android:name=".MainActivity" />
-        <activity android:name=".preferences.NewMainActivity" />
+        
+        <activity android:name=".preferences.MainActivity" />
         
         <activity
             android:name=".GeckoViewActivity"
@@ -56,7 +56,7 @@
         <activity-alias
             android:name=".HomeActivity"
             android:exported="true"
-            android:targetActivity=".MainActivity"
+            android:targetActivity=".preferences.MainActivity"
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
