@@ -14,8 +14,6 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
-import de.binarynoise.captiveportalautologin.R
-import de.binarynoise.captiveportalautologin.preferences.SharedPreferences.liberator_automatically_liberate
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
 class MainFragment : AutoCleanupPreferenceFragment() {
@@ -62,6 +60,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             addPreference(Preference(ctx)) {
                 title = "Network Status"
+                isSelectable = false
                 
                 @Suppress("UNUSED_PARAMETER")
                 fun updateStatusText(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
@@ -88,13 +87,14 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 isEnabled = false
             }
             addPreference(Preference(ctx)) {
-                title = "Liberate me now!"
+                title = "Liberate me now"
                 summary = "Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled."
                 
                 setOnPreferenceClickListener {
-                    val retryIntent = Intent(context, ConnectivityChangeListenerService::class.java)
-                    retryIntent.putExtra("retry", true)
-                    context.startService(retryIntent)
+                    Intent(context, ConnectivityChangeListenerService::class.java).apply {
+                        putExtra("retry", true)
+                        context.startService(this)
+                    }
                     true
                 }
                 
@@ -115,7 +115,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 })
             }
             
-            addPreference(ViewHolderPreference(ctx, R.layout.preference_accent)) {
+            addPreference(Preference(ctx)) {
                 title = "Capture Captive Portal Login"
                 summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
                 intent = Intent(ctx, GeckoViewActivity::class.java)

@@ -109,8 +109,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.0")
+//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.0")
     
     // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
     implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423") {

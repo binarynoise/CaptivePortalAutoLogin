@@ -15,8 +15,11 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
@@ -175,10 +178,21 @@ fun Document.getInput(name: String) = selectFirst("input[name=$name]")?.attr("va
  */
 fun Response.readText(skipStatusCheck: Boolean = false): String {
     if (!skipStatusCheck) checkSuccess()
-    val source = body?.source() ?: return ""
-    val charset: Charset = body?.contentType()?.charset() ?: Charsets.UTF_8
+    return body?.readText() ?: ""
+}
+
+fun ResponseBody.readText(): String {
+    val source = this.source()
+    val charset: Charset = this.contentType()?.charset() ?: Charsets.UTF_8
     source.request(Long.MAX_VALUE)
     return source.buffer.clone().readString(charset)
+}
+
+fun RequestBody.readText(): String {
+    val charset: Charset = this.contentType()?.charset() ?: Charsets.UTF_8
+    val buffer = Buffer()
+    writeTo(buffer)
+    return buffer.readString(charset)
 }
 
 /**

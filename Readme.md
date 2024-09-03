@@ -17,6 +17,7 @@
   - [x] proper permission handling
   - [ ] implement export and upload of hars
   - [ ] dynamically load new liberator version
+  - [ ] sign apk
 - [ ] Android light version
   - [ ] only service and permissions
 - [ ] Linux service

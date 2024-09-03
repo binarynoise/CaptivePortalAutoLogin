@@ -3,6 +3,7 @@
 package de.binarynoise.liberator
 
 import java.net.SocketTimeoutException
+import java.util.concurrent.TimeUnit.*
 import kotlin.contracts.ExperimentalContracts
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.MEDIA_TYPE_JSON
@@ -25,6 +26,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
@@ -33,6 +35,9 @@ import org.jsoup.Jsoup
 
 const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
 //const val portalTestUrl = "http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
+
+//private val userAgent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+private val userAgent = "Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0"
 
 class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     
@@ -45,7 +50,7 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
 //        followSslRedirects(true) // doesn't work as followRedirects is set to false
         
         addInterceptor(::interceptRequest)
-        
+        readTimeout(1, MINUTES)
         clientInit(this)
     }.build()
     
@@ -60,14 +65,8 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
     private fun interceptRequest(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val newRequest = originalRequest.newBuilder().apply {
-            header(
-                "User-Agent",
-                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-            )
-            header(
-                "Connection",
-                "Keep-Alive",
-            )
+            header("User-Agent", userAgent)
+            header("Connection", "Keep-Alive")
             val cookiesToSend = cookies.filter { it.matches(originalRequest.url) }
             log("Loading cookies for ${originalRequest.url}: ${cookiesToSend.joinToString { "${it.name}=${it.value}" }}")
             if (cookiesToSend.isNotEmpty()) {
@@ -82,14 +81,24 @@ class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
         }
         if (newRequest.method == "POST") {
             when (val body = newRequest.body) {
+                null -> {
+                }
                 is FormBody -> for (i in 0..<body.size) {
                     val name = body.name(i)
                     val value = body.value(i)
                     log("> $name=$value")
                 }
-                null -> {
+                is MultipartBody -> {
+                    log("> Content-Type: ${body.contentType()}")
+                    body.parts.forEach {
+                        log("> ${it.body.contentType()} (${body.contentLength()} bytes)")
+                        log(it.body.readText())
+                    }
                 }
-                else -> log("> ${body.contentType()} (${body.contentLength()} bytes)")
+                else -> {
+                    log("> Content-Type: ${body.contentType()} (${body.contentLength()} bytes)")
+                    log(body.readText())
+                }
             }
         }
         

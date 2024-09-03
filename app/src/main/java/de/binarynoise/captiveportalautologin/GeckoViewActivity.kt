@@ -285,12 +285,19 @@ class GeckoViewActivity : ComponentActivity() {
         }
         */
         android.R.id.home -> {
-            finish()
-            true
+            onNavigateUp()
         }
         else -> {
             super.onMenuItemSelected(featureId, item)
         }
+    }
+    
+    override fun onNavigateUp(): Boolean {
+        return super.onNavigateUp()
+    }
+    
+    override fun shouldUpRecreateTask(targetIntent: Intent?): Boolean {
+        return true
     }
     
     private val extensionConfig = mapOf(

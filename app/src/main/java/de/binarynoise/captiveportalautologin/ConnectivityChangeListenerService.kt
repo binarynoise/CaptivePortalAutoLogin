@@ -63,8 +63,9 @@ class ConnectivityChangeListenerService : Service() {
         })
     }
     
+    @Suppress("UNUSED_PARAMETER")
     private fun updateNofication(oldState: NetworkState?, newState: NetworkState?) {
-        // TODO update notification text with current state
+        NotificationCompat.Builder(applicationContext, notification!!).setContentText(newState?.toString() ?: "Running in background")
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -106,6 +107,12 @@ class ConnectivityChangeListenerService : Service() {
             retryIntent.putExtra("retry", true)
             val pendingRetryIntent = PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
             it.addAction(NotificationCompat.Action.Builder(null, "Try again", pendingRetryIntent).build())
+            
+            val captureIntent = Intent(this, GeckoViewActivity::class.java)
+            val pendingCaptureIntent = PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
+            it.addAction(NotificationCompat.Action.Builder(null, "Capture portal", pendingCaptureIntent).build())
+            
+            it.setOnlyAlertOnce(true)
         }
         
         ServiceCompat.startForeground(
@@ -203,7 +210,7 @@ class ConnectivityChangeListenerService : Service() {
     fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities? = null) {
         val ssid = SsidCompat.getSsid(network, networkCapabilities)
         if (ssid == null) {
-            log("SSID: null");
+            log("SSID: null")
             return
         }
         

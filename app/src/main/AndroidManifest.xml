@@ -36,20 +36,14 @@
         
         <activity
             android:name=".GeckoViewActivity"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".HomeActivity"
             android:windowSoftInputMode="adjustResize"
-            />
-        
-        <activity
-            android:name=".PermissionActivity"
-            android:label="Permissions"
-            android:parentActivityName=".MainActivity"
             />
         
         <activity
             android:name=".LogExportActivity"
             android:label="LogExportActivity"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".HomeActivity"
             />
         
         
