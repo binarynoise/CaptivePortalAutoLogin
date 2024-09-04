@@ -106,11 +106,11 @@ dependencies {
     implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
     
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
     
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.0")
-//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
+//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.2")
     
     // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
     implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423") {

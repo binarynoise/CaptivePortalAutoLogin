@@ -7,7 +7,7 @@ dependencies {
     api(project(":api"))
     implementation(project(":util:okhttp-kts"))
     
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
     
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
