@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    kotlin("plugin.serialization") version "2.0.0"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -94,31 +94,29 @@ android {
 }
 
 dependencies {
-//    implementation(project(":portalMetadata"))
-    implementation(project(":logger"))
-    implementation(project(":liberator"))
-    implementation(project(":api:client"))
+    implementation(projects.logger)
+    implementation(projects.liberator)
+    implementation(projects.api.client)
     
-    implementation("androidx.activity:activity-ktx:1.9.1")
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("com.github.kirich1409:viewbindingpropertydelegate-noreflection:1.5.9")
+    implementation(libs.activity.ktx)
+    implementation(libs.core.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.preference.ktx)
+    implementation(libs.viewbindingpropertydelegate.noreflection)
     
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
-//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.2")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     
     // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
-    implementation("org.mozilla.geckoview:geckoview:125.0.20240419144423") {
-        exclude("com.google.android.gms","play-services-fido")
+    implementation(libs.geckoview) {
+        exclude("com.google.android.gms", "play-services-fido")
     }
     
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.urlconnection)
     
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+    debugImplementation(libs.leakcanary.android)
 }

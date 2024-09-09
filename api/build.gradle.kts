@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization") version "2.0.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     
     testImplementation(kotlin("test"))
 }

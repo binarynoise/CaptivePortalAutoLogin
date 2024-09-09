@@ -1,23 +1,14 @@
 plugins {
-    kotlin("jvm")
-//    id("com.android.library")
+    alias(libs.plugins.kotlin.jvm)
 }
 
-//android {
-//    namespace = "de.binarynoise.captiveportalautologin.liberator"
-//
-//    defaultConfig {
-//        minSdk = 21
-//    }
-//}
-
 dependencies {
-    implementation(project(":logger"))
-    implementation(project(":util:okhttp-kts"))
+    implementation(projects.logger)
+    implementation(projects.util.okhttpKts)
     
-    implementation("org.jsoup:jsoup:1.18.1")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
-    implementation("org.json:json:20240303")
+    implementation(libs.jsoup)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.urlconnection)
+    implementation(libs.json)
     
 }

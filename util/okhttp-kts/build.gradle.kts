@@ -1,12 +1,12 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
-    implementation(project(":logger"))
-    implementation("org.jsoup:jsoup:1.18.1")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+    implementation(projects.logger)
+    implementation(libs.jsoup)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.urlconnection)
     
     testImplementation(kotlin("test"))
 }

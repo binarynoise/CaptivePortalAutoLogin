@@ -1,18 +1,19 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    kotlin("jvm")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    application
+    alias(libs.plugins.application)
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.shadow)
 }
 
 val javaVersion = JavaVersion.VERSION_17
 
 val r8: Configuration by configurations.creating
 dependencies {
-    implementation(project(":logger"))
-    implementation(project(":liberator"))
-    implementation(project(":api:client"))
+    implementation(projects.logger)
+    implementation(projects.liberator)
+    implementation(projects.api.client)
+    //noinspection GradleDynamicVersion
     r8("com.android.tools:r8:+")
 }
 

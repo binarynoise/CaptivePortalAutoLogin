@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
@@ -15,9 +15,8 @@ kotlin {
         
         val androidMain by getting {
             dependencies {
-                //add Android-specific dependencies here
-                implementation("androidx.collection:collection-ktx:1.4.3")
-                implementation("androidx.core:core-ktx:1.13.1")
+                implementation(libs.collection.ktx)
+                implementation(libs.core.ktx)
             }
         }
         
@@ -40,5 +39,5 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

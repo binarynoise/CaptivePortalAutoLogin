@@ -1,25 +1,23 @@
 plugins {
-    kotlin("jvm")
-    
+    alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
-    api(project(":api"))
-    implementation(project(":util:okhttp-kts"))
+    api(projects.api)
+    implementation(projects.util.okhttpKts)
     
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.2")
+    implementation(libs.kotlinx.serialization.json)
     
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:okhttp-urlconnection:4.12.0")
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.urlconnection)
     
     testImplementation(kotlin("test"))
-    testImplementation(project(":api:server"))
-//    testImplementation(project(":jsonDB"))
-    testImplementation(platform("io.ktor:ktor-bom:2.3.12"))
-    testImplementation("io.ktor:ktor-server-core-jvm")
-    testImplementation("io.ktor:ktor-server-netty-jvm")
-    testImplementation("io.ktor:ktor-server-status-pages")
-    testImplementation("io.ktor:ktor-server-tests-jvm")
+    testImplementation(projects.api.server)
+    testImplementation(platform(libs.ktor.bom))
+    testImplementation(libs.ktor.server.core.jvm)
+    testImplementation(libs.ktor.server.netty.jvm)
+    testImplementation(libs.ktor.server.status.pages)
+    testImplementation(libs.ktor.server.tests.jvm)
     
 }
 

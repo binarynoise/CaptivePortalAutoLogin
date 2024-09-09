@@ -17,9 +17,9 @@ val javaVersion = JavaVersion.VERSION_17
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:8.6.0")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
-        classpath("org.kohsuke:github-api:1.321")
+        classpath(libs.gradle)
+        classpath(libs.kotlin.gradle.plugin)
+        classpath(libs.github.api)
     }
     
     repositories {
@@ -330,11 +330,14 @@ fun Project.getAllCommitsPushedExec(): ExecOutput {
         isIgnoreExitValue = true
     }
 }
-fun Project.getCommitCount() = try { getCommitCountExec().standardOutput.asText.get().trim().toInt() } catch (e: Exception) { 0 }
 
-fun Project.getCommitHash() = try { getCommitHashExec().standardOutput.asText.get().trim() } catch (e: Exception) { "" }
+//@formatter:off
+fun Project.getCommitCount() = try { getCommitCountExec().standardOutput.asText.get().trim().toInt() } catch (_: Exception) { 0 }
+
+fun Project.getCommitHash() = try { getCommitHashExec().standardOutput.asText.get().trim() } catch (_: Exception) { "" }
 
 fun Project.getWorkingTreeClean() = getWorkingTreeCleanExec().result.orNull?.exitValue == 0
 
 fun Project.getAllCommitsPushed() = getAllCommitsPushedExec().result.orNull?.exitValue == 0
+//@formatter:on
 //</editor-fold>
