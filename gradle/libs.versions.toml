@@ -6,6 +6,7 @@ activityKtx = "1.9.2"
 collectionKtx = "1.4.3"
 coreKtx = "1.13.1"
 desugar_jdk_libs = "2.1.2"
+exposed = "0.54.0"
 geckoview = "130.0.20240829075237"
 githubApi = "1.321"
 json = "20240303"
@@ -14,11 +15,13 @@ kotlinxCoroutinesAndroid = "1.8.1"
 kotlinxDatetime = "0.6.1"
 kotlinxSerializationJson = "1.7.2"
 ktor = "2.3.12"
+ktorm = "4.1.1"
 leakcanary = "2.14"
 lifecycleRuntimeKtx = "2.8.5"
 okhttp = "4.12.0"
 preferenceKtx = "1.2.1"
 shadow = "8.1.1"
+sqliteJdbc = "3.46.1.0"
 viewbindingpropertydelegate = "1.5.9"
 
 [libraries]
@@ -26,6 +29,9 @@ activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activ
 collection-ktx = { module = "androidx.collection:collection-ktx", version.ref = "collectionKtx" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 geckoview = { module = "org.mozilla.geckoview:geckoview", version.ref = "geckoview" }
 github-api = { module = "org.kohsuke:github-api", version.ref = "githubApi" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
@@ -47,6 +53,7 @@ lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", v
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }
 viewbindingpropertydelegate-noreflection = { module = "com.github.kirich1409:viewbindingpropertydelegate-noreflection", version.ref = "viewbindingpropertydelegate" }
 
 [plugins]

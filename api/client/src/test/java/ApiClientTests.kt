@@ -1,20 +1,23 @@
 @file:OptIn(ExperimentalPathApi::class)
 
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.deleteRecursively
+import kotlin.test.BeforeTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.fail
+import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.Log
-import de.binarynoise.captiveportalautologin.server.ApiImpl
-import de.binarynoise.captiveportalautologin.server.api
+import de.binarynoise.captiveportalautologin.client.ApiClient
+import de.binarynoise.captiveportalautologin.server.ApiServer
+import de.binarynoise.captiveportalautologin.server.Routing
+import de.binarynoise.captiveportalautologin.server.Tables
 import de.binarynoise.captiveportalautologin.server.module
-import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
-import de.binarynoise.util.okhttp.post
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -29,11 +32,12 @@ import io.ktor.server.plugins.origin
 import io.ktor.server.request.httpMethod
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.toRequestBody
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 
 object ApiClientTests {
-    val tempDirectory = Files.createTempDirectory("api-client-test")
+    private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
     
     private val httpServer: NettyApplicationEngine = embeddedServer(
         Netty,
@@ -45,50 +49,95 @@ object ApiClientTests {
         start(wait = false)
     }
     
-    @AfterAll
-    @JvmStatic
-    fun cleanup() {
-        tempDirectory.deleteRecursively()
-        httpServer.stop()
-    }
-    
-    @Test
-    fun `test hello world`() {
-        val client = OkHttpClient()
-        assertEquals("Hello World!", client.get(base, null).readText())
-        assertEquals("api/har/{name} here, name is test", client.get(apiBase, "har/test") { method("echo", null) }.readText())
-        try {
-            client.post(apiBase, "har/test") {
-                post("{}".toRequestBody(MEDIA_TYPE_JSON))
-            }.checkSuccess()
-            fail("Did not throw")
-        } catch (e: IllegalStateException) {
-            assertEquals("HTTP error: 400 Bad Request", e.message)
-        }
-    }
+    private lateinit var server: ApiServer
+    private lateinit var client: ApiClient
     
     private val base = "http://localhost:8080/".toHttpUrl()
     private val apiBase = base.resolve("api/")!!
     
+    @BeforeTest
+    fun setup() {
+        server = ApiServer(tempDirectory)
+        Routing.api = server
+        client = ApiClient(apiBase)
+    }
+    
+    @AfterAll
+    @JvmStatic
+    fun cleanup() {
+        httpServer.stop()
+        tempDirectory.deleteRecursively()
+    }
+    
     @Test
-    fun `test submit har`() {
-        val server = ApiImpl(tempDirectory)
-        api = server
-        val client = ApiClient(apiBase)
-        
+    fun `test hello world`() {
+        val http = OkHttpClient()
+        assertEquals("Hello World!", http.get(base, null).readText())
+        assertEquals("api/har/{name} here, name is test", http.get(apiBase, "har/test") { method("echo", null) }.readText())
+    }
+    
+    @Test
+    fun `har - submitHar()`() {
         val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
         
         client.har.submitHar("test", har)
-        assertEquals(har, server.db.load<HAR>("test", "har"))
+        assertEquals(har, server.jsonDb.load<HAR>("test", "har"))
+    }
+    
+    @Test
+    @Ignore
+    fun `liberator - getLiberatorVersion`() {
+    }
+    
+    @Test
+    @Ignore
+    fun `liberator - fetchLiberatorUpdate`() {
+    }
+    
+    @Test
+    fun `liberator - reportError`() {
+        client.liberator.reportError(Api.Liberator.Error("test ssid", "test host", "test url", "test error"))
+    }
+    
+    @Test
+    fun `liberator - reportSuccess`() {
+        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+    }
+    
+    @Test
+    fun `liberator - reportSuccess - count`() {
+        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+        val before = transaction {
+            Tables.Successes.selectAll().where {
+                Tables.Successes.ssid eq "test ssid"
+                Tables.Successes.url eq "test url"
+            }.let { result ->
+                assertEquals(1, result.count())
+                result.first()[Tables.Successes.count]
+            }
+        }
+        println("before: $before")
+        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+        val after = transaction {
+            Tables.Successes.selectAll().where {
+                Tables.Successes.ssid eq "test ssid"
+                Tables.Successes.url eq "test url"
+            }.let { result ->
+                assertEquals(1, result.count())
+                result.first()[Tables.Successes.count]
+            }
+        }
+        println("after: $after")
+        assertEquals(before + 1, after)
     }
 }
 
 val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "LoggingPlugin") {
     onCallReceive { call, body ->
-        println("receiving call to ${call.request.httpMethod} ${call.request.origin.uri} with body $body")
+        println("receiving call to ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
     }
     onCallRespond { call, body ->
-        println("responding to call ${call.request.httpMethod} ${call.request.origin.uri} with body $body")
+        println("responding to call ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
     }
     
     on(CallFailed, handler = object : suspend (ApplicationCall, Throwable) -> Unit {

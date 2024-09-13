@@ -101,9 +101,17 @@ class CachedCsvDB(
      * Stores a record in the cache.
      *
      * @param key The first and second columns of the record.
-     * @param value The value of the record to store.
+     * @param value The columns of the record to store.
      */
     operator fun set(key: Pair<String, String>, value: String) = set(listOf(key.first, key.second), listOf(value))
+    
+    /**
+     * Stores a record in the cache.
+     *
+     * @param key The first and second columns of the record.
+     * @param value The value of the record to store.
+     */
+    operator fun set(key: Pair<String, String>, value: List<String>) = set(listOf(key.first, key.second), value)
     
     private var backgroundThread: Thread? = null
     

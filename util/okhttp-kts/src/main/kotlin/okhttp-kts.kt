@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -71,16 +72,14 @@ fun OkHttpClient.get(
  *
  * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
- * @param content The key-value pairs to include in the request body for form-encoded data. Defaults to an empty map.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
  * @throws Error if both url and context are null.
  */
-fun OkHttpClient.post(
+fun OkHttpClient.call(
     base: HttpUrl?,
     url: String?,
-    content: Map<String, String> = emptyMap(),
     queryParameters: Map<String, String> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
@@ -98,16 +97,96 @@ fun OkHttpClient.post(
         }
         url(urlBuilder.build())
         
+        preConnectSetup()
+    }.build()
+    
+    return newCall(request).execute()
+}
+
+/**
+ * Sends a POST request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param json The JSON string to include in the request body.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.postJson(
+    base: HttpUrl?,
+    url: String?,
+    json: String,
+    queryParameters: Map<String, String> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
+        post(json.toRequestBody(MEDIA_TYPE_JSON))
+        preConnectSetup()
+    }
+}
+
+/**
+ * Sends a POST request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param json The JSON string to include in the request body.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.putJson(
+    base: HttpUrl?,
+    url: String?,
+    json: String,
+    queryParameters: Map<String, String> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
+        put(json.toRequestBody(MEDIA_TYPE_JSON))
+        preConnectSetup()
+    }
+}
+
+/**
+ * Sends a POST request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param form The key-value pairs to include in the request body for form-encoded data.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.postForm(
+    base: HttpUrl?,
+    url: String?,
+    form: Map<String, String>,
+    queryParameters: Map<String, String> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
         val formBodyBuilder = FormBody.Builder()
-        content.forEach { (key, value) ->
+        form.forEach { (key, value) ->
             formBodyBuilder.add(key, value)
         }
         post(formBodyBuilder.build())
         
         preConnectSetup()
-    }.build()
-    
-    return newCall(request).execute()
+    }
 }
 
 /**
@@ -236,29 +315,19 @@ fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
  * @return the final non-redirect response
  */
 tailrec fun Response.followRedirects(client: OkHttpClient): Response {
-    val location = this.getLocation(false)
-    if (location == null) return this
+    val location = this.getLocation(false) ?: return this
     
     log("following redirect: ${this.requestUrl} -> $location")
     
-    var post = request.method == "POST"
-    
     val newRequest = this.request.newBuilder()
     newRequest.url(request.url.resolveOrThrow(location))
-    if (code < 300 || code == 303 || code >= 400) {
+    
+    if (code != 307 && code != 308) {
+        // unless requested to keep the http method, change it to GET
         newRequest.method("GET", null)
-        post = false
     }
     
-    var newResponse: Response = client.newCall(newRequest.build()).execute()
-    
-    // some servers don't send the correct status code if they want to change POST to GET
-    // because of legacy reasons so we follow the out-of-spec behaviour if necessary.
-    if (post && newResponse.code == 405) {
-        log("got 405 for following the redirect with POST, trying GET")
-        newRequest.method("GET", null)
-        newResponse = client.newCall(newRequest.build()).execute()
-    }
+    val newResponse: Response = client.newCall(newRequest.build()).execute()
     
     return newResponse.followRedirects(client)
 }

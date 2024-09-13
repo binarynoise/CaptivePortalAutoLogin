@@ -16,7 +16,7 @@ interface Api {
         fun fetchLiberatorUpdate()
         
         @Serializable
-        data class Error(val ssid: String, val host: String, val url: String, val error: String)
+        data class Error(val ssid: String, val host: String, val url: String, val message: String)
         
         @Serializable
         data class Success(val ssid: String, val url: String)
