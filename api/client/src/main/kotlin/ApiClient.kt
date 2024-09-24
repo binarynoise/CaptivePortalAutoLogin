@@ -15,7 +15,7 @@ class ApiClient(private val base: HttpUrl) : Api {
     
     override val har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {
-            post("har/$name", har.toJson())
+            put("har/$name", har.toJson())
         }
     }
     override val liberator = object : Api.Liberator {
@@ -54,4 +54,5 @@ fun HAR.toJson(): String {
 val serializer = Json {
     encodeDefaults = false
     explicitNulls = false
+    prettyPrint = false
 }

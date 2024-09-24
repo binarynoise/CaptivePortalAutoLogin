@@ -35,19 +35,12 @@ import okhttp3.OkHttpClient
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.TestClassOrder
 
-object ApiClientTests {
-    private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
-    
-    private val httpServer: NettyApplicationEngine = embeddedServer(
-        Netty,
-        port = 8080,
-        host = "::",
-        module = Application::module,
-    ).apply {
-        application.install(LoggingPlugin)
-        start(wait = false)
-    }
+class ApiClientTests {
     
     private lateinit var server: ApiServer
     private lateinit var client: ApiClient
@@ -62,73 +55,101 @@ object ApiClientTests {
         client = ApiClient(apiBase)
     }
     
-    @AfterAll
-    @JvmStatic
-    fun cleanup() {
-        httpServer.stop()
-        tempDirectory.deleteRecursively()
-    }
-    
-    @Test
-    fun `test hello world`() {
-        val http = OkHttpClient()
-        assertEquals("Hello World!", http.get(base, null).readText())
-        assertEquals("api/har/{name} here, name is test", http.get(apiBase, "har/test") { method("echo", null) }.readText())
-    }
-    
-    @Test
-    fun `har - submitHar()`() {
-        val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
+    companion object {
+        private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
         
-        client.har.submitHar("test", har)
-        assertEquals(har, server.jsonDb.load<HAR>("test", "har"))
-    }
-    
-    @Test
-    @Ignore
-    fun `liberator - getLiberatorVersion`() {
-    }
-    
-    @Test
-    @Ignore
-    fun `liberator - fetchLiberatorUpdate`() {
-    }
-    
-    @Test
-    fun `liberator - reportError`() {
-        client.liberator.reportError(Api.Liberator.Error("test ssid", "test host", "test url", "test error"))
-    }
-    
-    @Test
-    fun `liberator - reportSuccess`() {
-        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
-    }
-    
-    @Test
-    fun `liberator - reportSuccess - count`() {
-        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
-        val before = transaction {
-            Tables.Successes.selectAll().where {
-                Tables.Successes.ssid eq "test ssid"
-                Tables.Successes.url eq "test url"
-            }.let { result ->
-                assertEquals(1, result.count())
-                result.first()[Tables.Successes.count]
-            }
+        private val httpServer: NettyApplicationEngine = embeddedServer(
+            Netty,
+            port = 8080,
+            host = "::",
+            module = Application::module,
+        ).apply {
+            application.install(LoggingPlugin)
         }
-        println("before: $before")
-        client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
-        val after = transaction {
-            Tables.Successes.selectAll().where {
-                Tables.Successes.ssid eq "test ssid"
-                Tables.Successes.url eq "test url"
-            }.let { result ->
-                assertEquals(1, result.count())
-                result.first()[Tables.Successes.count]
-            }
+        
+        @AfterAll
+        @JvmStatic
+        fun cleanup() {
+            httpServer.stop()
+            tempDirectory.deleteRecursively()
         }
-        println("after: $after")
-        assertEquals(before + 1, after)
+        
+        @BeforeAll
+        @JvmStatic
+        fun start() {
+            httpServer.start(wait = false)
+        }
+    }
+    
+    @Nested
+    inner class AHelloWorld {
+        @Test
+        fun `test hello world`() {
+            val http = OkHttpClient()
+            assertEquals("Hello World!", http.get(base, null).readText())
+            assertEquals("api/har/{name} here, name is test", http.get(apiBase, "har/test") { method("ECHO", null) }.readText())
+        }
+    }
+    
+    @Nested
+    inner class Har {
+        @Test
+        fun submitHar() {
+            val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
+            client.har.submitHar("test", har)
+            assertEquals(har, server.jsonDb.load<HAR>("test", "har"))
+        }
+    }
+    
+    @Nested
+    inner class Liberator {
+        
+        @Test
+        @Ignore
+        fun getLiberatorVersion() {
+        }
+        
+        @Test
+        @Ignore
+        fun fetchLiberatorUpdate() {
+        }
+        
+        @Test
+        fun reportError() {
+            client.liberator.reportError(Api.Liberator.Error("test ssid", "test host", "test url", "test error"))
+        }
+        
+        @Test
+        fun reportSuccess() {
+            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+        }
+        
+        @Test
+        fun `reportSuccess - count`() {
+            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+            val before = transaction {
+                Tables.Successes.selectAll().where {
+                    Tables.Successes.ssid eq "test ssid"
+                    Tables.Successes.url eq "test url"
+                }.let { result ->
+                    assertEquals(1, result.count())
+                    result.first()[Tables.Successes.count]
+                }
+            }
+            println("before: $before")
+            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+            val after = transaction {
+                Tables.Successes.selectAll().where {
+                    Tables.Successes.ssid eq "test ssid"
+                    Tables.Successes.url eq "test url"
+                }.let { result ->
+                    assertEquals(1, result.count())
+                    result.first()[Tables.Successes.count]
+                }
+            }
+            println("after: $after")
+            assertEquals(before + 1, after)
+        }
     }
 }
 

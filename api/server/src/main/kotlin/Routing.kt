@@ -33,7 +33,7 @@ fun Application.configureRouting() {
                     call.respond(HttpStatusCode.Created)
                 }
                 
-                route("/{name}", HttpMethod("echo")) {
+                route("/{name}", HttpMethod("ECHO")) {
                     handle {
                         call.respondText("api/har/{name} here, name is " + (call.parameters["name"] ?: error("parameter 'name' not set")))
                     }
