@@ -7,6 +7,8 @@ import android.os.Bundle
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
+import androidx.preference.DropDownPreference
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
@@ -14,6 +16,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.liberator.PortalDetection
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
 class MainFragment : AutoCleanupPreferenceFragment() {
@@ -58,6 +61,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     }
                 })
             }
+            
             addPreference(Preference(ctx)) {
                 title = "Network Status"
                 isSelectable = false
@@ -79,13 +83,14 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     }
                 })
             }
+            
             addPreference(SwitchPreference(ctx)) {
                 title = "Liberator Status"
                 summaryOn = "Automatically liberating Captive Portals"
                 summaryOff = "Not automatically liberating Captive Portals"
                 apply(SharedPreferences.liberator_automatically_liberate)
-                isEnabled = false
             }
+            
             addPreference(Preference(ctx)) {
                 title = "Liberate me now"
                 summary = "Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled."
@@ -134,6 +139,23 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 summaryOff = "Please grant all permissions to use the app"
             }
             
+            addPreference(DropDownPreference(ctx)) {
+                key = SharedPreferences.liberator_captive_test_url.key
+                title = "Captive Portal Test Backend"
+                entries = PortalDetection.backends.keys.toTypedArray()
+                entryValues = PortalDetection.backends.values.toTypedArray()
+                summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+                setDefaultValue(PortalDetection.defaultBackend)
+            }
+            
+            addPreference(DropDownPreference(ctx)) {
+                key = SharedPreferences.liberator_user_agent.key
+                title = "User Agent"
+                entries = PortalDetection.userAgents.keys.toTypedArray()
+                entryValues = PortalDetection.userAgents.values.toTypedArray()
+                summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+                setDefaultValue(PortalDetection.defaultBackend)
+            }
             
             addPreference(Preference(ctx)) {
                 title = "Export Logs"

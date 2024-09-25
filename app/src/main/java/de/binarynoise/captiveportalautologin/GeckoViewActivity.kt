@@ -56,11 +56,10 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnErrorOccurredDeta
 import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnResponseStartedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnSendHeadersDetails
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
-import de.binarynoise.liberator.portalTestUrl
-import de.binarynoise.liberator.tryOrLog
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -76,13 +75,7 @@ import org.mozilla.geckoview.StorageController
 import org.mozilla.geckoview.WebExtension
 
 private const val extensionPath = "resource://android/assets/extension/" + "captivePortalAutoLoginTrafficCapture/"
-
 private const val extensionID = "captivePortalAutoLoginTrafficCapture@binarynoise.de"
-
-//private val portalTestUrl = "http://am-i-captured.binarynoise.de/"
-//private val portalTestHost = "am-i-captured.binarynoise.de"
-
-private val portalTestHost = portalTestUrl.toHttpUrl().host
 
 class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
@@ -95,6 +88,7 @@ class GeckoViewActivity : ComponentActivity() {
     }
     
     private var extension: WebExtension? = null
+    private val portalTestUrl by SharedPreferences.liberator_captive_test_url
     
     // TODO ask ConnectivityManager if current network has portal so service may be not always running
     @Suppress("UNUSED_PARAMETER")
@@ -251,6 +245,7 @@ class GeckoViewActivity : ComponentActivity() {
                 
                 val ssid = networkState?.ssid
                 har.comment = ssid
+                val portalTestHost = portalTestUrl.toHttpUrl().host
                 val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
                 val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
                 val fileName = "$ssid $host $timestamp.har"

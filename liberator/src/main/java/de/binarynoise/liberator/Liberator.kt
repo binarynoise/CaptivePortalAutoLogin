@@ -32,13 +32,7 @@ import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.Jsoup
 
-const val portalTestUrl = "http://am-i-captured.binarynoise.de" // TODO move to preference
-//const val portalTestUrl = "http://connectivitycheck.gstatic.com/generate_204" // TODO move to preference
-
-//private const val userAgent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-private const val userAgent = "Mozilla/5.0 (Android 14; Mobile; rv:129.0) Gecko/129.0 Firefox/129.0"
-
-class Liberator(private val clientInit: (OkHttpClient.Builder) -> Unit) {
+class Liberator(val portalTestUrl: String, private val userAgent: String, private val clientInit: (OkHttpClient.Builder) -> Unit) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
     

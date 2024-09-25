@@ -3,7 +3,7 @@ package de.binarynoise.captiveportalautologin
 import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
 import de.binarynoise.liberator.Liberator
-import de.binarynoise.liberator.tryOrIgnore
+import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.logger.Logger.log
 
 fun main() {
@@ -93,7 +93,7 @@ fun onConnectivityChanged(connectivity: String) {
     try {
         log("onConnectivityChanged: $connectivity")
         if (connectivity == "portal") {
-            val (newLocation, tried) = Liberator({}).liberate()
+            val (newLocation, tried) = Liberator(PortalDetection.defaultBackend, PortalDetection.defaultUserAgent) {}.liberate()
             
             if (newLocation == null) {
                 if (tried) {

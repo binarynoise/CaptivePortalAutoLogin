@@ -35,6 +35,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.SsidCompat.connectivityManager
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
@@ -95,7 +96,7 @@ class ConnectivityChangeListenerService : Service() {
             serviceState = ServiceState(running = true, restart = false)
         }
         
-        createNotificationChannel(channelId, "persistent notification")
+        createNotificationChannel(channelId, "Persistent Notification")
         notification = createNotification(channelId) {
             // start HomeActivity on click
             val launchHomeIntent = Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
@@ -221,18 +222,30 @@ class ConnectivityChangeListenerService : Service() {
             networkState = NetworkState(network, ssid, false, false)
         }
         
+        val liberateAutomatically: Boolean by SharedPreferences.liberator_automatically_liberate
+        if (!liberateAutomatically) {
+            log("not liberating automatically")
+            return
+        }
+        
         backgroundHandler.post(::tryLiberate)
     }
     
     @WorkerThread
     fun tryLiberate() {
         val network = networkStateLock.write {
-            val state = networkState ?: run { log("no network"); return }
+            val state = networkState
+            if (state == null) {
+                log("no network")
+                return
+            }
             if (state.liberated) {
-                log("already liberated"); return
+                log("already liberated")
+                return
             }
             if (state.liberating) {
-                log("already liberating"); return
+                log("already liberating")
+                return
             }
             networkState = state.copy(liberating = true)
             state.network
@@ -242,7 +255,14 @@ class ConnectivityChangeListenerService : Service() {
         t.show()
         
         try {
-            val (newLocation, tried) = Liberator { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) }.liberate()
+            val userAgent: String by SharedPreferences.liberator_user_agent
+            val portalTestUrl: String by SharedPreferences.liberator_captive_test_url
+            
+            val (newLocation, tried) = Liberator(
+                portalTestUrl,
+                userAgent,
+                { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
+            ).liberate()
             
             if (newLocation == null) {
                 if (tried) {
