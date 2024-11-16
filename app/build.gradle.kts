@@ -89,6 +89,7 @@ android {
         }
         jniLibs {
             useLegacyPackaging = true // compress .so files even if they need to be extracted on-device then
+            keepDebugSymbols += "**/*.so"
         }
     }
 }
@@ -117,6 +118,9 @@ dependencies {
     
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)
+    
+    compileOnly(libs.xposed.api)
+    implementation(libs.hiddenapibypass)
     
     debugImplementation(libs.leakcanary.android)
 }

@@ -25,10 +25,14 @@ dependencyResolutionManagement {
         }
         mavenCentral()
         maven("https://jitpack.io")
-//        maven("https://api.xposed.info/")
+        maven("https://api.xposed.info/") {
+            content {
+                includeGroup("de.robv.android.xposed")
+            }
+        }
         maven("https://maven.mozilla.org/maven2/") {
             content {
-                includeGroupByRegex("org\\.mozilla.*")
+                includeGroupAndSubgroups("org.mozilla")
             }
         }
     }
