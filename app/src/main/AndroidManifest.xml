@@ -38,6 +38,7 @@
             android:name=".GeckoViewActivity"
             android:parentActivityName=".HomeActivity"
             android:windowSoftInputMode="adjustResize"
+            android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             />
         
         <activity

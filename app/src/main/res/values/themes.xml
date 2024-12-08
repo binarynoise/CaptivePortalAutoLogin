@@ -5,6 +5,10 @@
         <item name="android:navigationBarColor">?android:attr/colorBackground</item>
     </style>
     
+    <style name="CaptivePortalAutoLogin.NoBlur">
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
+    
     <style name="CaptivePortalAutoLogin.Button" parent="android:style/Widget.DeviceDefault.Button">
         <item name="android:textAllCaps">false</item>
     </style>
