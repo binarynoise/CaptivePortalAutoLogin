@@ -105,6 +105,7 @@ dependencies {
     implementation(libs.preference.ktx)
     implementation(libs.viewbindingpropertydelegate.noreflection)
     
+    implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
