@@ -39,6 +39,7 @@ import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
+import de.binarynoise.captiveportalautologin.xposed.ReevaluationHook
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrNull
@@ -272,6 +273,8 @@ class ConnectivityChangeListenerService : Service() {
                     networkStateLock.write {
                         networkState = networkState?.copy(liberated = true)
                     }
+                    sendBroadcast(Intent(ReevaluationHook.ACTION))
+                    log("sent broadcast ${ReevaluationHook.ACTION}")
                 } else {
                     log("not caught in portal")
                     t.cancel()
