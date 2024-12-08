@@ -21,15 +21,16 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
-import androidx.core.os.postDelayed
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.api.json.har.Browser
 import de.binarynoise.captiveportalautologin.api.json.har.Cache
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
@@ -90,40 +91,36 @@ class GeckoViewActivity : ComponentActivity() {
     private var extension: WebExtension? = null
     private val portalTestUrl by SharedPreferences.liberator_captive_test_url
     
-    // TODO ask ConnectivityManager if current network has portal so service may be not always running
-    @Suppress("UNUSED_PARAMETER")
-    private fun networkListener(oldState: NetworkState?, newState: NetworkState?): Unit {
+    @Suppress("unused")
+    private fun networkListener(oldState: NetworkState?, newState: NetworkState?) {
         mainHandler.post {
             with(binding) {
-                if (newState != null) {
-                    notUsingCaptivePortalWifiWarning.isVisible = false
-                    notUsingCaptivePortalWifiWarningService.isVisible = false
-                    notUsingCaptivePortalWifiWarningMobileData.isVisible = false
-                    notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = false
-                    
-                    
-                    if (session.isOpen) {
-                        session.loadUri(portalTestUrl)
-                    }
-                    
-                    mainHandler.postDelayed(200) {
-                        geckoView.isVisible = true
-                    }
-                } else {
-                    notUsingCaptivePortalWifiWarning.isVisible = true
-                    notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = true
-                    geckoView.isVisible = false
-                    if (serviceStateLock.read { serviceState.running }) {
-                        notUsingCaptivePortalWifiWarningMobileData.isVisible = true
-                    } else {
-                        notUsingCaptivePortalWifiWarningService.isVisible = true
-                    }
-                    
-                    log("not using captive portal wifi")
+                notConnectedWarning.isVisible = newState == null
+                notInCaptivePortalWifiWarning.isVisible = newState != null && !newState.hasPortal
+                
+                notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = newState?.liberated == true
+                
+                geckoView.isVisible = newState?.hasPortal == true
+                
+                
+                if (newState == null || !newState.hasPortal) {
                     if (session.isOpen) {
                         session.loadUri("about:blank")
                     }
+                } else {
+                    if (session.isOpen) {
+                        session.loadUri(portalTestUrl)
+                    }
                 }
+            }
+        }
+    }
+    
+    @Suppress("unused")
+    private fun serviceListener(oldState: ServiceState?, newState: ServiceState) {
+        mainHandler.post {
+            with(binding) {
+                notUsingCaptivePortalWifiWarningService.isVisible = !newState.running
             }
         }
     }
@@ -131,6 +128,9 @@ class GeckoViewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        
+        serviceListeners.add(::serviceListener)
+        serviceListener(null, serviceStateLock.read { serviceState })
         
         clearCache()
         
@@ -191,6 +191,7 @@ class GeckoViewActivity : ComponentActivity() {
         clearCache()
         
         networkListeners.remove(::networkListener)
+        serviceListeners.remove(::serviceListener)
         
         super.onDestroy()
     }
@@ -211,6 +212,7 @@ class GeckoViewActivity : ComponentActivity() {
                                 networkState = NetworkState(
                                     network = activeNetwork,
                                     ssid = "debug ssid (${networkState?.ssid}",
+                                    hasPortal = true,
                                     liberating = false,
                                     liberated = false,
                                 )

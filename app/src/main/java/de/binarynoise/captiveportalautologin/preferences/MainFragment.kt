@@ -68,7 +68,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 
                 @Suppress("UNUSED_PARAMETER")
                 fun updateStatusText(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
-                    summary = newState?.toString() ?: "Not connected to Network with Captive Portal"
+                    summary = newState?.toString() ?: "Not connected to Network"
                 }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
                     override fun onResume(owner: LifecycleOwner) {
@@ -132,7 +132,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 setOnPreferenceChangeListener { _, _ -> false }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
                     override fun onResume(owner: LifecycleOwner) {
-                        isChecked = Permissions.all.all { it.granted(context) }
+                        isChecked = Permissions.all { it.granted(context) }
                     }
                 })
                 summaryOn = "All permissions granted \uD83D\uDE0A"

@@ -9,7 +9,19 @@
     >
     
     <TextView
-        android:id="@+id/notUsingCaptivePortalWifiWarning"
+        android:id="@+id/notConnectedWarning"
+        style="@style/CaptivePortalAutoLogin.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:paddingHorizontal="@dimen/padding"
+        android:paddingTop="@dimen/padding"
+        android:text="Not connected to any network. You may need to disable mobile data and try again."
+        tools:visibility="visible"
+        />
+    
+    <TextView
+        android:id="@+id/notInCaptivePortalWifiWarning"
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,18 +39,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="Enable the Service and try again."
-        tools:visibility="visible"
-        />
-    
-    <TextView
-        android:id="@+id/notUsingCaptivePortalWifiWarningMobileData"
-        style="@style/CaptivePortalAutoLogin.Text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:paddingHorizontal="@dimen/padding"
-        android:text="You may need to disable mobile data and try again."
+        android:text="Service is not running. Enable the Service and try again."
         tools:visibility="visible"
         />
     
@@ -49,7 +50,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
-        android:text="The network could also be already liberated. If you just liberated the network, save the capture now."
+        android:text="The network is already liberated. If you just liberated the network, save the capture now."
         tools:visibility="visible"
         />
     

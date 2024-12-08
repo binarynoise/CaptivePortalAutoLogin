@@ -5,10 +5,12 @@ import java.util.concurrent.locks.*
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.properties.Delegates
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.NotificationManager.IMPORTANCE_MIN
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
@@ -32,6 +34,7 @@ import androidx.annotation.GuardedBy
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.SsidCompat.connectivityManager
@@ -49,7 +52,9 @@ class ConnectivityChangeListenerService : Service() {
     
     val backgroundHandler = BackgroundHandler("ConnectivityChangeListenerService")
     
+    private val notificationManager by lazy { getSystemService(NotificationManager::class.java) }
     private var notification: Notification? = null
+    private val notificationId = 1
     private val channelId = "ConnectivityChangeListenerService"
     
     private fun bindNetworkToProcess(oldState: NetworkState?, newState: NetworkState?) {
@@ -65,9 +70,12 @@ class ConnectivityChangeListenerService : Service() {
         })
     }
     
-    @Suppress("UNUSED_PARAMETER")
-    private fun updateNofication(oldState: NetworkState?, newState: NetworkState?) {
-        NotificationCompat.Builder(applicationContext, notification!!).setContentText(newState?.toString() ?: "Running in background")
+    @SuppressLint("MissingPermission")
+    @Suppress("unused")
+    private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
+        if (notification == null) return
+        notification = NotificationCompat.Builder(this, notification!!).setContentText(newState?.toString() ?: "").build()
+        NotificationManagerCompat.from(this).notify(notificationId, notification!!)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -78,18 +86,13 @@ class ConnectivityChangeListenerService : Service() {
         
         serviceStateLock.write {
             if (serviceState.running) {
-                if (intent != null && intent.extras != null) {
-                    if (intent.hasExtra("retry") && intent.extras!!.getBoolean("retry")) {
-                        val network = networkStateLock.read { networkState?.network }
-                        if (network != null) {
-                            backgroundHandler.post(::tryLiberate)
-                        } else {
-                            Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    if (intent.hasExtra("restart") && intent.extras!!.getBoolean("restart")) {
+                if (intent != null) when {
+                    intent.getBooleanExtra("restart", false) -> {
                         serviceState = ServiceState(running = true, restart = true)
                         stopSelf()
+                    }
+                    intent.getBooleanExtra("retry", false) -> {
+                        retryLiberate()
                     }
                 }
                 return START_STICKY
@@ -97,8 +100,15 @@ class ConnectivityChangeListenerService : Service() {
             serviceState = ServiceState(running = true, restart = false)
         }
         
-        createNotificationChannel(channelId, "Persistent Notification")
-        notification = createNotification(channelId) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel = NotificationChannel(channelId, "Persistent Notification", IMPORTANCE_MIN)
+            notificationManager.createNotificationChannel(serviceChannel)
+        }
+        notification = NotificationCompat.Builder(this, channelId).let {
+            it.setContentTitle("Captive Portal detection")
+            it.setContentText("Running in background")
+            it.setSmallIcon(R.drawable.wifi_lock_open)
+            
             // start HomeActivity on click
             val launchHomeIntent = Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
             launchHomeIntent.addFlags(FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK)
@@ -115,35 +125,19 @@ class ConnectivityChangeListenerService : Service() {
             it.addAction(NotificationCompat.Action.Builder(null, "Capture portal", pendingCaptureIntent).build())
             
             it.setOnlyAlertOnce(true)
-        }
+        }.build()
         
         ServiceCompat.startForeground(
-            this, 1, notification!!,
+            this, notificationId, notification!!,
             if (Build.VERSION.SDK_INT >= 29) FOREGROUND_SERVICE_TYPE_MANIFEST else 0,
         )
         
         networkListeners.add(::bindNetworkToProcess)
-        if (BuildConfig.DEBUG) networkListeners.add(::updateNofication)
+        networkListeners.add(::updateNotification)
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         
         log("started")
         return START_STICKY
-    }
-    
-    private fun createNotification(channelId: String, initializer: (NotificationCompat.Builder) -> Unit = {}): Notification =
-        NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Captive Portal detection")
-            .setContentText("Running in background")
-            .setSmallIcon(R.drawable.wifi_lock_open)
-            .apply(initializer)
-            .build()
-    
-    private fun createNotificationChannel(channelId: String, name: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_MIN)
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
-        }
     }
     
     override fun onDestroy() {
@@ -156,7 +150,7 @@ class ConnectivityChangeListenerService : Service() {
             connectivityManager.unregisterNetworkCallback(networkCallback)
             networkState = null
             networkListeners.remove(::bindNetworkToProcess)
-            networkListeners.remove(::updateNofication)
+            networkListeners.remove(::updateNotification)
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
             notification?.actions?.forEach { it.actionIntent?.cancel() }
             notification = null
@@ -182,7 +176,6 @@ class ConnectivityChangeListenerService : Service() {
         if (Build.VERSION.SDK_INT >= 31) {
             setIncludeOtherUidNetworks(true)
         }
-        addCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
     }.build()
     private val networkCallback = createNetworkCallback()
     
@@ -190,7 +183,8 @@ class ConnectivityChangeListenerService : Service() {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 log("onAvailable: $network")
-                updateNetworkState(network)
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return
+                updateNetworkState(network, networkCapabilities)
             }
             
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
@@ -204,24 +198,31 @@ class ConnectivityChangeListenerService : Service() {
             }
         }
         
-        if (Build.VERSION.SDK_INT >= 31) {
-            return NetworkCallback31(callback)
-        } else return callback
+        return when {
+            Build.VERSION.SDK_INT < 31 -> callback
+            else -> NetworkCallback31(callback)
+        }
     }
     
-    fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities? = null) {
+    fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities) {
         val ssid = SsidCompat.getSsid(network, networkCapabilities)
         if (ssid == null) {
             log("SSID: null")
             return
         }
         
+        log("SSID: $ssid")
+        val hasPortal = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
+        val oldState = networkState
         networkStateLock.write {
-            if (networkState?.network == network) return
-            
-            log("SSID: $ssid")
-            networkState = NetworkState(network, ssid, false, false)
+            if (oldState?.network == network) {
+                networkState = oldState.copy(ssid = ssid, hasPortal = hasPortal)
+            } else {
+                networkState = NetworkState(network, ssid, hasPortal, false, false)
+            }
         }
+        
+        if (!hasPortal) return
         
         val liberateAutomatically: Boolean by SharedPreferences.liberator_automatically_liberate
         if (!liberateAutomatically) {
@@ -297,7 +298,16 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    // FLAG_INCLUDE_LOCATION_INFO not avaliable pre API 31
+    private fun retryLiberate() {
+        val network = networkStateLock.read { networkState?.network }
+        if (network != null) {
+            backgroundHandler.post(::tryLiberate)
+        } else {
+            Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    // FLAG_INCLUDE_LOCATION_INFO not available pre API 31
     @TargetApi(31)
     class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
         //<editor-fold defaultstate="collapsed" desc="delegates">
@@ -395,15 +405,16 @@ class ConnectivityChangeListenerService : Service() {
             }
         }
         
-        fun start() = serviceStateLock.read {
+        fun start(silent: Boolean = false) = serviceStateLock.read {
             if (serviceState.running || serviceState.restart) return
-            arrayOf(Permissions.fineLocation, Permissions.backgroundLocation).forEach { permission ->
-                if (!permission.granted(applicationContext)) {
-                    val permissionName = permission.name ?: applicationContext.getString(permission.nameRes ?: 0)
-                    log("Permission not granted: $permissionName")
-                    Toast.makeText(applicationContext, "Tried to start service without permission $permissionName", Toast.LENGTH_LONG).show()
-                    return
+            val missingPermissions = Permissions.filterNot { it.granted(applicationContext) }
+                .map { permission -> permission.name ?: applicationContext.getString(permission.nameRes ?: 0) }
+            if (missingPermissions.isNotEmpty()) {
+                if (!silent) {
+                    val text = "Tried to start service with missing permission: ${missingPermissions.joinToString()}"
+                    Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
                 }
+                return
             }
             ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
         }
@@ -453,11 +464,19 @@ class ConnectivityChangeListenerService : Service() {
     data class NetworkState(
         val network: Network,
         val ssid: String,
+        val hasPortal: Boolean,
         val liberating: Boolean,
         val liberated: Boolean,
     ) {
         override fun toString(): String = buildString {
-            append("Network $network with SSID $ssid is currently ")
+            append("Network $network with SSID $ssid")
+            
+            append(" is ")
+            if (!hasPortal) {
+                append("not ")
+            }
+            append("caught in Portal")
+            append(" and is currently ")
             if (liberating) {
                 append("liberating")
             } else if (liberated) {

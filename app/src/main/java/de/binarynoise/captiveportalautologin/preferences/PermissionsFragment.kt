@@ -14,7 +14,7 @@ class PermissionsFragment : AutoCleanupPreferenceFragment() {
             title = "Permissions"
             
             addPreference(PreferenceCategory(ctx)) {
-                Permissions.all.forEach { permission ->
+                Permissions.forEach { permission ->
                     addPreference(CheckBoxPreference(ctx)) {
                         title = permission.name
                         summary = permission.description
