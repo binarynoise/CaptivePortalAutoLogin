@@ -61,6 +61,8 @@ object Logger {
         val callingClassTag = callingClassTag
         log(callingClassTag, message.toString())
         
+        platform.log(message.toString())
+        
         logToFile(message.toString(), "D", callingClassTag)
     }
     
@@ -70,6 +72,9 @@ object Logger {
         
         logErr(callingClassTag, message.toString())
         logErr(callingClassTag, stackTraceString)
+        
+        platform.log(message.toString())
+        platform.log(t)
         
         logToFile("$message\n$stackTraceString", "E", callingClassTag)
     }
@@ -101,7 +106,9 @@ object Logger {
                     file.appendText("$currentTimeString $level $callingClassTag: $it\n")
                 }
             } catch (e: Exception) {
-                log("failed to log to file " + e.message)
+                platform.printlnErr("failed to log to file " + e.message)
+                platform.printlnErr("Disabling logging to file")
+                Config.toFile = false
             }
         }
     }

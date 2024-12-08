@@ -13,6 +13,9 @@ internal interface Platform {
     fun <T> printErr(t: T)
     fun <T> printlnErr(t: T)
     
+    fun log(s: String) {}
+    fun log(t: Throwable) {}
+    
     /**
      * Ask the platform implementation to handle the object dump.
      *
@@ -25,7 +28,9 @@ internal interface Platform {
         processed: MutableSet<Any>,
         forceInclude: Set<Any>,
         forceIncludeClasses: Set<Class<*>>,
-    ): Boolean
+    ): Boolean {
+        return false
+    }
     
     /**
      * Run the given block in the background.

@@ -20,12 +20,6 @@ class PlatformImpl : Platform {
         System.err.println(t)
     }
     
-    override fun platformSpecificDump(
-        obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>
-    ): Boolean {
-        return false
-    }
-    
     private val backgroundExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     
     override fun runInBackground(block: () -> Unit) {

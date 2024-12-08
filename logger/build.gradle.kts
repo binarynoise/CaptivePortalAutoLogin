@@ -17,6 +17,8 @@ kotlin {
             dependencies {
                 implementation(libs.collection.ktx)
                 implementation(libs.core.ktx)
+                
+                compileOnly(libs.xposed.api)
             }
         }
         

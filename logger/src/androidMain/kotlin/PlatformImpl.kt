@@ -7,7 +7,6 @@ import android.util.SparseBooleanArray
 import android.util.SparseIntArray
 import android.util.SparseLongArray
 import android.view.AbsSavedState
-import android.view.View
 import android.view.ViewGroup
 import androidx.collection.SparseArrayCompat
 import androidx.collection.forEach
@@ -15,6 +14,7 @@ import androidx.core.util.forEach
 import androidx.core.util.isEmpty
 import androidx.core.view.children
 import de.binarynoise.logger.Logger.dump
+import de.robv.android.xposed.XposedBridge
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -47,6 +47,22 @@ class PlatformImpl : Platform {
         printErrBuffer.clear()
     }
     
+    companion object {
+        private var toXposedBridge = false
+        var Logger.Config.toXposedBridge: Boolean by ::toXposedBridge
+    }
+    
+    override fun log(s: String) {
+        if (toXposedBridge) {
+            XposedBridge.log(s)
+        }
+    }
+    
+    override fun log(t: Throwable) {
+        if (toXposedBridge) {
+            XposedBridge.log(t)
+        }
+    }
     
     override fun platformSpecificDump(
         obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>
