@@ -193,7 +193,7 @@ class ConnectivityChangeListenerService : Service() {
             }
             
             override fun onLost(network: Network) = networkStateLock.write {
-                log("onUnavailable: ${network}")
+                log("onUnavailable: $network")
                 if (networkState?.network == network) networkState = null
             }
         }

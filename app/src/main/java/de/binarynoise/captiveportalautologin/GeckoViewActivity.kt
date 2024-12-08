@@ -289,10 +289,6 @@ class GeckoViewActivity : ComponentActivity() {
         }
     }
     
-    override fun onNavigateUp(): Boolean {
-        return super.onNavigateUp()
-    }
-    
     override fun shouldUpRecreateTask(targetIntent: Intent?): Boolean {
         return true
     }

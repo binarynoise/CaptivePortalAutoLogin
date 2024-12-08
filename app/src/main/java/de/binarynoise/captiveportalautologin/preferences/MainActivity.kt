@@ -25,11 +25,11 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
         if (actionBar != null) {
             fun updateActionBar() {
                 if (supportFragmentManager.backStackEntryCount > 0) {
-                    actionBar.setDisplayHomeAsUpEnabled(true);
-                    actionBar.setHomeButtonEnabled(true);
+                    actionBar.setDisplayHomeAsUpEnabled(true)
+                    actionBar.setHomeButtonEnabled(true)
                 } else {
-                    actionBar.setDisplayHomeAsUpEnabled(false);
-                    actionBar.setHomeButtonEnabled(false);
+                    actionBar.setDisplayHomeAsUpEnabled(false)
+                    actionBar.setHomeButtonEnabled(false)
                 }
             }
             supportFragmentManager.addOnBackStackChangedListener(::updateActionBar)

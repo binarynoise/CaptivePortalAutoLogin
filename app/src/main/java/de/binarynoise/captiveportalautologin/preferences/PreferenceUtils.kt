@@ -72,7 +72,7 @@ open class ViewHolderPreference(ctx: Context, @LayoutRes layout: Int? = null) : 
     }
 }
 
-class WidgetPreference(ctx: Context, @LayoutRes layout: Int, val setup: (View) -> Unit) : ViewHolderPreference(ctx) {
+class WidgetPreference(ctx: Context, @LayoutRes layout: Int, setup: (View) -> Unit) : ViewHolderPreference(ctx) {
     init {
         widgetLayoutResource = layout
         setOnBindViewHolderListener(setup)

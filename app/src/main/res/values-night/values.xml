@@ -1,4 +1,0 @@
-<resources>
-    <bool name="isDarkTheme">true</bool>
-    <bool name="isLightTheme">false</bool>
-</resources>

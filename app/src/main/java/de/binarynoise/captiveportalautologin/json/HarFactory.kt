@@ -107,7 +107,7 @@ fun Request.fillInPostData(body: RequestBody?) = with(body) {
         log("POST data is null")
         return
     }
-    if (raw.size == 0) {
+    if (raw.isEmpty()) {
         log("POST data is empty")
         return
     }
@@ -134,7 +134,7 @@ fun Request.fillInPostData(body: RequestBody?) = with(body) {
         } else {
             PostParam(i.toString(), contentString, data.file, "text/plain")
         }
-    }.filterNotNull()
+    }
     
     postData = PostData(
         "multipart/form-data",
@@ -210,7 +210,7 @@ fun Response.fillInCookies(responseHeaders: Array<HttpHeader>) {
                     log("Failed to parse cookie: ${it}, trying fallback")
                     HttpCookie.parse(it.substringBefore(";"))
                 } catch (e: Exception) {
-                    log("Failed to parse cookie, fallback failed")
+                    log("Failed to parse cookie, fallback failed", e)
                     emptyList<HttpCookie>()
                 }
             }

@@ -2,7 +2,6 @@
 
 package de.binarynoise.captiveportalautologin
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -16,7 +15,7 @@ class ExperimentActivity : ComponentActivity() {
         setContentView(binding.root)
         
         with(binding) {
-        
+            
         }
     }
 }
