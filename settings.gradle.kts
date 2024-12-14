@@ -1,12 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+                includeGroupAndSubgroups("androidx")
             }
         }
         mavenCentral()
@@ -18,13 +19,11 @@ dependencyResolutionManagement {
     repositories {
         google {
             content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+                includeGroupAndSubgroups("androidx")
             }
         }
-        mavenCentral()
-        maven("https://jitpack.io")
         maven("https://api.xposed.info/") {
             content {
                 includeGroup("de.robv.android.xposed")
@@ -35,18 +34,21 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("org.mozilla")
             }
         }
+        mavenCentral()
+//        maven("https://jitpack.io")
+        gradlePluginPortal()
     }
 }
 
 rootProject.name = "CaptivePortalAutoLogin"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-include(":app")
-include(":liberator")
-include(":linux")
-include(":logger")
-include(":fileDB")
 include(":api")
 include(":api:client")
 include(":api:server")
+include(":app")
+include(":fileDB")
+include(":liberator")
+include(":linux")
+include(":logger")
 include(":util:okhttp-kts")

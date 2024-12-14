@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.buildlogic.android.library)
+    alias(libs.plugins.buildlogic.kotlin.multiplatform)
 }
 
 kotlin {
@@ -8,6 +8,7 @@ kotlin {
     androidTarget()
     
     
+    @Suppress("unused") //
     sourceSets {
         val commonMain by getting {
             dependencies {}
@@ -15,8 +16,8 @@ kotlin {
         
         val androidMain by getting {
             dependencies {
-                implementation(libs.collection.ktx)
-                implementation(libs.core.ktx)
+                implementation(libs.androidx.collection.ktx)
+                implementation(libs.androidx.core.ktx)
                 implementation(libs.kotlinx.coroutines.android)
                 
                 compileOnly(libs.xposed.api)
@@ -42,5 +43,5 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    coreLibraryDesugaring(libs.android.desugarJdkLibs)
 }

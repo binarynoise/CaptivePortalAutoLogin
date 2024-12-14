@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.application)
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.ktor)
 }
 

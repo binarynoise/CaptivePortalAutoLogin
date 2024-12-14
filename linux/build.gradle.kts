@@ -2,17 +2,16 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     alias(libs.plugins.application)
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.shadow)
 }
-
-val javaVersion = JavaVersion.VERSION_17
 
 val r8: Configuration by configurations.creating
 dependencies {
     implementation(projects.logger)
     implementation(projects.liberator)
     implementation(projects.api.client)
+    compileOnly(libs.okhttp)
     //noinspection GradleDynamicVersion
     r8("com.android.tools:r8:+")
 }
@@ -66,8 +65,8 @@ val shadowJarMinified = tasks.register<JavaExec>("shadowJarMinified") {
     this.args = args
     
     doFirst {
-        val javaHomeVersion = Runtime.version()
-        check(JavaVersion.toVersion(javaHomeVersion).isCompatibleWith(javaVersion)) {
+        val javaHomeVersion = JavaVersion.current()
+        check(javaHomeVersion.isCompatibleWith(javaVersion)) {
             "Incompatible Java Versions: compile-target $javaVersion, r8 runtime $javaHomeVersion (needs to be as new or newer)"
         }
         

@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.buildlogic.android.application)
+    alias(libs.plugins.buildlogic.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -99,10 +99,10 @@ dependencies {
     implementation(projects.liberator)
     implementation(projects.api.client)
     
-    implementation(libs.activity.ktx)
-    implementation(libs.core.ktx)
-    implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.preference.ktx)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.preference.ktx)
     implementation(libs.viewbindingpropertydelegate.noreflection)
     
     implementation(libs.kotlin.stdlib.jdk8)
@@ -110,7 +110,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    coreLibraryDesugaring(libs.android.desugarJdkLibs)
     
     // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
     implementation(libs.geckoview) {
