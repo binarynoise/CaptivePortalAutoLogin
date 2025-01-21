@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  * @param httpVersion Request HTTP Version.
  * @param cookies List of cookie objects.
  * @param headers List of header objects.
- * @param queryString List of query parameter objects.
+ * @param query List of query parameter objects.
  * @param postData Posted data info.
  * @param bodySize Total number of bytes from the start of the HTTP request message until (and including) the double CRLF before the body.
  * @param headersSize Size of the request body (POST data payload) in bytes.

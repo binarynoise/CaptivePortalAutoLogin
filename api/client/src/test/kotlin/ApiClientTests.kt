@@ -37,8 +37,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Order
-import org.junit.jupiter.api.TestClassOrder
 
 class ApiClientTests {
     

@@ -1,6 +1,5 @@
 package de.binarynoise.captiveportalautologin.client
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR

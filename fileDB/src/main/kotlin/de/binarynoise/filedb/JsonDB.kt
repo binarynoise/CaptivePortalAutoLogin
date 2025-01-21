@@ -12,7 +12,6 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 
@@ -23,10 +22,11 @@ import kotlinx.serialization.json.Json
  * @property serializer JSON serializer.
  */
 class JsonDB(
-    val root: Path, val serializer: Json = Json {
+    val root: Path,
+    val serializer: Json = Json {
         encodeDefaults = false
         explicitNulls = false
-    }
+    },
 ) {
     
     inline fun <reified T : Any> file(key: String, extension: String): Path = base<T>().resolve("$key.$extension")

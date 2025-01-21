@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * @param pageref Reference to the parent page. Leave out this field if the application does not support grouping by pages.
+ * @param pageRef Reference to the parent page. Leave out this field if the application does not support grouping by pages.
  * @param startedDateTime Date and time stamp of the request start (ISO 8601).
  * @param request Detailed info about the request.
  * @param response Detailed info about the response.

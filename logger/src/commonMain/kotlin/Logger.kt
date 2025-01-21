@@ -222,7 +222,7 @@ object Logger {
                 "android.view.View.AttachInfo",
                 "androidx.appcompat.app.AppCompatDelegate",
                 "androidx.fragment.app.Fragment",
-                "j\$.time.LocalDateTime",
+                "j$.time.LocalDateTime",
                 "java.lang.ClassLoader",
                 "java.lang.reflect.Member",
                 "java.lang.Thread",

@@ -6,14 +6,14 @@ import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.logger.Logger.log
 
-fun main() {
+/**
+ * Builds a [ProcessBuilder] with `LC_ALL=C` set in the environment.
+ * This is necessary to produce consistent output across different languages.
+ */
+val processBuilder: ProcessBuilder
+    get() = ProcessBuilder().apply { environment()["LC_ALL"] = "C" }
 
-    /**
-     * Builds a [ProcessBuilder] with `LC_ALL=C` set in the environment.
-     * This is necessary to produce consistent output across different languages.
-     */
-    val processBuilder = ProcessBuilder().apply { environment()["LC_ALL"] = "C" }
-    
+fun main() {
     /**
      * Thread that monitors the connectivity state using the `nmcli monitor` command.
      *
