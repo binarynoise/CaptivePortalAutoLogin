@@ -241,6 +241,10 @@ class ConnectivityChangeListenerService : Service() {
                 log("no network")
                 return
             }
+            if (!state.hasPortal) {
+                log("no portal")
+                return
+            }
             if (state.liberated) {
                 log("already liberated")
                 return
@@ -271,11 +275,6 @@ class ConnectivityChangeListenerService : Service() {
                     Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
                     t.cancel()
                     log("broke out of the portal")
-                    networkStateLock.write {
-                        networkState = networkState?.copy(liberated = true)
-                    }
-                    sendBroadcast(Intent(ReevaluationHook.ACTION))
-                    log("sent broadcast ${ReevaluationHook.ACTION}")
                 } else {
                     log("not caught in portal")
                     t.cancel()
@@ -292,18 +291,28 @@ class ConnectivityChangeListenerService : Service() {
             t.cancel()
             Toast.makeText(applicationContext, "Failed to liberate: ${e::class.simpleName} - $message", Toast.LENGTH_LONG).show()
         } finally {
+            forceReevaluation()
+            
             networkStateLock.write {
-                networkState = networkState?.copy(liberating = false)
+                networkState = networkState?.copy(liberating = false, liberated = true)
             }
         }
+    }
+    
+    private fun forceReevaluation() {
+        sendBroadcast(Intent(ReevaluationHook.ACTION))
+        log("sent broadcast ${ReevaluationHook.ACTION}")
     }
     
     private fun retryLiberate() {
         val network = networkStateLock.read { networkState?.network }
         if (network != null) {
+            networkStateLock.write {
+                networkState = networkState?.copy(liberated = false)
+            }
             backgroundHandler.post(::tryLiberate)
         } else {
-            Toast.makeText(this, "Not caught in a portal", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Not connected to network", Toast.LENGTH_SHORT).show()
         }
     }
     
