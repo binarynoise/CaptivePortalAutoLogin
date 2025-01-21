@@ -36,7 +36,7 @@ dependencyResolutionManagement {
         }
         mavenCentral()
 //        maven("https://jitpack.io")
-        gradlePluginPortal()
+//        gradlePluginPortal()
     }
 }
 
