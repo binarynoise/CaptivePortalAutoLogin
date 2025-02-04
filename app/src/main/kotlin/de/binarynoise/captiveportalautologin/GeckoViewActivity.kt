@@ -21,6 +21,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.content.ContextCompat
+import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
@@ -82,10 +83,37 @@ class GeckoViewActivity : ComponentActivity() {
     @get:UiThread
     private val binding by viewBinding { ActivityGeckoviewBinding.inflate(layoutInflater) }
     
+    object ContentDelegate : GeckoSession.ContentDelegate
+    
+    private val navigationDelegate = object : GeckoSession.NavigationDelegate {
+        var location: String? = null
+        override fun onLocationChange(
+            session: GeckoSession,
+            url: String?,
+            perms: List<GeckoSession.PermissionDelegate.ContentPermission>,
+            hasUserGesture: Boolean,
+        ) {
+            log("onLocationChange: $url")
+            location = url
+        }
+    }
+    
     private val session = GeckoSession(GeckoSessionSettings.Builder().apply {
         usePrivateMode(true)
     }.build()).apply {
-        contentDelegate = object : GeckoSession.ContentDelegate {}
+        contentDelegate = ContentDelegate
+        navigationDelegate = object : GeckoSession.NavigationDelegate {
+            var location: String? = null
+            override fun onLocationChange(
+                session: GeckoSession,
+                url: String?,
+                perms: List<GeckoSession.PermissionDelegate.ContentPermission>,
+                hasUserGesture: Boolean,
+            ) {
+                log("onLocationChange: $url")
+                location = url
+            }
+        }
     }
     
     private var extension: WebExtension? = null
@@ -95,20 +123,22 @@ class GeckoViewActivity : ComponentActivity() {
     private fun networkListener(oldState: NetworkState?, newState: NetworkState?) {
         mainHandler.post {
             with(binding) {
-                notConnectedWarning.isVisible = newState == null
-                notInCaptivePortalWifiWarning.isVisible = newState != null && !newState.hasPortal
+                if (newState == null) {
+                    notConnectedWarning.isVisible = true
+                    notInCaptivePortalWifiWarning.isVisible = false
+                    
+                    return@post
+                }
                 
-                notUsingCaptivePortalWifiWarningAlreadyLiberated.isVisible = newState?.liberated == true
+                notConnectedWarning.isVisible = false
+                notInCaptivePortalWifiWarning.isVisible = !newState.hasPortal
                 
-                geckoView.isVisible = newState?.hasPortal == true
-                
-                
-                if (newState == null || !newState.hasPortal) {
+                if (!newState.hasPortal) {
                     if (session.isOpen) {
                         session.loadUri("about:blank")
                     }
                 } else {
-                    if (session.isOpen) {
+                    if (session.isOpen && navigationDelegate.location == null || navigationDelegate.location == "about:blank") {
                         session.loadUri(portalTestUrl)
                     }
                 }
@@ -143,7 +173,7 @@ class GeckoViewActivity : ComponentActivity() {
             mainHandler.post {
                 with(binding) {
                     geckoError.isVisible = true
-                    geckoView.isVisible = false
+                    geckoView.isGone = true
                 }
             }
         }
@@ -158,7 +188,7 @@ class GeckoViewActivity : ComponentActivity() {
                 extension = it!!
                 log("Extension installed: ${it.id}")
                 
-                runOnUiThread {
+                mainHandler.post {
                     session.webExtensionController.setMessageDelegate(it, messageDelegate, "browser")
                     it.setMessageDelegate(messageDelegate, "browser")
                     
@@ -184,6 +214,9 @@ class GeckoViewActivity : ComponentActivity() {
             it.setMessageDelegate(null, "browser")
             session.webExtensionController.setMessageDelegate(it, null, "browser")
         }
+        
+        session.navigationDelegate = null
+        session.contentDelegate = null
         
         binding.geckoView.releaseSession()
         session.close()
@@ -405,8 +438,8 @@ class GeckoViewActivity : ComponentActivity() {
                 "onBeforeRequest" -> {
                     val onBeforeRequestDetails = OnBeforeRequestDetails.fromJson(details)
                     requestCache[requestIdWithRedirectCount] = Request(onBeforeRequestDetails)
-                    startTimeCache[requestIdWithRedirectCount] = Instant.fromEpochMilliseconds(onBeforeRequestDetails.timeStamp)
-                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                    startTimeCache[requestIdWithRedirectCount] =
+                        Instant.fromEpochMilliseconds(onBeforeRequestDetails.timeStamp).toLocalDateTime(TimeZone.currentSystemDefault())
                 }
                 "onBeforeSendHeaders" -> {
                     val onBeforeSendHeadersDetails = OnBeforeSendHeadersDetails.fromJson(details)

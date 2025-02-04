@@ -118,7 +118,7 @@ class ConnectivityChangeListenerService : Service() {
             val retryIntent = Intent(this, this::class.java)
             retryIntent.putExtra("retry", true)
             val pendingRetryIntent = PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            it.addAction(NotificationCompat.Action.Builder(null, "Try again", pendingRetryIntent).build())
+            it.addAction(NotificationCompat.Action.Builder(null, "Liberate now", pendingRetryIntent).build())
             
             val captureIntent = Intent(this, GeckoViewActivity::class.java)
             val pendingCaptureIntent = PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
@@ -205,23 +205,25 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities) {
-        val ssid = SsidCompat.getSsid(network, networkCapabilities)
-        if (ssid == null) {
-            log("SSID: null")
-            return
-        }
-        
-        log("SSID: $ssid")
         val hasPortal = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
-        val oldState = networkState
-        networkStateLock.write {
-            if (oldState?.network == network) {
-                networkState = oldState.copy(ssid = ssid, hasPortal = hasPortal)
-            } else {
+        
+        val oldState = networkStateLock.read { networkState }
+        if (oldState == null) {
+            val ssid = SsidCompat.getSsid(network, networkCapabilities)
+            log("SSID: $ssid")
+            if (ssid == null) {
+                return
+            }
+            
+            networkStateLock.write {
                 networkState = NetworkState(network, ssid, hasPortal, false, false)
+                
+            }
+        } else {
+            networkStateLock.write {
+                networkState = oldState.copy(hasPortal = hasPortal)
             }
         }
-        
         if (!hasPortal) return
         
         val liberateAutomatically: Boolean by SharedPreferences.liberator_automatically_liberate
@@ -239,18 +241,22 @@ class ConnectivityChangeListenerService : Service() {
             val state = networkState
             if (state == null) {
                 log("no network")
+                Toast.makeText(applicationContext, "Not connected to network", Toast.LENGTH_SHORT).show()
                 return
             }
             if (!state.hasPortal) {
                 log("no portal")
+                Toast.makeText(applicationContext, "Not in captive portal", Toast.LENGTH_SHORT).show()
                 return
             }
             if (state.liberated) {
                 log("already liberated")
+                Toast.makeText(applicationContext, "Already liberated", Toast.LENGTH_SHORT).show()
                 return
             }
             if (state.liberating) {
                 log("already liberating")
+                Toast.makeText(applicationContext, "Already liberating", Toast.LENGTH_SHORT).show()
                 return
             }
             networkState = state.copy(liberating = true)
@@ -455,7 +461,7 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     data class ServiceState(
-        val running: Boolean, val restart: Boolean
+        val running: Boolean, val restart: Boolean,
     ) {
         override fun toString(): String = buildString {
             append("Service is currently ")
