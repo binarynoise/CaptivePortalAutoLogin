@@ -6,7 +6,10 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.text.SimpleDateFormat
+import java.nio.file.Files
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -35,6 +38,11 @@ object Logger {
          * The folder to log to
          */
         var folder: File? = null
+        
+        /**
+         * The max age of log files to keep
+         */
+        var folderCleanupDays: Long = 7
         
         /**
          *
@@ -95,16 +103,17 @@ object Logger {
     
     internal fun logToFile(logString: String, level: String, callingClassTag: String) {
         if (!Config.toFile) return
-        val logFolder = Config.folder ?: error("no log folder set()")
+        val logFolder = Config.folder ?: error("no log folder set")
         
         val currentTimeString = currentTimeString
         platform.runInBackground {
             try {
                 logString.lines().forEach {
                     val file: File = logFolder.resolve("$currentDateString.log")
-                    // TODO clear old logs
                     file.appendText("$currentTimeString $level $callingClassTag: $it\n")
                 }
+                
+                cleanOldLogs()
             } catch (e: Exception) {
                 platform.printlnErr("failed to log to file " + e.message)
                 platform.printlnErr("Disabling logging to file")
@@ -113,9 +122,29 @@ object Logger {
         }
     }
     
-    private val currentDateTimeString get() = SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS", Locale.GERMAN).format(Date()).toString()
-    private val currentDateString get() = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date()).toString()
-    private val currentTimeString get() = SimpleDateFormat("HH:mm:ss,SSS", Locale.GERMAN).format(Date()).toString()
+    internal fun cleanOldLogs() {
+        val logFolder = Config.folder ?: return
+        val maxAge = Config.folderCleanupDays
+        platform.runInBackground {
+            try {
+                Files.list(logFolder.toPath())
+                val oldestDateString = (LocalDate.now().minusDays(maxAge)).format(dateFormatter)
+                logFolder.list { _, name -> name.substringBeforeLast(".") < oldestDateString }.orEmpty().forEach {
+                    logFolder.resolve(it).delete()
+                    log(callingClassTag, it.toString())
+                }
+            } catch (e: Exception) {
+                val callingClassTag = callingClassTag
+                logErr(callingClassTag, "failed to delete old logs")
+                logErr(callingClassTag, e.stackTraceToString())
+            }
+        }
+    }
+    
+    private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.GERMAN)
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss,SSS", Locale.GERMAN)
+    private val currentDateString: String get() = LocalDate.now().format(dateFormatter)
+    private val currentTimeString: String get() = LocalTime.now().format(timeFormatter)
     
     /**
      * Dumps the contents of this object.
