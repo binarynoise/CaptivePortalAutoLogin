@@ -20,7 +20,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                         val binding = ItemLogExportBinding.bind(view)
                         with(binding) {
                             shareButton.setOnClickListener {
-                                FileUtils.share(file)
+                                FileUtils.shareFile(file, title = "Share log")
                             }
                             copyToSdButton.setOnClickListener {
                                 FileUtils.copyToSd(view.context, file, "text/plain")

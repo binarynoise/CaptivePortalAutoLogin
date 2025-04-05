@@ -10,7 +10,8 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.widget.Toast
-import de.binarynoise.logger.Logger
+import androidx.core.content.FileProvider.getUriForFile
+import de.binarynoise.logger.Logger.log
 
 object FileUtils {
     
@@ -26,7 +27,7 @@ object FileUtils {
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(this, e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.", Toast.LENGTH_SHORT).show()
-            Logger.log("Error saving file", e)
+            log("Error saving file", e)
         }
     }
     
@@ -34,7 +35,6 @@ object FileUtils {
         val (values, fileUri: Uri, outputStream) = prepareFile(fileName, mimeType)
         outputStream.use { it.write(text.toByteArray()) }
         finishFile(values, fileUri)
-        
     }
     
     private fun Context.prepareFile(fileName: String, mimeType: String): Triple<ContentValues, Uri, OutputStream> {
@@ -57,14 +57,54 @@ object FileUtils {
         contentResolver.update(fileUri, values, null, null)
     }
     
-    fun share(file: File, context: Context = applicationContext) {
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND
-        intent.type = "text/plain"
-        intent.putExtra(Intent.EXTRA_TEXT, file.readText())
-        
-        val chooserIntent = Intent.createChooser(intent, "Share log")
-        chooserIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        context.startActivity(chooserIntent)
+    fun shareText(text: String, context: Context = applicationContext, title: String) {
+        try {
+            val intent = Intent()
+            intent.action = Intent.ACTION_SEND
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_TEXT, text)
+            
+            val chooserIntent = Intent.createChooser(intent, title)
+            chooserIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(chooserIntent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to share text: ${e.message}", Toast.LENGTH_LONG).show()
+            log("Error sharing text (${text.take(20)})", e)
+        }
+    }
+    
+    fun shareFile(file: File, context: Context = applicationContext, title: String) {
+        try {
+            val authority = "${context.packageName}.fileprovider"
+            val fileUri = getUriForFile(context, authority, file)
+            
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = getMimeType(file.name)
+            intent.putExtra(Intent.EXTRA_STREAM, fileUri)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            
+            val chooserIntent = Intent.createChooser(intent, title)
+            chooserIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(chooserIntent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
+            log("Error sharing file (${file.name}$)", e)
+        }
+    }
+    
+    private fun getMimeType(fileName: String): String {
+        val extension = fileName.substringAfterLast(".")
+        return when (extension) {
+            ".txt" -> "text/plain"
+            ".log" -> "text/plain"
+            ".json" -> "application/json"
+            ".html" -> "text/html"
+            ".pdf" -> "application/pdf"
+            
+            else -> {
+                log("Unknown file extension: $extension")
+                "text/plain"
+            }
+        }
     }
 }

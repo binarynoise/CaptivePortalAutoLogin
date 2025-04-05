@@ -41,13 +41,6 @@
             android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             />
         
-        <activity
-            android:name=".LogExportActivity"
-            android:label="LogExportActivity"
-            android:parentActivityName=".HomeActivity"
-            />
-        
-        
         <activity-alias
             android:name=".HomeActivity"
             android:exported="true"
@@ -84,6 +77,18 @@
             android:foregroundServiceType="connectedDevice"
             />
         
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"
+                />
+        </provider>
+        
         <!-- get rid of stuff -->
         <!--suppress AndroidDomInspection -->
         <activity
@@ -91,24 +96,24 @@
             tools:ignore="MissingClass"
             tools:node="remove"
             />
-    
-    
-    <meta-data
-        android:name="xposedmodule"
-        android:value="true"
-        />
-    <meta-data
-        android:name="xposeddescription"
-        android:value="Forcing Android to reevaluate the Captive Portal after liberation"
-        />
-    <meta-data
-        android:name="xposedminversion"
-        android:value="53"
-        />
-    <meta-data
-        android:name="xposedscope"
-        android:resource="@array/scope"
-        />
+        
+        
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true"
+            />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Forcing Android to reevaluate the Captive Portal after liberation"
+            />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="53"
+            />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/scope"
+            />
     
     </application>
 </manifest>
