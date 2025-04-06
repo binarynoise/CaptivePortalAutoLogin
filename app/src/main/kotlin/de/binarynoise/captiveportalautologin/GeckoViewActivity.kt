@@ -11,11 +11,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Parcel
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
@@ -126,20 +130,22 @@ class GeckoViewActivity : ComponentActivity() {
                 if (newState == null) {
                     notConnectedWarning.isVisible = true
                     notInCaptivePortalWifiWarning.isVisible = false
+                    geckoView.visibility = INVISIBLE
                     
                     return@post
                 }
                 
                 notConnectedWarning.isVisible = false
                 notInCaptivePortalWifiWarning.isVisible = !newState.hasPortal
+                geckoView.visibility = if (newState.hasPortal || newState.debug) VISIBLE else INVISIBLE
                 
-                if (!newState.hasPortal) {
-                    if (session.isOpen) {
-                        session.loadUri("about:blank")
-                    }
-                } else {
+                if (newState.hasPortal) {
                     if (session.isOpen && navigationDelegate.location == null || navigationDelegate.location == "about:blank") {
                         session.loadUri(portalTestUrl)
+                    }
+                } else {
+                    if (session.isOpen) {
+                        session.loadUri("about:blank")
                     }
                 }
             }
@@ -236,19 +242,12 @@ class GeckoViewActivity : ComponentActivity() {
                 menu.add(title).also { menuItem ->
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                     menuItem.setOnMenuItemClickListener {
-                        val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
-                        val activeNetwork = connectivityManager.activeNetwork
                         networkStateLock.write {
-                            if (activeNetwork == null) {
-                                networkState = null
-                            } else {
-                                networkState = NetworkState(
-                                    network = activeNetwork,
-                                    ssid = "debug ssid (${networkState?.ssid}",
-                                    hasPortal = true,
-                                    liberating = false,
-                                    liberated = false,
-                                )
+                            networkState = networkState?.copy(debug = true) ?: run {
+                                val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
+                                val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
+                                    Parcel.obtain().apply { writeInt(-1) })
+                                NetworkState(network, "debug", hasPortal = true, liberating = false, liberated = false, debug = true)
                             }
                         }
                         mainHandler.post {
