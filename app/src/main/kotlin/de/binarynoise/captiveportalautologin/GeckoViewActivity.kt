@@ -68,6 +68,7 @@ import de.binarynoise.captiveportalautologin.util.FileUtils
 import de.binarynoise.captiveportalautologin.util.FileUtils.saveTextToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
+import de.binarynoise.captiveportalautologin.util.postIfCreated
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -127,14 +128,14 @@ class GeckoViewActivity : ComponentActivity() {
     
     @Suppress("unused")
     private fun networkListener(oldState: NetworkState?, newState: NetworkState?) {
-        mainHandler.post {
+        mainHandler.postIfCreated {
             with(binding) {
                 if (newState == null) {
                     notConnectedWarning.isVisible = true
                     notInCaptivePortalWifiWarning.isVisible = false
                     geckoView.visibility = INVISIBLE
                     
-                    return@post
+                    return@postIfCreated
                 }
                 
                 notConnectedWarning.isVisible = false
@@ -156,7 +157,7 @@ class GeckoViewActivity : ComponentActivity() {
     
     @Suppress("unused")
     private fun serviceListener(oldState: ServiceState?, newState: ServiceState) {
-        mainHandler.post {
+        mainHandler.postIfCreated {
             with(binding) {
                 notUsingCaptivePortalWifiWarningService.isVisible = !newState.running
             }
@@ -178,7 +179,10 @@ class GeckoViewActivity : ComponentActivity() {
         
         fun handleError(it: Throwable) {
             log("Error installing extension", it)
-            mainHandler.post {
+            networkListeners.remove(::networkListener)
+            serviceListeners.remove(::serviceListener)
+            
+            mainHandler.postIfCreated {
                 with(binding) {
                     geckoError.isVisible = true
                     geckoView.isGone = true
@@ -196,7 +200,7 @@ class GeckoViewActivity : ComponentActivity() {
                 extension = it!!
                 log("Extension installed: ${it.id}")
                 
-                mainHandler.post {
+                mainHandler.postIfCreated {
                     session.webExtensionController.setMessageDelegate(it, messageDelegate, "browser")
                     it.setMessageDelegate(messageDelegate, "browser")
                     

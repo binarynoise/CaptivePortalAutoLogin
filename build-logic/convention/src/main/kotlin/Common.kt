@@ -16,6 +16,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 class CommonAndroidApplication : Plugin<Project> {
     private val commonAndroid = CommonAndroid()
@@ -235,6 +236,12 @@ private class CommonKotlin : Plugin<Project> {
             dependencies {
                 add("implementation", libs.kotlin.bom)
                 add("implementation", libs.jebtrains.annotations)
+            }
+            
+            tasks.withType<KotlinCompile> {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xcontext-parameters")
+                }
             }
         }
     }
