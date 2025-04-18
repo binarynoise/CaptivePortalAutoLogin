@@ -26,17 +26,18 @@
         android:showAsAction="always"
         />
     
+    <item
+        android:id="@+id/action_send"
+        android:title="Send HAR to developer"
+        android:icon="@android:drawable/ic_menu_send"
+        android:showAsAction="ifRoom"
+        />
     
     <!--
     <item
         android:id="@+id/action_export"
         android:title="Export HAR"
         android:icon="@android:drawable/ic_menu_share"
-        android:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/action_send"
-        android:title="Send HAR to developer"
-        android:icon="@android:drawable/ic_menu_send"
         android:showAsAction="ifRoom" />
         -->
 </menu>

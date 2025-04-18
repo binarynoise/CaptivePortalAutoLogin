@@ -21,6 +21,7 @@ import android.view.MenuItem
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Toast
+import android.widget.Toast.LENGTH_LONG
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
@@ -63,7 +64,8 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDe
 import de.binarynoise.captiveportalautologin.json.webRequest.OnResponseStartedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnSendHeadersDetails
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
-import de.binarynoise.captiveportalautologin.util.FileUtils.copyToSd
+import de.binarynoise.captiveportalautologin.util.FileUtils
+import de.binarynoise.captiveportalautologin.util.FileUtils.saveTextToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.logger.Logger.dump
@@ -277,16 +279,10 @@ class GeckoViewActivity : ComponentActivity() {
             backgroundHandler.post {
                 val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
                 
-                val ssid = networkState?.ssid
-                har.comment = ssid
-                val portalTestHost = portalTestUrl.toHttpUrl().host
-                val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
-                val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
-                val fileName = "$ssid $host $timestamp.har"
-                val json = har.toJson()
+                val (fileName, json) = createHarJson()
                 
                 try {
-                    copyToSd(this, json, fileName, "application/har+json")
+                    saveTextToSd(json, fileName, "application/har+json", this)
                     
                     toast.cancel()
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
@@ -303,22 +299,34 @@ class GeckoViewActivity : ComponentActivity() {
             true
         }
         
-        /*
-       R.id.action_export -> {
-            Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show()
-            true
-        }
         R.id.action_send -> {
-            Toast.makeText(this, "not implemented", Toast.LENGTH_SHORT).show()
+            val (fileName, json) = createHarJson()
+            try {
+                FileUtils.shareTextAsFile(json, fileName, "Share captured Portal", this, this)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Failed to share file: ${e.message}", LENGTH_LONG).show()
+                log("Error sharing file $fileName", e)
+            }
             true
         }
-        */
+        
         android.R.id.home -> {
             onNavigateUp()
         }
         else -> {
             super.onMenuItemSelected(featureId, item)
         }
+    }
+    
+    private fun createHarJson(): Pair<String, String> {
+        val ssid = networkState?.ssid
+        har.comment = ssid
+        val portalTestHost = portalTestUrl.toHttpUrl().host
+        val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
+        val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
+        val fileName = "$ssid $host $timestamp.har"
+        val json = har.toJson()
+        return Pair(fileName, json)
     }
     
     override fun shouldUpRecreateTask(targetIntent: Intent?): Boolean {
