@@ -2,7 +2,7 @@ package de.binarynoise.captiveportalautologin
 
 import de.binarynoise.logger.Logger
 
-class Application : android.app.Application() {
+open class Application : android.app.Application() {
     
     override fun onCreate() {
         super.onCreate()
