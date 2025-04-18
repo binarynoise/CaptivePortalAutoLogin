@@ -24,6 +24,7 @@ import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkCapabilities.TRANSPORT_WIFI
 import android.net.NetworkRequest
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
@@ -70,8 +71,8 @@ class ConnectivityChangeListenerService : Service() {
         })
     }
     
+    @Suppress("UNUSED_PARAMETER", "unused")
     @SuppressLint("MissingPermission")
-    @Suppress("unused")
     private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
         if (notification == null) return
         notification = NotificationCompat.Builder(this, notification!!).setContentText(newState?.toString() ?: "").build()
@@ -173,6 +174,7 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     private val networkRequest = NetworkRequest.Builder().apply {
+        addTransportType(TRANSPORT_WIFI)
         if (Build.VERSION.SDK_INT >= 31) {
             setIncludeOtherUidNetworks(true)
         }
@@ -183,8 +185,12 @@ class ConnectivityChangeListenerService : Service() {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 log("onAvailable: $network")
-                val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return
-                updateNetworkState(network, networkCapabilities)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                    // Starting with Build.VERSION_CODES.O onCapabilitiesChanged is guaranteed to be called immediately after onAvailable.
+                    
+                    val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return
+                    updateNetworkState(network, networkCapabilities)
+                }
             }
             
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
@@ -217,7 +223,7 @@ class ConnectivityChangeListenerService : Service() {
             }
             
             networkStateLock.write {
-                networkState = NetworkState(network, ssid, hasPortal, false, false)
+                networkState = NetworkState(network, ssid, hasPortal, liberating = false, liberated = false)
             }
         } else {
             networkStateLock.write {
@@ -401,7 +407,7 @@ class ConnectivityChangeListenerService : Service() {
         val serviceStateLock = ReentrantReadWriteLock(true)
         
         @delegate:GuardedBy("serviceStateLock")
-        var serviceState: ServiceState by Delegates.observable(ServiceState(false, false)) { _, oldState, newState ->
+        var serviceState: ServiceState by Delegates.observable(ServiceState(running = false, restart = false)) { _, oldState, newState ->
             if (oldState != newState) serviceStateLock.read {
                 log("notifying ${serviceListeners.size} serviceListeners...")
                 serviceListeners.forEach { it(oldState, newState) }
