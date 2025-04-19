@@ -96,10 +96,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 summary = "Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled."
                 
                 setOnPreferenceClickListener {
-                    Intent(context, ConnectivityChangeListenerService::class.java).apply {
-                        putExtra("retry", true)
-                        context.startService(this)
-                    }
+                    ConnectivityChangeListenerService.retry()
                     true
                 }
                 

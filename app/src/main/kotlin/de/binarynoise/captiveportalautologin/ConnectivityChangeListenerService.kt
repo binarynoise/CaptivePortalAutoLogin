@@ -43,6 +43,7 @@ import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
+import de.binarynoise.captiveportalautologin.util.startService
 import de.binarynoise.captiveportalautologin.xposed.ReevaluationHook
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
@@ -84,6 +85,11 @@ class ConnectivityChangeListenerService : Service() {
     @MainThread
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log("onStartCommand")
+        
+        if (intent != null && intent.getBooleanExtra("stop", false)) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         
         serviceStateLock.write {
             if (serviceState.running) {
@@ -441,15 +447,23 @@ class ConnectivityChangeListenerService : Service() {
         }
         
         fun stop() {
-            applicationContext.stopService(Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+            applicationContext.startService<ConnectivityChangeListenerService> {
+                putExtra("stop", true)
+            }
         }
         
         fun restart() = serviceStateLock.read {
             if (serviceState.running) {
-                val intent = Intent(applicationContext, ConnectivityChangeListenerService::class.java)
-                intent.putExtra("restart", true)
-                applicationContext.startService(intent)
+                applicationContext.startService<ConnectivityChangeListenerService> {
+                    putExtra("restart", true)
+                }
             } else start()
+        }
+        
+        fun retry() {
+            applicationContext.startService<ConnectivityChangeListenerService> {
+                putExtra("retry", true)
+            }
         }
         
         init {
