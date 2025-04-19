@@ -8,8 +8,13 @@ import android.content.Intent
 @SuppressLint("PrivateApi")
 internal var applicationContext: Application = Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null) as Application
 
+@JvmName("startActivityClass")
 inline fun <reified T> Context.startActivity(setup: Intent.() -> Unit = {}) {
     startActivity(Intent(this, T::class.java).apply(setup))
+}
+
+inline fun Context.startActivity(setup: Intent.() -> Unit = {}) {
+    startActivity(Intent().apply(setup))
 }
 
 inline fun <reified T> Context.startService(setup: Intent.() -> Unit = {}) {

@@ -4,7 +4,6 @@ import java.util.function.*
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
@@ -15,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import de.binarynoise.captiveportalautologin.util.startActivity
 
 @Suppress("ANNOTATION_WILL_BE_APPLIED_ALSO_TO_PROPERTY_OR_FIELD")
 class Permission private constructor(
@@ -116,7 +116,7 @@ object Permissions : Set<Permission> by allPermissions {
             locationManager.isLocationEnabled
         },
         { componentActivity ->
-            componentActivity.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            componentActivity.startActivity { action = Settings.ACTION_LOCATION_SOURCE_SETTINGS }
         },
         minSdk = Build.VERSION_CODES.O,
     )
@@ -128,11 +128,10 @@ object Permissions : Set<Permission> by allPermissions {
             !ContextCompat.getSystemService(context, UserManager::class.java)!!.isUserAGoat
         },
         { componentActivity ->
-            val intent = Intent().apply {
+            componentActivity.startActivity {
                 action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 data = Uri.fromParts("package", componentActivity.packageName, null)
             }
-            componentActivity.startActivity(intent)
         },
     )
     
