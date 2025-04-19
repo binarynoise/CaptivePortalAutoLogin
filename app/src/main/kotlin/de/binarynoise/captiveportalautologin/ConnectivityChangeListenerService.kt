@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin
 
 import java.util.*
 import java.util.concurrent.locks.*
+import java.util.function.*
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.properties.Delegates
@@ -416,7 +417,7 @@ class ConnectivityChangeListenerService : Service() {
         var serviceState: ServiceState by Delegates.observable(ServiceState(running = false, restart = false)) { _, oldState, newState ->
             if (oldState != newState) serviceStateLock.read {
                 log("notifying ${serviceListeners.size} serviceListeners...")
-                serviceListeners.forEach { it(oldState, newState) }
+                serviceListeners.javaForEach { it(oldState, newState) }
             }
         }
             private set
@@ -428,7 +429,7 @@ class ConnectivityChangeListenerService : Service() {
         var networkState: NetworkState? by Delegates.observable(null) { _, oldState, newState ->
             if (oldState != newState) {
                 log("notifying ${networkListeners.size} networkListeners...")
-                networkListeners.forEach { it(oldState, newState) }
+                networkListeners.javaForEach { it(oldState, newState) }
             }
         }
         
@@ -527,4 +528,6 @@ class ConnectivityChangeListenerService : Service() {
     }
 }
 
-fun <T> SynchronizedSet(): MutableSet<T> = Collections.synchronizedSet(mutableSetOf())
+fun <T> SynchronizedSet(): MutableSet<T> = Collections.synchronizedSet<T>(mutableSetOf<T>())
+
+fun <T> Set<T>.javaForEach(consumer: Consumer<T>) = forEach(consumer)
