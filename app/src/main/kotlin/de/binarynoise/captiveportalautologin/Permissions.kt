@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin
 
+import java.util.function.*
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -15,6 +16,7 @@ import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
+@Suppress("ANNOTATION_WILL_BE_APPLIED_ALSO_TO_PROPERTY_OR_FIELD")
 class Permission private constructor(
     val name: String?,
     @StringRes val nameRes: Int?,
@@ -133,6 +135,11 @@ object Permissions : Set<Permission> by allPermissions {
             componentActivity.startActivity(intent)
         },
     )
+    
+    @Deprecated("Deprecated in Java for some reason")
+    override fun <T : Any> toArray(generator: IntFunction<Array<out T>>): Array<out T> {
+        return (this as java.util.Set<*>).toArray(generator.apply(0))
+    }
     
     init {
         allPermissions.add(notifications)

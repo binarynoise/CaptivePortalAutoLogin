@@ -44,7 +44,7 @@ class ReevaluationHook : IXposedHookLoadPackage {
                         
                         val icm = args[1]
                         if (icm::class.qualifiedName?.contains("Proxy") == true) return
-                        if (icm::class.java.declaredFields.none { it -> it.name == "mNetworkAgentInfos" }) return
+                        if (icm::class.java.declaredFields.none { it.name == "mNetworkAgentInfos" }) return
                         instance = icm
                         
                         val context: Context = XposedHelpers.getObjectField(thisObject, "mContext") as Context
@@ -73,7 +73,7 @@ class ReevaluationReceiver : BroadcastReceiver() {
             val instance = ReevaluationHook.instance ?: run { log("instance is null"); return }
             
             val mNetworkAgentInfos = XposedHelpers.getObjectField(instance, "mNetworkAgentInfos")
-            var networkAgentInfos: Collection<*> = when (mNetworkAgentInfos) {
+            val networkAgentInfos: Collection<*> = when (mNetworkAgentInfos) {
                 is Set<*> -> {
                     // private final ArraySet<NetworkAgentInfo> mNetworkAgentInfos = new ArraySet<>();
                     mNetworkAgentInfos

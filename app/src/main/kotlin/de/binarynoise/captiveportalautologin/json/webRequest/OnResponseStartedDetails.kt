@@ -44,7 +44,7 @@ class OnResponseStartedDetails(
     val fromCache: Boolean,
     val statusCode: Int,
     val responseHeaders: Array<HttpHeader>? = null,
-    val statusLine: String
+    val statusLine: String,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnResponseStartedDetails {

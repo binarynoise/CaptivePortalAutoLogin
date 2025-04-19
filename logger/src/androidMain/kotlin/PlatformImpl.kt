@@ -65,11 +65,11 @@ class PlatformImpl : Platform {
     }
     
     override fun platformSpecificDump(
-        obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>
+        obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>,
     ): Boolean = with(obj) {
-        when {
-            //<editor-fold desc="this is SparseArray<*> -> { ... }" defaultstate="collapsed"
-            this is SparseArray<*> -> {
+        when (this) {
+            //<editor-fold desc="is SparseArray<*> -> { ... }" defaultstate="collapsed"
+            is SparseArray<*> -> {
                 if (this.isEmpty()) {
                     println("[]")
                 } else {
@@ -77,7 +77,7 @@ class PlatformImpl : Platform {
                     this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            this is SparseIntArray -> {
+            is SparseIntArray -> {
                 if (this.isEmpty()) {
                     println("[]")
                 } else {
@@ -85,7 +85,7 @@ class PlatformImpl : Platform {
                     this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            this is SparseLongArray -> {
+            is SparseLongArray -> {
                 if (this.isEmpty()) {
                     println("[]")
                 } else {
@@ -93,7 +93,7 @@ class PlatformImpl : Platform {
                     this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            this is SparseBooleanArray -> {
+            is SparseBooleanArray -> {
                 if (this.isEmpty()) {
                     println("[]")
                 } else {
@@ -101,7 +101,7 @@ class PlatformImpl : Platform {
                     this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
                 }
             }
-            this is SparseArrayCompat<*> -> {
+            is SparseArrayCompat<*> -> {
                 if (this.isEmpty) {
                     println("[]")
                 } else {
@@ -110,19 +110,19 @@ class PlatformImpl : Platform {
                 }
             }
             //</editor-fold>
-            this is JSONObject -> {
+            is JSONObject -> {
                 println()
                 this.keys().forEach {
                     this.get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
                 }
             }
-            this is JSONArray -> {
+            is JSONArray -> {
                 println()
                 for (i in 0 until this.length()) {
                     this.get(i).dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
                 }
             }
-            this is BaseBundle -> {
+            is BaseBundle -> {
                 val keys = this.keySet()
                 if (keys.isNullOrEmpty()) {
                     println("[]")
@@ -133,14 +133,13 @@ class PlatformImpl : Platform {
                     }
                 }
             }
-            this is AbsSavedState -> {
+            is AbsSavedState -> {
                 println(this.toString())
             }
-            this is ViewGroup -> {
+            is ViewGroup -> {
                 println()
                 this.children.forEachIndexed { view, i -> view.dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
             }
-            
             else -> return false
         }
         

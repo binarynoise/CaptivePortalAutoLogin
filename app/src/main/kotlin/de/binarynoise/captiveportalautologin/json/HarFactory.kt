@@ -8,7 +8,6 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.encodeToString
 import android.os.Build
 import de.binarynoise.captiveportalautologin.api.json.har.Content
 import de.binarynoise.captiveportalautologin.api.json.har.Cookie
@@ -46,9 +45,9 @@ fun Request(onBeforeRequestDetails: OnBeforeRequestDetails) = Request(
     onBeforeRequestDetails.method,
     onBeforeRequestDetails.url,
     "",
-    cookies = kotlin.collections.mutableSetOf(),
-    headers = kotlin.collections.mutableSetOf(),
-    query = kotlin.collections.mutableListOf(),
+    cookies = mutableSetOf(),
+    headers = mutableSetOf(),
+    query = mutableListOf(),
     postData = null,
     0,
     0,

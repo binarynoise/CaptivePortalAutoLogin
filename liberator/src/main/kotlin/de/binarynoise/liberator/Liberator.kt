@@ -1,10 +1,9 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "UNREACHABLE_CODE") @file:OptIn(ExperimentalContracts::class)
+@file:Suppress("MemberVisibilityCanBePrivate", "UNREACHABLE_CODE")
 
 package de.binarynoise.liberator
 
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit.*
-import kotlin.contracts.ExperimentalContracts
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.createDummyResponse

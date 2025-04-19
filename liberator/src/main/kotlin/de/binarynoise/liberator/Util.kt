@@ -8,7 +8,6 @@ import de.binarynoise.logger.Logger.log
  * Casts the object to T.
  * If T is nullable, a safe cast is performed.
  */
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T> Any.cast(): T {
     return when {
         null is T -> {
@@ -33,7 +32,7 @@ inline fun <reified T> Any.cast(): T {
 inline fun <T> tryOrNull(block: () -> T): T? {
     try {
         return block()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         return null
     }
 }
@@ -43,10 +42,10 @@ inline fun <T> tryOrNull(block: () -> T): T? {
  *
  * @param block The block to execute.
  */
-inline fun <T> tryOrIgnore(block: () -> T): Unit {
+inline fun <T> tryOrIgnore(block: () -> T) {
     try {
         block()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
     }
 }
 
@@ -55,7 +54,7 @@ inline fun <T> tryOrIgnore(block: () -> T): Unit {
  *
  * @param block The block to execute.
  */
-inline fun tryOrLog(block: () -> Unit): Unit {
+inline fun tryOrLog(block: () -> Unit) {
     try {
         block()
     } catch (e: Exception) {

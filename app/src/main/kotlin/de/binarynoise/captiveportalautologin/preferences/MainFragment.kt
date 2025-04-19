@@ -32,6 +32,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 isVisible = deviceIs64Bit != librariesAre64Bit
             }
             
+            // TODO: add switch to disable service auto-start (and then disable manual start/stop)
             addPreference(SwitchPreference(ctx)) {
                 title = "Service Status"
                 

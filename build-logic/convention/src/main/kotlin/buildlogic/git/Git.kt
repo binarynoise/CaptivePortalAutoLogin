@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 package buildlogic.git
 
 import com.android.build.gradle.BaseExtension

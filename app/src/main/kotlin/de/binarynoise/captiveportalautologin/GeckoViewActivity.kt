@@ -557,9 +557,9 @@ class GeckoViewActivity : ComponentActivity() {
             globalPrivacyControlEnabled(false)
         }.build()
         val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) // TODO: move to onCreate
-        
-        init {
+
+//        init {
 //            runtime.shutdown() // TODO: move to onDestroy
-        }
+//        }
     }
 }

@@ -33,7 +33,7 @@ class OnBeforeRequestDetails(
     val requestBody: RequestBody? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Long
+    val timeStamp: Long,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnBeforeRequestDetails {

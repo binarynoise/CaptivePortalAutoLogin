@@ -6,7 +6,6 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.nio.file.Files
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -127,7 +126,6 @@ object Logger {
         val maxAge = Config.folderCleanupDays
         platform.runInBackground {
             try {
-                Files.list(logFolder.toPath())
                 val oldestDateString = (LocalDate.now().minusDays(maxAge)).format(dateFormatter)
                 logFolder.list { _, name -> name.substringBeforeLast(".") < oldestDateString }.orEmpty().forEach {
                     logFolder.resolve(it).delete()
@@ -227,9 +225,7 @@ object Logger {
             }
             this is Method -> {
                 println(
-                    this.modifiers.toString() + " " + this.returnType + " " + (this.declaringClass.canonicalNameOrName) + "." + this.name + "(" + this.parameterTypes.joinToString(
-                        ", "
-                    ) + ")"
+                    "${this.modifiers} ${this.returnType} ${this.declaringClass.canonicalNameOrName}.${this.name}(${this.parameterTypes.joinToString(", ")})"
                 )
             }
             this is Constructor<*> -> {

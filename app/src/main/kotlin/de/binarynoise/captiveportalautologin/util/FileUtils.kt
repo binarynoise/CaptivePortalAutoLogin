@@ -66,7 +66,10 @@ object FileUtils {
         
         val added = AtomicBoolean(false)
         fun cleanup() {
-            tryOrIgnore { tmpFolder.deleteRecursively() }
+            tryOrIgnore {
+                tmpFolder.deleteRecursively()
+                log("Folder deleted: ${tmpFolder.absolutePath}")
+            }
         }
         
         val observer = object : LifecycleEventObserver {
@@ -148,9 +151,10 @@ object FileUtils {
     private fun getMimeType(fileName: String): String {
         val extension = fileName.substringAfterLast(".")
         return when (extension) {
-            ".txt" -> "text/plain"
-            ".log" -> "text/plain"
-            ".json" -> "application/json"
+            "txt" -> "text/plain"
+            "log" -> "text/plain"
+            "json" -> "application/json"
+            "har" -> "application/har+json"
             
             else -> {
                 log("Unknown file extension: $extension")

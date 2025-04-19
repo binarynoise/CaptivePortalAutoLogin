@@ -34,7 +34,7 @@ class OnSendHeadersDetails(
     val tabId: Int,
     val type: String,
     val timeStamp: Float,
-    val requestHeaders: Array<HttpHeader>? = null
+    val requestHeaders: Array<HttpHeader>? = null,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnSendHeadersDetails {

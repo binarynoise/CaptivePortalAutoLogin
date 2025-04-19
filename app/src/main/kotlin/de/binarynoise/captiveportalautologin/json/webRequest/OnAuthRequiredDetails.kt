@@ -47,7 +47,7 @@ class OnAuthRequiredDetails(
     val isProxy: Boolean,
     val responseHeaders: Array<HttpHeader>? = null,
     val statusLine: String,
-    val statusCode: Int
+    val statusCode: Int,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnAuthRequiredDetails {

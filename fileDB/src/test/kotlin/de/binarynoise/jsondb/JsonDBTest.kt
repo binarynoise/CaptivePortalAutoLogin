@@ -30,7 +30,7 @@ object JsonDBTest {
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
     @AfterAll
-    fun cleanup(): Unit {
+    fun cleanup() {
         jsonDB.root.deleteRecursively()
     }
 }

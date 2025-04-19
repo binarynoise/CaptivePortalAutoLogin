@@ -38,7 +38,7 @@ class OnErrorOccurredDetails(
     val timeStamp: Float,
     val ip: String? = null,
     val fromCache: Boolean,
-    val error: String
+    val error: String,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnErrorOccurredDetails {

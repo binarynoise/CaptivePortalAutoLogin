@@ -10,7 +10,7 @@ import de.binarynoise.liberator.PortalDetection
 object SharedPreferences {
     val liberator_automatically_liberate by PreferenceProperty(true)
     val liberator_captive_test_url by PreferenceProperty(PortalDetection.defaultBackend)
-    val liberator_user_agent by PreferenceProperty(PortalDetection.defaultBackend)
+    val liberator_user_agent by PreferenceProperty(PortalDetection.defaultUserAgent)
     
     private class PreferenceProperty<T>(private val defaultValue: T) {
         operator fun getValue(parent: Any, property: KProperty<*>): PreferencePropertyDelegate<T> {

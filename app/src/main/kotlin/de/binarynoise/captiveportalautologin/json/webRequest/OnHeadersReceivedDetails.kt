@@ -38,7 +38,7 @@ class OnHeadersReceivedDetails(
     val timeStamp: Float,
     val statusLine: String,
     val responseHeaders: Array<HttpHeader>? = null,
-    val statusCode: Int
+    val statusCode: Int,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnHeadersReceivedDetails {

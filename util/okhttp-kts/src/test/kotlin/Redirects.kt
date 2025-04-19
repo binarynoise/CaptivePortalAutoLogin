@@ -4,9 +4,6 @@ import kotlin.test.assertEquals
 import de.binarynoise.util.okhttp.createDummyResponse
 import de.binarynoise.util.okhttp.getLocation
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Protocol
-import okhttp3.Request
-import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.intellij.lang.annotations.Language
 

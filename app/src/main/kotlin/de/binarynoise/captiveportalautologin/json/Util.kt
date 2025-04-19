@@ -1,14 +1,9 @@
-@file:OptIn(ExperimentalEncodingApi::class)
-
 package de.binarynoise.captiveportalautologin.json
 
-import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 
-@OptIn(ExperimentalSerializationApi::class)
 val serializer = Json {
     encodeDefaults = false
     explicitNulls = false

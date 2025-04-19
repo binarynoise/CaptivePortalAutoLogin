@@ -46,7 +46,7 @@ class OnBeforeRedirectDetails(
     val statusCode: Int,
     val redirectUrl: String,
     val responseHeaders: Array<HttpHeader>? = null,
-    val statusLine: String
+    val statusLine: String,
 ) {
     companion object {
         fun fromJson(json: JSONObject): OnBeforeRedirectDetails {

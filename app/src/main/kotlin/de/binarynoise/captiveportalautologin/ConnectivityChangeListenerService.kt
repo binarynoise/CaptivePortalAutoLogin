@@ -7,7 +7,6 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.properties.Delegates
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -34,6 +33,7 @@ import android.os.IBinder
 import android.widget.Toast
 import androidx.annotation.GuardedBy
 import androidx.annotation.MainThread
+import androidx.annotation.RequiresApi
 import androidx.annotation.WorkerThread
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -73,7 +73,7 @@ class ConnectivityChangeListenerService : Service() {
         })
     }
     
-    @Suppress("UNUSED_PARAMETER", "unused")
+    @Suppress("unused")
     @SuppressLint("MissingPermission")
     private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
         if (notification == null) return
@@ -336,7 +336,7 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     // FLAG_INCLUDE_LOCATION_INFO not available pre API 31
-    @TargetApi(31)
+    @RequiresApi(31)
     class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
         //<editor-fold defaultstate="collapsed" desc="delegates">
         override fun onAvailable(network: Network) {
