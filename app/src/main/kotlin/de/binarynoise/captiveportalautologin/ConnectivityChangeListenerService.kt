@@ -116,6 +116,7 @@ class ConnectivityChangeListenerService : Service() {
             it.setContentTitle("Captive Portal detection")
             it.setContentText("Running in background")
             it.setSmallIcon(R.drawable.wifi_lock_open)
+            it.setStyle(NotificationCompat.BigTextStyle())
             
             // start HomeActivity on click
             val launchHomeIntent = Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
