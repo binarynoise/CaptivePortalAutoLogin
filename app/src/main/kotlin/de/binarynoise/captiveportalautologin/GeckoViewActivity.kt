@@ -159,7 +159,7 @@ class GeckoViewActivity : ComponentActivity() {
     private fun serviceListener(oldState: ServiceState?, newState: ServiceState) {
         mainHandler.postIfCreated {
             with(binding) {
-                notUsingCaptivePortalWifiWarningService.isVisible = !newState.running
+                serviceNotRunningWarning.isVisible = !newState.running
             }
         }
     }

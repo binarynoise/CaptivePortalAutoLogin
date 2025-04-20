@@ -33,7 +33,7 @@
         />
     
     <TextView
-        android:id="@+id/notUsingCaptivePortalWifiWarningService"
+        android:id="@+id/serviceNotRunningWarning"
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

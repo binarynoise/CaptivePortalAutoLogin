@@ -8,10 +8,12 @@ import androidx.lifecycle.LifecycleOwner
 
 val mainHandler = Handler(Looper.getMainLooper())
 
-context(lifecyleOwner: LifecycleOwner)
-fun Handler.postIfCreated(r: Runnable) {
-    if (lifecyleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
-        post(r)
+context(lifecycleOwner: LifecycleOwner) //
+inline fun Handler.postIfCreated(crossinline r: () -> Unit) {
+    post {
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+            r()
+        }
     }
 }
 
