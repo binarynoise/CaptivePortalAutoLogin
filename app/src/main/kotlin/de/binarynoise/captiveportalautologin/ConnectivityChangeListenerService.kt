@@ -135,10 +135,16 @@ class ConnectivityChangeListenerService : Service() {
             it.setOnlyAlertOnce(true)
         }.build()
         
-        ServiceCompat.startForeground(
-            this, notificationId, notification!!,
-            if (Build.VERSION.SDK_INT >= 29) FOREGROUND_SERVICE_TYPE_MANIFEST else 0,
-        )
+        try {
+            ServiceCompat.startForeground(
+                this, notificationId, notification!!,
+                if (Build.VERSION.SDK_INT >= 29) FOREGROUND_SERVICE_TYPE_MANIFEST else 0,
+            )
+        } catch (e: IllegalStateException) {
+            log("Failed to start $this as foreground service", e)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         
         networkListeners.add(::bindNetworkToProcess)
         networkListeners.add(::updateNotification)
