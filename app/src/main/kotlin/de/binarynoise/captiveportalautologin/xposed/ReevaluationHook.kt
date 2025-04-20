@@ -9,10 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import de.binarynoise.captiveportalautologin.BuildConfig
-import de.binarynoise.logger.Logger
 import de.binarynoise.logger.Logger.log
-import de.binarynoise.logger.PlatformImpl.Companion.toXposedBridge
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
@@ -23,16 +20,6 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 class ReevaluationHook : IXposedHookLoadPackage {
     val receiver = ReevaluationReceiver()
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (lpparam.packageName == BuildConfig.APPLICATION_ID) return
-        
-        Logger.Config.apply {
-            toSOut = true
-            
-            toXposedBridge = BuildConfig.DEBUG
-        }
-        
-        log("handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
-        
         try {
             val ConnectivityManagerClass = Class.forName("android.net.ConnectivityManager", false, lpparam.classLoader)
             
