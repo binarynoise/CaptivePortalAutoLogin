@@ -18,7 +18,6 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 
 
 class ReevaluationHook : IXposedHookLoadPackage {
-    val receiver = ReevaluationReceiver()
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
             val ConnectivityManagerClass = Class.forName("android.net.ConnectivityManager", false, lpparam.classLoader)
@@ -35,15 +34,16 @@ class ReevaluationHook : IXposedHookLoadPackage {
                         instance = icm
                         
                         val context: Context = XposedHelpers.getObjectField(thisObject, "mContext") as Context
-                        ContextCompat.registerReceiver(context, receiver, IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
+                        ContextCompat.registerReceiver(context, ReevaluationReceiver(lpparam), IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
                         log("Registered receiver in package: ${lpparam.packageName}, process: ${lpparam.processName}")
                     }
                 },
             )
+            log("Hooked ConnectivityManager in package: ${lpparam.packageName}, process: ${lpparam.processName}")
         } catch (_: ClassNotFoundException) {
         } catch (_: XposedHelpers.ClassNotFoundError) {
         } catch (e: Throwable) {
-            log("failed to hook ConnectivityManager", e)
+            log("failed to hook ConnectivityManager in package: ${lpparam.packageName}, process: ${lpparam.processName}", e)
         }
     }
     
@@ -53,7 +53,7 @@ class ReevaluationHook : IXposedHookLoadPackage {
     }
 }
 
-class ReevaluationReceiver : BroadcastReceiver() {
+class ReevaluationReceiver(val lpparam: XC_LoadPackage.LoadPackageParam) : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         log("received Broadcast: $intent")
         try {
@@ -79,8 +79,8 @@ class ReevaluationReceiver : BroadcastReceiver() {
                 XposedHelpers.callMethod(nm, "forceReevaluation", -1 /* INVALID_UID */)
             }
             
-            log("sent message to force reevaluation")
-            Toast.makeText(context, "Forcing reevaluation", Toast.LENGTH_LONG).show()
+            log("sent message to force reevaluation in package: ${lpparam.packageName}, process: ${lpparam.processName}")
+            Toast.makeText(context, "Forcing reevaluation", Toast.LENGTH_SHORT).show()
         } catch (e: Throwable) {
             XposedBridge.log(e)
             log("failed to force reevaluation", e)

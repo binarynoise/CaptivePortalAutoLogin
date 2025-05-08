@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.xposed
 
+import androidx.annotation.Keep
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.logger.Logger
 import de.binarynoise.logger.Logger.log
@@ -9,19 +10,26 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class XposedInit : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (lpparam.packageName == BuildConfig.APPLICATION_ID) return
-        
         Logger.Config.apply {
             toSOut = true
             
-            toXposedBridge = BuildConfig.DEBUG
+            toXposedBridge = BuildConfig.DEBUG && lpparam.packageName != BuildConfig.APPLICATION_ID
         }
         
         log("handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
         
         when (lpparam.packageName) {
+            BuildConfig.APPLICATION_ID -> SelfHook().handleLoadPackage(lpparam)
             "com.android.providers.telephony", "com.android.server.telecom" -> ReevaluationHook().handleLoadPackage(lpparam)
             "com.android.systemui" -> LocationIndicatorHook().handleLoadPackage(lpparam)
+            else -> log("${BuildConfig.APPLICATION_ID} doesn't know how to hook ${lpparam.packageName}")
         }
+    }
+}
+
+object Xposed {
+    @Keep
+    fun getEnabled(): Boolean {
+        return false
     }
 }

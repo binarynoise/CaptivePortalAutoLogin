@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="scope">
-<!--        <item>android</item>-->
-<!--        <item>system</item>-->
+        <!--
+        we're a "legacy" module so we need to hook android instead of system. 
+        https://github.com/JingMatrix/LSPosed/blob/bc6f8cabf552992ff06008a78918823dc79140b1/app/src/main/java/org/lsposed/manager/util/ModuleUtil.java#L375
+        -->
+        <!--<item>system</item>-->
+        <item>android</item>
+        <!-- apparently it's not enough to hook com.android.server.telecom to actually hook com.android.server.telecom. Android is weird. -->
         <item>com.android.providers.telephony</item>
         <item>com.android.server.telecom</item>
         <item>com.android.systemui</item>

@@ -21,7 +21,6 @@ import android.view.MenuItem
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
@@ -308,7 +307,7 @@ class GeckoViewActivity : ComponentActivity() {
             try {
                 FileUtils.shareTextAsFile(json, fileName, "Share captured Portal", this, this)
             } catch (e: Exception) {
-                Toast.makeText(this, "Failed to share file: ${e.message}", LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
                 log("Error sharing file $fileName", e)
             }
             true

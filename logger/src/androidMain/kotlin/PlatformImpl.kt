@@ -54,7 +54,7 @@ class PlatformImpl : Platform {
     
     override fun log(s: String) {
         if (toXposedBridge) {
-            XposedBridge.log(s)
+            XposedBridge.log("Logger: $s")
         }
     }
     

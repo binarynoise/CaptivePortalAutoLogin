@@ -16,6 +16,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.liberator.PortalDetection
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -116,6 +117,18 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         ConnectivityChangeListenerService.serviceListeners.remove(::updateStatus)
                     }
                 })
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Force Re-evaluation"
+                summary = "Send Intent to force android to re-evaluate the current Captive Portal."
+                setOnPreferenceClickListener {
+                    with(context) {
+                        ConnectivityChangeListenerService.forceReevaluation()
+                    }
+                    true
+                }
+                isVisible = Xposed.getEnabled()
             }
             
             addPreference(Preference(ctx)) {

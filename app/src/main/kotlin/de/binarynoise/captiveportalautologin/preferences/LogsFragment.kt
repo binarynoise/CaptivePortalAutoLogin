@@ -2,7 +2,6 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import android.os.Bundle
 import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
 import androidx.preference.PreferenceCategory
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.ItemLogExportBinding
@@ -27,7 +26,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                 try {
                                     shareFile(file, "Share log")
                                 } catch (e: Exception) {
-                                    Toast.makeText(view.context, "Failed to share file: ${e.message}", LENGTH_LONG).show()
+                                    Toast.makeText(view.context, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
                                     log("Error sharing file (${file.name})", e)
                                 }
                             }

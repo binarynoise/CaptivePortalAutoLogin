@@ -16,6 +16,7 @@ import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -283,7 +284,7 @@ class ConnectivityChangeListenerService : Service() {
             state.network
         }
         
-        val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_LONG)
+        val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_SHORT)
         t.show()
         
         try {
@@ -304,7 +305,7 @@ class ConnectivityChangeListenerService : Service() {
                 } else {
                     log("not caught in portal")
                     t.cancel()
-                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT).show()
                 }
             } else {
                 log("Failed to liberate: still in portal: $newLocation")
@@ -325,10 +326,6 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    private fun forceReevaluation() {
-        sendBroadcast(Intent(ReevaluationHook.ACTION))
-        log("sent broadcast ${ReevaluationHook.ACTION}")
-    }
     
     private fun retryLiberate() {
         val network = networkStateLock.read { networkState?.network }
@@ -472,6 +469,11 @@ class ConnectivityChangeListenerService : Service() {
             applicationContext.startService<ConnectivityChangeListenerService> {
                 putExtra("retry", true)
             }
+        }
+        
+        context(context: Context) fun forceReevaluation() {
+            context.sendBroadcast(Intent(ReevaluationHook.ACTION))
+            log("sent broadcast ${ReevaluationHook.ACTION}")
         }
         
         init {
