@@ -28,6 +28,10 @@
 	public static ** bind(android.view.View);
 }
 
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookLoadPackage
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookInitPackageResources
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookZygoteInit
+
 #noinspection ShrinkerUnresolvedReference
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
