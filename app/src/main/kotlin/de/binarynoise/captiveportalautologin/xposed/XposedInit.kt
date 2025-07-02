@@ -21,7 +21,11 @@ class XposedInit : IXposedHookLoadPackage {
         when (lpparam.packageName) {
             BuildConfig.APPLICATION_ID -> SelfHook().handleLoadPackage(lpparam)
             "com.android.providers.telephony", "com.android.server.telecom" -> ReevaluationHook().handleLoadPackage(lpparam)
-            "com.android.systemui" -> LocationIndicatorHook().handleLoadPackage(lpparam)
+            "com.android.systemui" -> {
+                LocationIndicatorHook().handleLoadPackage(lpparam)
+                DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
+            }
+            "com.android.settings" -> DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
             else -> log("${BuildConfig.APPLICATION_ID} doesn't know how to hook ${lpparam.packageName}")
         }
     }

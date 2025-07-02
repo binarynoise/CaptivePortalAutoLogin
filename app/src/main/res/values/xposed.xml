@@ -11,5 +11,6 @@
         <item>com.android.providers.telephony</item>
         <item>com.android.server.telecom</item>
         <item>com.android.systemui</item>
+        <item>com.android.settings</item>
     </string-array>
 </resources>
