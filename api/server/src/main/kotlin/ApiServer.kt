@@ -1,12 +1,14 @@
-@file:OptIn(ExperimentalSerializationApi::class)
+@file:OptIn(ExperimentalSerializationApi::class, ExperimentalTime::class)
 
 package de.binarynoise.captiveportalautologin.server
 
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -88,7 +90,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     it[ssid] = success.ssid
                     it[url] = success.url
                     it[year] = d.year
-                    it[month] = d.month.value
+                    it[month] = d.month.number
                     it[count] = 1
                 }
             }

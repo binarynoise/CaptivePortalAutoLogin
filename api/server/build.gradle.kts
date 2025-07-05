@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.application)
+    application
     alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.ktor)
 }
@@ -22,6 +22,7 @@ dependencies {
     api(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.sqlite.jdbc)
 }
 

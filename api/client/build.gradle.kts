@@ -17,7 +17,6 @@ dependencies {
     testImplementation(libs.ktor.server.core.jvm)
     testImplementation(libs.ktor.server.netty.jvm)
     testImplementation(libs.ktor.server.status.pages)
-    testImplementation(libs.ktor.server.tests.jvm)
     testImplementation(libs.exposed.core)
     testImplementation(libs.exposed.jdbc)
 }

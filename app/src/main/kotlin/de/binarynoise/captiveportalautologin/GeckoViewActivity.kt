@@ -1,11 +1,12 @@
-@file:OptIn(ExperimentalStdlibApi::class)
+@file:OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
 
 package de.binarynoise.captiveportalautologin
 
 import java.time.format.DateTimeFormatter
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

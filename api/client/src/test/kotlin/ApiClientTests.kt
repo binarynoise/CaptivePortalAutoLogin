@@ -19,17 +19,12 @@ import de.binarynoise.captiveportalautologin.server.Tables
 import de.binarynoise.captiveportalautologin.server.module
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.ApplicationPlugin
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.application.hooks.CallFailed
-import io.ktor.server.application.install
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
-import io.ktor.server.plugins.origin
-import io.ktor.server.request.httpMethod
+import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.jetbrains.exposed.sql.selectAll
@@ -56,7 +51,7 @@ class ApiClientTests {
     companion object {
         private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
         
-        private val httpServer: NettyApplicationEngine = embeddedServer(
+        private val httpServer: EmbeddedServer<*, *> = embeddedServer(
             Netty,
             port = 8080,
             host = "::",

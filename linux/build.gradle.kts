@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    alias(libs.plugins.application)
+    application
     alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.shadow)
 }

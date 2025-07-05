@@ -1,32 +1,31 @@
 [versions]
 activityKtx = "1.10.1"
 androidDesugarJdkLibs = "2.1.5"
-androidGradlePlugin = "8.9.1"
-androidTools = "31.9.1"
+androidGradlePlugin = "8.10.1"
+androidTools = "31.11.0"
 androidxAnnotation = "1.9.1"
-androidxAppCompat = "1.7.0"
+androidxAppCompat = "1.7.1"
 androidxCore = "1.16.0"
 #ksp = "2.0.21-1.0.28"
 collectionKtx = "1.5.0"
 exposed = "0.61.0"
-geckoview = "137.0.20250414091429"
+geckoview = "140.0.20250630155423"
 githubApi = "1.321"
 hiddenapibypass = "6.1"
 jebrainsAnnotations = "26.0.2"
-json = "20250107"
-jsoup = "1.19.1"
-kotlin = "2.2.0-Beta1"
+json = "20250517"
+jsoup = "1.21.1"
+kotlin = "2.2.0"
 kotlinxCoroutines = "1.10.2"
-kotlinxDatetime = "0.6.2"
-kotlinxSerializationJson = "1.8.1"
-#noinspection GradleDependency, Version 3.x introduces breaking changes
-ktor = "2.3.13"
+kotlinxDatetime = "0.7.0-0.6.x-compat"
+kotlinxSerializationJson = "1.9.0"
+ktor = "3.2.0"
 leakcanary = "2.14"
-lifecycleRuntimeKtx = "2.8.7"
+lifecycleRuntimeKtx = "2.9.1"
 okhttp = "4.12.0"
 preferenceKtx = "1.2.1"
-shadow = "8.1.1"
-sqliteJdbc = "3.50.1.0"
+shadow = "8.3.6"
+sqliteJdbc = "3.50.2.0"
 viewbindingpropertydelegate = "1.5.9"
 xposed = "82"
 
@@ -76,14 +75,13 @@ xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-application = { id = "application" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 #ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
-shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
 # Plugins defined by this project
 buildlogic-android-application = { id = "common.android.application" }
