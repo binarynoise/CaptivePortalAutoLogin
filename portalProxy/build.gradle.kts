@@ -3,19 +3,28 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow)
 }
 
 val r8: Configuration by configurations.creating
 dependencies {
     implementation(projects.logger)
-    implementation(projects.liberator)
-    implementation(projects.api.client)
-    compileOnly(libs.okhttp)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.html)
+    implementation(libs.netty.all)
+    implementation(libs.slf4j.simple)
+    implementation(libs.vertx.lang.kotlin)
+    implementation(libs.vertx.lang.kotlin.coroutines)
+    implementation(libs.vertx.web)
+    implementation(libs.vertx.web.client)
+    compileOnly(libs.vertx.codegen.api)
+    runtimeOnly(libs.blockhound)
+    
     r8(libs.r8)
 }
 
-val mainClass = "de.binarynoise.captiveportalautologin.MainKt"
+val mainClass = "de.binarynoise.captiveportalautologin.portalproxy.MainKt"
 application.mainClass = mainClass
 tasks.withType<Jar> {
     manifest {
@@ -26,7 +35,7 @@ tasks.withType<Jar> {
 tasks.withType<ShadowJar> {
     archiveClassifier.set("shadow")
     mergeServiceFiles()
-    minimize()
+//    minimize()
     exclude("**/*.kotlin_*")
 }
 

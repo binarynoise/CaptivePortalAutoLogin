@@ -34,6 +34,11 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("org.mozilla")
             }
         }
+        maven("https://storage.googleapis.com/r8-releases/raw") {
+            content {
+                includeGroup("com.android.tools")
+            }
+        }
         mavenCentral()
 //        maven("https://jitpack.io")
 //        gradlePluginPortal()
@@ -51,4 +56,5 @@ include(":fileDB")
 include(":liberator")
 include(":linux")
 include(":logger")
+include(":portalProxy")
 include(":util:okhttp-kts")

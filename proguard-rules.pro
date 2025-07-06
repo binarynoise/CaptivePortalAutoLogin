@@ -7,7 +7,6 @@
 
 -dontobfuscate
 -allowaccessmodification
--optimizations !code/simplification/arithmetic
 -dontskipnonpubliclibraryclasses
 -dontskipnonpubliclibraryclassmembers
 
@@ -68,3 +67,14 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 -dontwarn org.jspecify.annotations.**
+
+# netty
+-dontwarn com.aayushatharva.brotli4j.**
+-dontwarn com.fasterxml.jackson.databind.**
+-dontwarn com.github.luben.zstd.**
+-dontwarn com.jcraft.jzlib.**
+-dontwarn io.netty.internal.tcnative.**
+-dontwarn io.vertx.codegen.**
+-dontwarn org.apache.log4j.**
+-dontwarn org.apache.logging.log4j.**
+-dontwarn com.google.auto.service.AutoService
