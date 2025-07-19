@@ -25,6 +25,7 @@ class XposedInit : IXposedHookLoadPackage {
                 LocationIndicatorHook().handleLoadPackage(lpparam)
                 DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
             }
+            "com.android.networkstack" -> NetworkConnectedHook().handleLoadPackage(lpparam)
             "com.android.settings" -> DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
             else -> log("${BuildConfig.APPLICATION_ID} doesn't know how to hook ${lpparam.packageName}")
         }
