@@ -149,25 +149,23 @@ browser.webRequest.onErrorOccurred.addListener(details => postMessage("onErrorOc
 
 // browser.cookies.onChanged.addListener((details) => postMessage("onCookiesChanged", details))
 
-if (config.blockWs) {
+/**
+ * @type RequestFilter
+ */
+const wsFilter = {
+    urls: ["<all_urls>"], types: ["websocket"],
+};
+
+browser.webRequest.onBeforeRequest.addListener((details) => {
     /**
-     * @type RequestFilter
+     * @type {browser.webRequest.BlockingResponse}
      */
-    const wsFilter = {
-        urls: ["<all_urls>"], types: ["websocket"],
+    const response = {
+        cancel: config.blockWs
     };
+    console.log("blocking ws request", details);
 
-    browser.webRequest.onBeforeRequest.addListener((details) => {
-        /**
-         * @type {browser.webRequest.BlockingResponse}
-         */
-        const response = {
-            cancel: true
-        };
-        console.log("blocking ws request", details);
-
-        return response;
-    }, wsFilter, ["blocking"]);
-}
+    return response;
+}, wsFilter, ["blocking"]);
 
 console.log("started captivePortalAutoLoginTrafficCapture");
