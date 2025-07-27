@@ -4,7 +4,6 @@ import java.nio.file.Path
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.minutes
 
-
 /**
  * A wrapper around [CsvDB] that keeps a cache of the database contents in memory.
  *
@@ -22,7 +21,7 @@ class CachedCsvDB(
     val delimiter: String = ",",
 ) {
     private val wrapped = CsvDB(root, dbName, delimiter)
-    private var cache: MutableList<List<String>> = mutableListOf()
+    private val cache: MutableList<List<String>> = mutableListOf()
     
     /**
      * Loads all records from the wrapped CSV database into the cache.
@@ -30,7 +29,8 @@ class CachedCsvDB(
      * This function updates the in-memory database with the contents of the CSV file.
      */
     fun load() {
-        cache = wrapped.loadAll().toMutableList()
+        cache.clear()
+        cache.addAll(wrapped.loadAll())
     }
     
     /**

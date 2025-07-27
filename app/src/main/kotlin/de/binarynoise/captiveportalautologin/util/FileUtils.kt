@@ -58,7 +58,13 @@ object FileUtils {
         context.startActivity(chooserIntent)
     }
     
-    fun shareTextAsFile(text: String, fileName: String, title: String, lifecycleOwner: LifecycleOwner, context: Context = applicationContext) {
+    fun shareTextAsFile(
+        text: String,
+        fileName: String,
+        title: String,
+        lifecycleOwner: LifecycleOwner,
+        context: Context = applicationContext,
+    ) {
         val tmpFolder = context.cacheDir.resolve("shareTextAsFile")
         tmpFolder.mkdirs()
         val tmpFile = tmpFolder.resolve(fileName)
@@ -113,14 +119,18 @@ object FileUtils {
         
         log("File: $relativePath$fileNameWithIndex")
         
-        val projection =
-            arrayOf(MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.RELATIVE_PATH, MediaStore.Files.FileColumns.DISPLAY_NAME)
+        val projection = arrayOf(
+            MediaStore.Files.FileColumns._ID,
+            MediaStore.Files.FileColumns.RELATIVE_PATH,
+            MediaStore.Files.FileColumns.DISPLAY_NAME
+        )
         val selection = "${MediaColumns.RELATIVE_PATH} = ? AND ${MediaColumns.DISPLAY_NAME} LIKE ?"
         val selectionArgs = arrayOf(
             relativePath,
             "$fileNameWithIndex%", // % is a wildcard, so android can do its renaming without annoying us more than needed
         )
-        val cursor = context.applicationContext.contentResolver.query(extVolumeUri, projection, selection, selectionArgs, null)
+        val cursor =
+            context.applicationContext.contentResolver.query(extVolumeUri, projection, selection, selectionArgs, null)
         cursor?.use {
             if (cursor.count > 0) {
                 log("File with name $fileName already exists, trying again with counter ${counter + 1}")
@@ -137,8 +147,10 @@ object FileUtils {
             put(MediaColumns.IS_PENDING, 1)
         }
         
-        val fileUri: Uri = context.contentResolver.insert(extVolumeUri, values) ?: throw IOException("Failed to insert file $fileNameWithIndex")
-        val outputStream = context.contentResolver.openOutputStream(fileUri) ?: throw IOException("Failed to open output stream for file $fileUri")
+        val fileUri: Uri = context.contentResolver.insert(extVolumeUri, values)
+            ?: throw IOException("Failed to insert file $fileNameWithIndex")
+        val outputStream = context.contentResolver.openOutputStream(fileUri)
+            ?: throw IOException("Failed to open output stream for file $fileUri")
         return Triple(values, fileUri, outputStream)
     }
     

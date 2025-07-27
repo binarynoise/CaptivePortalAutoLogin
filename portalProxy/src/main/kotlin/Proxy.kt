@@ -4,6 +4,7 @@ package de.binarynoise.captiveportalautologin.portalproxy.proxy
 
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlinx.coroutines.CancellationException
 import de.binarynoise.captiveportalautologin.portalproxy.portal.checkCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
@@ -55,12 +56,16 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
             // Connect to the target server
             netClient.connect(port.toInt(), host).coAwait()
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            
             log("Failed to connect to $host:$port", e)
             request.response().setStatusCode(502).end("Failed to connect to $host:$port")
             return
         }
         handleServerConnected(request, netSocket)
     } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        
         log("Failed to handle CONNECT request", e)
         request.response().setStatusCode(500).end("Failed to handle CONNECT request")
     }

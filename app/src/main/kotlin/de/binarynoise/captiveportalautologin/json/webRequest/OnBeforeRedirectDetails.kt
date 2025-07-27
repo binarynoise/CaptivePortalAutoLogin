@@ -65,7 +65,10 @@ class OnBeforeRedirectDetails(
                 json.getBoolean("fromCache"),
                 json.getInt("statusCode"),
                 json.getString("redirectUrl"),
-                json.optJSONArray("responseHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray(),
+                json.optJSONArray("responseHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
                 json.getString("statusLine"),
             )
         }

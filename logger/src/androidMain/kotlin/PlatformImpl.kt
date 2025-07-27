@@ -65,7 +65,12 @@ class PlatformImpl : Platform {
     }
     
     override fun platformSpecificDump(
-        obj: Any, name: String, nextIndent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>,
+        obj: Any,
+        name: String,
+        nextIndent: Int,
+        processed: MutableSet<Any>,
+        forceInclude: Set<Any>,
+        forceIncludeClasses: Set<Class<*>>,
     ): Boolean = with(obj) {
         when (this) {
             //<editor-fold desc="is SparseArray<*> -> { ... }" defaultstate="collapsed"
@@ -74,7 +79,11 @@ class PlatformImpl : Platform {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { k, v ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             is SparseIntArray -> {
@@ -82,7 +91,11 @@ class PlatformImpl : Platform {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { k, v ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             is SparseLongArray -> {
@@ -90,7 +103,11 @@ class PlatformImpl : Platform {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { k, v ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             is SparseBooleanArray -> {
@@ -98,7 +115,11 @@ class PlatformImpl : Platform {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { k, v ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             is SparseArrayCompat<*> -> {
@@ -106,7 +127,11 @@ class PlatformImpl : Platform {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { k, v -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { k, v ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             //</editor-fold>
@@ -129,7 +154,8 @@ class PlatformImpl : Platform {
                 } else {
                     println()
                     keys.forEach {
-                        @Suppress("DEPRECATION") get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
+                        @Suppress("DEPRECATION") // 
+                        get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
                     }
                 }
             }
@@ -138,9 +164,15 @@ class PlatformImpl : Platform {
             }
             is ViewGroup -> {
                 println()
-                this.children.forEachIndexed { view, i -> view.dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                this.children.forEachIndexed { view, i ->
+                    view.dump(
+                        i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                    )
+                }
             }
-            else -> return false
+            else -> {
+                return false
+            }
         }
         
         return true

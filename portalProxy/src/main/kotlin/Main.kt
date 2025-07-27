@@ -47,7 +47,9 @@ class MainVerticle : CoroutineVerticle() {
                     append(" ")
                     append(request.path())
                     append(" from ")
-                    append(request.remoteAddress().let { it.host().replace("0:0:0:0:0:0:0:1", "::1") + ":" + it.port() })
+                    append(request.remoteAddress().host().replace("0:0:0:0:0:0:0:1", "::1"))
+                    append(":")
+                    append(request.remoteAddress().port())
                 })
                 
                 if (request.method() == HttpMethod.CONNECT) {

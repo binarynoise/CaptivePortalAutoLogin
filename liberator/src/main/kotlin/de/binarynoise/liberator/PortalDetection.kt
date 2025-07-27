@@ -12,7 +12,7 @@ object PortalDetection {
         "Arch Linux" to "http://ping.archlinux.org/",
     )
     
-    val defaultBackend: String = backends["Binarynoise"]!!
+    val defaultBackend: String = backends.entries.first().value
     
     val userAgents = mapOf(
         "Chrome/Android" to "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36",
@@ -27,5 +27,5 @@ object PortalDetection {
         "Chrome/iOS" to "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129.0.0.0 Mobile/15E148 Safari/605.1.15",
         "Firefox/iOS" to "Mozilla/5.0 (iPhone; CPU iPhone OS 17_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/130.0 Mobile/15E148 Safari/605.1.15",
     )
-    val defaultUserAgent = userAgents["Chrome/Android"]!!
+    val defaultUserAgent = userAgents.entries.first().value
 }

@@ -26,7 +26,7 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDe
 import de.binarynoise.captiveportalautologin.json.webRequest.RequestBody
 import de.binarynoise.logger.Logger.log
 
-fun Header(httpHeader: HttpHeader): Header = Header(httpHeader.name, httpHeader.value ?: "")
+fun Header(httpHeader: HttpHeader): Header = Header(httpHeader.name, httpHeader.value.orEmpty())
 
 fun Cookie(cookie: HttpCookie): Cookie = Cookie(
     name = cookie.name,
@@ -38,9 +38,7 @@ fun Cookie(cookie: HttpCookie): Cookie = Cookie(
     secure = cookie.secure
 )
 
-fun HAR.toJson(): String {
-    return serializer.encodeToString(this)
-}
+fun HAR.toJson(): String = serializer.encodeToString(this)
 
 fun Request(onBeforeRequestDetails: OnBeforeRequestDetails) = Request(
     onBeforeRequestDetails.method,
@@ -113,7 +111,7 @@ fun Request.fillInPostData(body: RequestBody?) = with(body) {
     }
     
     if (raw.size == 1) {
-        val contentString = raw[0].bytes?.toByteArray()?.decodeToString()
+        val contentString = raw[0].bytes?.decodeToString()
         if (contentString != null && !contentString.looksLikeBinaryData(0.2)) {
             postData = PostData(
                 "text/plain",
@@ -126,7 +124,7 @@ fun Request.fillInPostData(body: RequestBody?) = with(body) {
     }
     
     val params: List<PostParam> = raw.mapIndexed { i, data ->
-        val bytes: ByteArray = data.bytes?.toByteArray() ?: ByteArray(0)
+        val bytes: ByteArray = data.bytes ?: ByteArray(0)
         val contentString = bytes.decodeToString()
         if (contentString.looksLikeBinaryData(0.2)) {
             val encodedContent = Base64.encode(contentString.toByteArray())
@@ -201,15 +199,16 @@ fun Response.handleResponseHeaders(responseHeaders: Array<HttpHeader>?) {
 fun Response.fillInCookies(responseHeaders: Array<HttpHeader>) {
     val newCookies = responseHeaders.asSequence()
         .filter { it.name.contains("Cookie", ignoreCase = true) }
-        .flatMap { it.value?.lineSequence() ?: emptySequence() }
+        .flatMap { it.value?.lineSequence().orEmpty() }
         .flatMap {
             try {
                 HttpCookie.parse(it)
-            } catch (e: Exception) {
+            } catch (s: Exception) {
                 try {
                     log("Failed to parse cookie: ${it}, trying fallback")
                     HttpCookie.parse(it.substringBefore(";"))
                 } catch (e: Exception) {
+                    e.addSuppressed(s)
                     log("Failed to parse cookie, fallback failed", e)
                     emptyList<HttpCookie>()
                 }
@@ -222,7 +221,7 @@ fun Response.fillInCookies(responseHeaders: Array<HttpHeader>) {
 }
 
 fun Response.fillInHeaders(responseHeaders: Array<HttpHeader>) {
-    redirectURL = responseHeaders.find { it.name.lowercase() == "location" }?.value ?: ""
+    redirectURL = responseHeaders.find { it.name.lowercase() == "location" }?.value.orEmpty()
     val modified = headers.addAll(responseHeaders.map(::Header))
     if (modified) responseHeaders.forEach { log("< ${it.name}: ${it.value}") }
 }

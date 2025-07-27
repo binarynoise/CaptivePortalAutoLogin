@@ -46,9 +46,7 @@ class ApiClient(private val base: HttpUrl) : Api {
     }
 }
 
-fun HAR.toJson(): String {
-    return serializer.encodeToString(this)
-}
+fun HAR.toJson(): String = serializer.encodeToString(this)
 
 val serializer = Json {
     encodeDefaults = false

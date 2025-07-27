@@ -66,9 +66,12 @@ class OnAuthRequiredDetails(
                 json.optString("realm"),
                 Challenger.fromJson(json.getJSONObject("challenger")),
                 json.getBoolean("isProxy"),
-                json.optJSONArray("responseHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray(),
+                json.optJSONArray("responseHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
                 json.getString("statusLine"),
-                json.getInt("statusCode")
+                json.getInt("statusCode"),
             )
         }
     }

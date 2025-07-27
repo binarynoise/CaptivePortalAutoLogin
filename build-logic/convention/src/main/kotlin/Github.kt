@@ -41,7 +41,8 @@ abstract class GithubCreateReleaseTask : DefaultTask() {
         val packageRelease = project.tasks.getByName("packageRelease")
         
         val outputs = packageRelease.outputs.files
-        val apks = outputs.filter { it.isDirectory }.flatMap { it.listFiles { file -> file.extension == "apk" }!!.toList() }
+        val apks =
+            outputs.filter { it.isDirectory }.flatMap { it.listFiles { file -> file.extension == "apk" }!!.toList() }
         
         val github = GitHub.connectUsingOAuth(token)
         val repository = github.getRepository(repo)
@@ -56,10 +57,16 @@ abstract class GithubCreateReleaseTask : DefaultTask() {
             return
         }
         
-        val release = repository.createRelease(tagName).name(name).draft(true).makeLatest(GHReleaseBuilder.MakeLatest.FALSE).create()
+        val release = repository.createRelease(tagName)
+            .name(name)
+            .draft(true)
+            .makeLatest(GHReleaseBuilder.MakeLatest.FALSE)
+            .create()
         
         apks.forEach {
-            release.uploadAsset("${project.name}-v$commitCount.apk", it.inputStream(), "application/vnd.android.package-archive")
+            release.uploadAsset(
+                "${project.name}-v$commitCount.apk", it.inputStream(), "application/vnd.android.package-archive"
+            )
         }
         
         doLast {

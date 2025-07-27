@@ -54,8 +54,11 @@ class OnHeadersReceivedDetails(
                 json.getString("type"),
                 json.getDouble("timeStamp").toFloat(),
                 json.getString("statusLine"),
-                json.optJSONArray("responseHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray(),
-                json.getInt("statusCode")
+                json.optJSONArray("responseHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
+                json.getInt("statusCode"),
             )
         }
     }

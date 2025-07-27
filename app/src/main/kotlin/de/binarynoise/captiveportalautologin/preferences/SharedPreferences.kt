@@ -45,10 +45,7 @@ class PreferencePropertyDelegate<T>(val key: String, val defaultValue: T) : (Pre
                 is Boolean -> putBoolean(key, newValue)
                 is Float -> putFloat(key, newValue)
                 is Long -> putLong(key, newValue)
-                else -> {
-                    @Suppress("USELESS_CAST") //
-                    throw IllegalArgumentException("Cannot save " + (newValue as Any)::class.qualifiedName + " into SharedPreferences")
-                }
+                else -> @Suppress("USELESS_CAST") throw IllegalArgumentException("Cannot save " + (newValue as Any)::class.qualifiedName + " into SharedPreferences")
             }
         }
     }

@@ -7,13 +7,12 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.intellij.lang.annotations.Language
 
-private val MEDIA_TYPE_HTML = "text/html".toMediaType()
-
 class Redirects {
     
     @Test
     fun header() {
-        val redirect = "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
+        val redirect =
+            "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
         val response = createDummyResponse().header("Location", redirect).build()
         val location = response.getLocation()
         assertEquals(redirect, location)
@@ -22,7 +21,8 @@ class Redirects {
     @Test
     @Ignore("Moved directly to the respective site")
     fun LoginURL() {
-        val redirect = "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
+        val redirect =
+            "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
         
         @Language("HTML")
         val html = """
@@ -58,7 +58,8 @@ class Redirects {
     
     @Test
     fun meta() {
-        val redirect = "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
+        val redirect =
+            "https://www.hotsplots.de/auth/login.php?res=wispr&uamip=192.168.44.1&uamport=80&challenge=87be91e76d64c5e4a37ee507bf5fe561"
         
         @Language("HTML")
         val html = """

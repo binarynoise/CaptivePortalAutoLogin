@@ -27,11 +27,11 @@ fun main() {
      */
     thread {
         val process = processBuilder.command("nmcli", "monitor").start()
-        process.inputReader().useLines {
-            it.forEach {
-                log(it)
+        process.inputReader().useLines { lines ->
+            lines.forEach { line ->
+                log(line)
                 val regex = "^Connectivity is now '(\\w+)'$".toRegex()
-                val result = regex.matchEntire(it)
+                val result = regex.matchEntire(line)
                 val connectivity = result?.groups?.get(1)?.value
                 if (connectivity != null) {
                     onConnectivityChanged(connectivity)
@@ -93,16 +93,15 @@ fun onConnectivityChanged(connectivity: String) {
     try {
         log("onConnectivityChanged: $connectivity")
         if (connectivity == "portal") {
-            val (newLocation, tried) = Liberator(PortalDetection.defaultBackend, PortalDetection.defaultUserAgent) {}.liberate()
+            val result = Liberator({}, PortalDetection.defaultBackend, PortalDetection.defaultUserAgent).liberate()
             
-            if (newLocation == null) {
-                if (tried) {
-                    log("broke out of the portal")
-                } else {
-                    log("not caught in portal")
-                }
-            } else {
-                log("Failed to liberate: still in portal: $newLocation")
+            when (result) {
+                is Liberator.LiberationResult.Success -> log("broke out of the portal")
+                is Liberator.LiberationResult.Error -> log("Failed to liberate: ${result.message}", result.exception)
+                Liberator.LiberationResult.NotCaught -> log("not caught in portal")
+                is Liberator.LiberationResult.StillCaptured -> log("Failed to liberate: still in portal: ${result.url}")
+                is Liberator.LiberationResult.Timeout -> log("Failed to liberate: timeout")
+                is Liberator.LiberationResult.UnknownPortal -> log("Failed to liberate: unknown portal: ${result.url}")
             }
         }
     } catch (e: Exception) {

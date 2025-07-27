@@ -98,6 +98,7 @@ dependencies {
     implementation(projects.logger)
     implementation(projects.liberator)
     implementation(projects.api.client)
+    implementation(projects.fileDB)
     
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)
@@ -109,6 +110,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
+    
+    implementation(libs.androidx.work.runtime.ktx)
     
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
     

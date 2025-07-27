@@ -37,7 +37,12 @@ class ReevaluationHook : IXposedHookLoadPackage {
                         instance = icm
                         
                         val context: Context = XposedHelpers.getObjectField(thisObject, "mContext") as Context
-                        ContextCompat.registerReceiver(context, ReevaluationReceiver(lpparam), IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
+                        ContextCompat.registerReceiver(
+                            context,
+                            ReevaluationReceiver(lpparam),
+                            IntentFilter(ACTION),
+                            ContextCompat.RECEIVER_EXPORTED,
+                        )
                         log("Registered receiver in package: ${lpparam.packageName}, process: ${lpparam.processName}")
                     }
                 },
@@ -46,7 +51,9 @@ class ReevaluationHook : IXposedHookLoadPackage {
         } catch (_: ClassNotFoundException) {
         } catch (_: XposedHelpers.ClassNotFoundError) {
         } catch (e: Throwable) {
-            log("failed to hook ConnectivityManager in package: ${lpparam.packageName}, process: ${lpparam.processName}", e)
+            val message =
+                "failed to hook ConnectivityManager in package: ${lpparam.packageName}, process: ${lpparam.processName}"
+            log(message, e)
         }
     }
     

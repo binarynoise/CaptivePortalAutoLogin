@@ -11,7 +11,8 @@ private fun Project.getCommitCountExec() = providers.exec {
     args(projectDir.absolutePath)
     args(rootProject.file("gradle").absolutePath)
     
-    rootProject.projectDir.listFiles { file -> file.isFile && file.extension != "md" }!!.forEach { args(it.absolutePath) }
+    rootProject.projectDir.listFiles { file -> file.isFile && file.extension != "md" }!!
+        .forEach { args(it.absolutePath) }
     
     extensions.findByType<BaseExtension>()?.let {
         val metadata = rootProject.file("metadata").resolve(it.namespace ?: "-")

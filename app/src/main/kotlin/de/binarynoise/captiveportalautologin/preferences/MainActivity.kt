@@ -54,7 +54,8 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
         supportFragmentManager.commit {
             fillInAnimation()
-            val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, pref.fragment ?: return false)
+            val preferenceFragmentName = pref.fragment ?: return false
+            val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, preferenceFragmentName)
             replace(R.id.fragmentContainerView, fragment, pref.key)
             addToBackStack(null)
         }

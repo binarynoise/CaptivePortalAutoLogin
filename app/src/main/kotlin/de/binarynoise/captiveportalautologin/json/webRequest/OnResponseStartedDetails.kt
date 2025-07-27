@@ -62,8 +62,11 @@ class OnResponseStartedDetails(
                 json.optString("ip"),
                 json.getBoolean("fromCache"),
                 json.getInt("statusCode"),
-                json.optJSONArray("responseHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray(),
-                json.getString("statusLine")
+                json.optJSONArray("responseHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
+                json.getString("statusLine"),
             )
         }
     }

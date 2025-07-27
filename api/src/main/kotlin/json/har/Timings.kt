@@ -23,7 +23,8 @@ data class Timings(
     @SerialName("receive") var receive: Int,
     @SerialName("ssl") var ssl: Int?,
 ) {
-    val time = (min(blocked ?: 0, 0) + min(dns ?: 0, 0) + min(connect ?: 0, 0) + min(send, 0) + min(wait, 0) + min(receive, 0)).takeIf { it > 0 } ?: 0
+    val time =
+        min(blocked ?: 0, 0) + min(dns ?: 0, 0) + min(connect ?: 0, 0) + min(send, 0) + min(wait, 0) + min(receive, 0)
     
     constructor() : this(null, null, null, 0, 0, 0, null)
 }

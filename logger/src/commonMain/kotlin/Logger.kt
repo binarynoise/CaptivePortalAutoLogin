@@ -4,6 +4,7 @@ import java.io.File
 import java.lang.ref.Reference
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
+import java.lang.reflect.InaccessibleObjectException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.time.LocalDate
@@ -107,9 +108,9 @@ object Logger {
         val currentTimeString = currentTimeString
         platform.runInBackground {
             try {
-                logString.lines().forEach {
+                logString.lines().forEach { line ->
                     val file: File = logFolder.resolve("$currentDateString.log")
-                    file.appendText("$currentTimeString $level $callingClassTag: $it\n")
+                    file.appendText("$currentTimeString $level $callingClassTag: $line\n")
                 }
                 
                 cleanOldLogs()
@@ -126,7 +127,7 @@ object Logger {
         val maxAge = Config.folderCleanupDays
         platform.runInBackground {
             try {
-                val oldestDateString = (LocalDate.now().minusDays(maxAge)).format(dateFormatter)
+                val oldestDateString = LocalDate.now().minusDays(maxAge).format(dateFormatter)
                 logFolder.list { _, name -> name.substringBeforeLast(".") < oldestDateString }.orEmpty().forEach {
                     logFolder.resolve(it).delete()
                     log(callingClassTag, it.toString())
@@ -152,13 +153,19 @@ object Logger {
      * @param forceIncludeClasses A set of classes that should be included, even if they would be skipped otherwise
      */
     fun Any?.dump(name: String, forceInclude: Set<Any> = emptySet(), forceIncludeClasses: Set<Class<*>> = emptySet()) {
-        log("dumping $name")
         if (!Config.debugDump) return
+        log("dumping $name")
         dump(name, 0, mutableSetOf(), forceInclude, forceIncludeClasses)
         System.out.flush()
     }
     
-    internal fun Any?.dump(name: String, indent: Int, processed: MutableSet<Any>, forceInclude: Set<Any>, forceIncludeClasses: Set<Class<*>>) {
+    internal fun Any?.dump(
+        name: String,
+        indent: Int,
+        processed: MutableSet<Any>,
+        forceInclude: Set<Any>,
+        forceIncludeClasses: Set<Class<*>>,
+    ) {
         //<editor-fold defaultstate="collapsed" desc="...">
         if (!Config.debugDump) return
         
@@ -200,7 +207,11 @@ object Logger {
                         println("[]")
                     } else {
                         println()
-                        this.forEachIndexed { index, value -> value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                        this.forEachIndexed { index, value ->
+                            value.dump(
+                                index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                            )
+                        }
                     }
                 } else { // primitive Array like int[]
                     // println(Arrays.toString(this))
@@ -212,7 +223,11 @@ object Logger {
                     println("[]")
                 } else {
                     println()
-                    this.forEachIndexed { index, value -> value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEachIndexed { index, value ->
+                        value.dump(
+                            index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             this is Map<*, *> -> {
@@ -220,19 +235,36 @@ object Logger {
                     println("[]")
                 } else {
                     println()
-                    this.forEach { (k, v) -> v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses) }
+                    this.forEach { (k, v) ->
+                        v.dump(
+                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
+                        )
+                    }
                 }
             }
             this is Method -> {
                 println(
-                    "${this.modifiers} ${this.returnType} ${this.declaringClass.canonicalNameOrName}.${this.name}(${this.parameterTypes.joinToString(", ")})"
+                    "${this.modifiers} ${this.returnType} ${this.declaringClass.canonicalNameOrName}.${this.name}(${
+                        this.parameterTypes.joinToString(
+                            ", "
+                        )
+                    })"
                 )
             }
             this is Constructor<*> -> {
-                println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}(${this.parameterTypes.joinToString(", ")})")
+                println(
+                    "${this.modifiers} ${this.declaringClass.canonicalNameOrName}(${
+                        this.parameterTypes.joinToString(
+                            ", "
+                        )
+                    })"
+                )
             }
             this is Field -> {
                 println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}.${this.type} ${this.name}")
+            }
+            this is java.lang.Enum<*> -> {
+                println("${this::class.java.canonicalNameOrName}.${this.name()}")
             }
             // skip classes that produce a lot of non-useful output, if not forced
             forceInclude.none { it == this } && forceIncludeClasses.none { it.isInstance(this) } && listOf(
@@ -254,6 +286,9 @@ object Logger {
                 "java.lang.ThreadGroup",
                 "kotlin.Function",
                 "kotlinx.datetime.LocalDateTime",
+                "kotlinx.coroutines.SupervisorJobImpl",
+                "io.ktor.server.application.Application",
+                "io.netty.channel.nio.NioEventLoop",
             ).any { this::class.java.canonicalNameOrName == it } -> {
                 println("i: $this")
             }
@@ -267,7 +302,7 @@ object Logger {
             this is KClass<*> -> {
                 println(this.java.canonicalNameOrName)
             }
-            this::class.java.declaredFields.find { it.name.equals("INSTANCE", true) } != null -> {
+            this::class.java.declaredFields.any { it.name.equals("INSTANCE", true) } -> {
                 println("kotlin object")
                 return
             }
@@ -285,23 +320,18 @@ object Logger {
                 }
                 
                 fields.sortedBy { it.name }.forEach {
-                    it.isAccessible = true
                     try {
+                        it.isAccessible = true
                         it.get(this).dump(it.name, nextIndent, processed, forceInclude, forceIncludeClasses)
                     } catch (e: ReflectiveOperationException) {
-                        e.printStackTrace()
-                    }
-                }
-                
-                val fieldNames = fields.map { it.name.lowercase() }.toSortedSet()
-                methods.removeIf { val methodName = it.name.lowercase().removePrefix("get"); fieldNames.any { methodName.endsWith(it) } }
-                
-                methods.sortedBy { it.name }.forEach {
-                    it.isAccessible = true
-                    try {
-                        it.invoke(this).dump(it.name, nextIndent, processed, forceInclude, forceIncludeClasses)
-                    } catch (e: ReflectiveOperationException) {
-                        e.printStackTrace()
+                        println("failed to dump field ${it.name}")
+                        when (e.suppressed.size) {
+                            e.suppressed.size -> println(e.message)
+                            e.suppressed.size -> println(e.suppressed[0].message)
+                            else -> e.printStackTrace()
+                        }
+                    } catch (_: InaccessibleObjectException) {
+                        println("failed to make field ${it.name} accessible")
                     }
                 }
             }

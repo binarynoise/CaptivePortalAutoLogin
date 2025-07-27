@@ -4,6 +4,7 @@ package de.binarynoise.util.okhttp
 
 import java.net.URLDecoder
 import java.nio.charset.Charset
+import java.util.concurrent.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -18,7 +19,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
 import org.jsoup.Jsoup
@@ -51,7 +51,7 @@ fun OkHttpClient.get(
     }
     val request = Request.Builder().apply {
         val urlBuilder = if (url == null) {
-            base?.newBuilder() ?: throw Error("url and context cannot both be null")
+            base?.newBuilder() ?: throw IllegalArgumentException("url and context cannot both be null")
         } else {
             base?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
         }
@@ -88,7 +88,7 @@ fun OkHttpClient.call(
     }
     val request = Request.Builder().apply {
         val urlBuilder = if (url == null) {
-            base?.newBuilder() ?: throw Error("url and context cannot both be null")
+            base?.newBuilder() ?: throw IllegalArgumentException("url and context cannot both be null")
         } else {
             base?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
         }
@@ -201,7 +201,7 @@ fun Response.checkSuccess() {
     check(code in 200..399) {
         "HTTP error: $code $message"
     }
-    val location = getLocation(skipStatusCheck = true)
+    val location = getLocationUnchecked()
     if (location != null) {
         val path = request.url.resolveOrThrow(location).decodedPath
         val pathContains40x = arrayOf("401", "403").any { path.contains(it) }
@@ -214,14 +214,16 @@ fun Response.checkSuccess() {
 /**
  * Retrieves the redirect location from the HTTP response.
  *
- * Parses `<WISPAccessGatewayParam>`, Location Header and `meta[http-equiv="refresh"]`
+ * Parses Location Header and `meta[http-equiv="refresh"]`
  *
- * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
  * @return The redirect URL from the response header or parsed from the HTML if present, null otherwise.
  */
-fun Response.getLocation(skipStatusCheck: Boolean = false): String? {
-    if (!skipStatusCheck) checkSuccess()
-    
+fun Response.getLocation(): String? {
+    checkSuccess()
+    return getLocationUnchecked()
+}
+
+private fun Response.getLocationUnchecked(): String? {
     val html = parseHtml(skipStatusCheck = true)
     
     val header = header("Location")
@@ -248,30 +250,40 @@ fun Response.parseHtml(skipStatusCheck: Boolean = false): Document {
 }
 
 fun Document.getInput(name: String) = selectFirst("input[name=$name]")?.attr("value") ?: error("no $name")
+fun Document.hasInput(name: String) = selectFirst("input[name=$name]") != null
+
+private val cache = mutableMapOf<Response, String>()
+private val executor = Executors.newSingleThreadScheduledExecutor()
+fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit, command: Runnable): ScheduledFuture<*> =
+    schedule(command, delay, unit)
 
 /**
  * Reads the response body into a string.
+ *
+ * The string is cached for 10 seconds.
+ * It may only be read again while in the cache.
  *
  * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
  * @return The response body as a string.
  */
 fun Response.readText(skipStatusCheck: Boolean = false): String {
     if (!skipStatusCheck) checkSuccess()
-    return body?.readText() ?: ""
-}
-
-fun ResponseBody.readText(): String {
-    val source = this.source()
-    val charset: Charset = this.contentType()?.charset() ?: Charsets.UTF_8
-    source.request(Long.MAX_VALUE)
-    return source.buffer.clone().readString(charset)
+    
+    return cache.getOrPut(this) {
+        executor.schedule(10, TimeUnit.SECONDS) {
+            cache.remove(this@readText)
+        }
+        body.string()
+    }
 }
 
 fun RequestBody.readText(): String {
-    val charset: Charset = this.contentType()?.charset() ?: Charsets.UTF_8
-    val buffer = Buffer()
-    writeTo(buffer)
-    return buffer.readString(charset)
+    val charset: Charset = contentType()?.charset() ?: Charsets.UTF_8
+    
+    Buffer().use { buffer ->
+        writeTo(buffer)
+        return buffer.readString(charset)
+    }
 }
 
 /**
@@ -280,7 +292,7 @@ fun RequestBody.readText(): String {
  * @return the URL of the request
  */
 val Response.requestUrl: HttpUrl
-    get() = this.request.url
+    get() = request.url
 
 /**
  * Decodes the path of the HttpUrl.
@@ -315,11 +327,11 @@ fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
  * @return the final non-redirect response
  */
 tailrec fun Response.followRedirects(client: OkHttpClient): Response {
-    val location = this.getLocation(false) ?: return this
+    val location = getLocation() ?: return this
     
-    log("following redirect: ${this.requestUrl} -> $location")
+    log("following redirect: $requestUrl -> $location")
     
-    val newRequest = this.request.newBuilder()
+    val newRequest = request.newBuilder()
     newRequest.url(request.url.resolveOrThrow(location))
     
     if (code != 307 && code != 308) {
@@ -327,6 +339,7 @@ tailrec fun Response.followRedirects(client: OkHttpClient): Response {
         newRequest.method("GET", null)
     }
     
+    body.close()
     val newResponse: Response = client.newCall(newRequest.build()).execute()
     
     return newResponse.followRedirects(client)
@@ -340,7 +353,7 @@ fun createDummyResponse(): Response.Builder = Response.Builder().apply {
     body("".toResponseBody())
 }
 
-fun Response.Builder.setLocation(location: String) = this.header("Location", location)
+fun Response.Builder.setLocation(location: String) = header("Location", location)
 
 /**
  * Decodes HTML entities in the given string.

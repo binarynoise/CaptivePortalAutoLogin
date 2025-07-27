@@ -17,7 +17,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
             addPreference(PreferenceCategory(ctx)) {
                 title = "Export Logs"
                 
-                val logFiles = Logger.Config.folder?.listFiles()?.sortedByDescending { it.name } ?: emptyList()
+                val logFiles = Logger.Config.folder?.listFiles()?.sortedByDescending { it.name }.orEmpty()
                 logFiles.forEach { file ->
                     addPreference(WidgetPreference(ctx, R.layout.item_log_export) { view ->
                         val binding = ItemLogExportBinding.bind(view)
@@ -26,13 +26,16 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                 try {
                                     shareFile(file, "Share log")
                                 } catch (e: Exception) {
-                                    Toast.makeText(view.context, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(
+                                        view.context, "Failed to share file: ${e.message}", Toast.LENGTH_LONG
+                                    ).show()
                                     log("Error sharing file (${file.name})", e)
                                 }
                             }
                             copyToSdButton.setOnClickListener {
                                 try {
-                                    val toast = Toast.makeText(view.context, "Saving...", Toast.LENGTH_SHORT).apply { show() }
+                                    val toast = Toast.makeText(view.context, "Saving...", Toast.LENGTH_SHORT)
+                                    toast.show()
                                     
                                     FileUtils.saveFileToSd(file, "text/plain", view.context)
                                     

@@ -7,6 +7,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
@@ -15,17 +16,18 @@ import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.filedb.JsonDB
-import org.jetbrains.exposed.dao.id.CompositeIdTable
-import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.DatabaseConfig
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.DatabaseConfig
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.plus
+import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.upsert
 import org.sqlite.SQLiteDataSource
 
 class ApiServer(root: Path = Path(".")) : Api {
@@ -72,11 +74,11 @@ class ApiServer(root: Path = Path(".")) : Api {
         override fun reportError(error: Api.Liberator.Error) {
             transaction {
                 Tables.Errors.insert {
+                    it[version] = error.version
                     it[ssid] = error.ssid
-                    it[host] = error.host
                     it[url] = error.url
                     it[message] = error.message
-                    it[date] = dateTime()
+                    it[timestamp] = Instant.fromEpochMilliseconds(error.timestamp)
                 }
             }
         }
@@ -87,6 +89,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                 Tables.Successes.upsert(onUpdate = {
                     it[Tables.Successes.count] = Tables.Successes.count + 1
                 }) {
+                    it[version] = success.version
                     it[ssid] = success.ssid
                     it[url] = success.url
                     it[year] = d.year
@@ -104,18 +107,19 @@ object Tables {
         val url = varchar("url", 1024)
         val year = integer("year")
         val month = integer("month")
+        val version = varchar("version", 128)
         
         val count = integer("count")
         
-        override val primaryKey: PrimaryKey = PrimaryKey(arrayOf(ssid, url, year, month), name = "successes_pkey")
+        override val primaryKey: PrimaryKey =
+            PrimaryKey(arrayOf(version, ssid, url, year, month), name = "successes_pkey")
     }
     
     object Errors : IntIdTable("errors") {
+        val version = varchar("version", 128)
+        val timestamp: Column<Instant> = timestamp("timestamp")
         val ssid = varchar("ssid", 128)
-        val host = varchar("host", 128)
         val url = varchar("url", 1024)
         val message = varchar("error", 1024)
-        
-        val date = datetime("date")
     }
 }

@@ -6,7 +6,8 @@ import android.content.Context
 import android.content.Intent
 
 @SuppressLint("PrivateApi")
-internal var applicationContext: Application = Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null) as Application
+internal var applicationContext: Application =
+    Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null) as Application
 
 @JvmName("startActivityClass")
 inline fun <reified T> Context.startActivity(setup: Intent.() -> Unit = {}) {

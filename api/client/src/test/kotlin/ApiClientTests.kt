@@ -27,8 +27,8 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
@@ -80,7 +80,10 @@ class ApiClientTests {
         fun `test hello world`() {
             val http = OkHttpClient()
             assertEquals("Hello World!", http.get(base, null).readText())
-            assertEquals("api/har/{name} here, name is test", http.get(apiBase, "har/test") { method("ECHO", null) }.readText())
+            assertEquals(
+                "api/har/{name} here, name is test",
+                http.get(apiBase, "har/test") { method("ECHO", null) }.readText(),
+            )
         }
     }
     
@@ -109,17 +112,39 @@ class ApiClientTests {
         
         @Test
         fun reportError() {
-            client.liberator.reportError(Api.Liberator.Error("test ssid", "test host", "test url", "test error"))
+            client.liberator.reportError(
+                Api.Liberator.Error(
+                    "test ssid",
+                    System.currentTimeMillis(),
+                    "test host",
+                    "test url",
+                    "test error",
+                )
+            )
         }
         
         @Test
         fun reportSuccess() {
-            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+            client.liberator.reportSuccess(
+                Api.Liberator.Success(
+                    "test ssid",
+                    System.currentTimeMillis(),
+                    "test ssid",
+                    "test url",
+                )
+            )
         }
         
         @Test
         fun `reportSuccess - count`() {
-            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+            client.liberator.reportSuccess(
+                Api.Liberator.Success(
+                    "test ssid",
+                    System.currentTimeMillis(),
+                    "test ssid",
+                    "test url",
+                )
+            )
             val before = transaction {
                 Tables.Successes.selectAll().where {
                     Tables.Successes.ssid eq "test ssid"
@@ -130,7 +155,14 @@ class ApiClientTests {
                 }
             }
             println("before: $before")
-            client.liberator.reportSuccess(Api.Liberator.Success("test ssid", "test url"))
+            client.liberator.reportSuccess(
+                Api.Liberator.Success(
+                    "test ssid",
+                    System.currentTimeMillis(),
+                    "test ssid",
+                    "test url",
+                )
+            )
             val after = transaction {
                 Tables.Successes.selectAll().where {
                     Tables.Successes.ssid eq "test ssid"

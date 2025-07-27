@@ -41,6 +41,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.SsidCompat.connectivityManager
+import de.binarynoise.captiveportalautologin.api.Api.Liberator.Error
+import de.binarynoise.captiveportalautologin.api.Api.Liberator.Success
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
@@ -77,9 +79,10 @@ class ConnectivityChangeListenerService : Service() {
     @Suppress("unused")
     @SuppressLint("MissingPermission")
     private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
-        if (notification == null) return
-        notification = NotificationCompat.Builder(this, notification!!).setContentText(newState?.toString() ?: "").build()
-        NotificationManagerCompat.from(this).notify(notificationId, notification!!)
+        val n = notification
+        if (n == null) return
+        notification = NotificationCompat.Builder(this, n).setContentText(newState?.toString().orEmpty()).build()
+        NotificationManagerCompat.from(this).notify(notificationId, n)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -113,28 +116,35 @@ class ConnectivityChangeListenerService : Service() {
             val serviceChannel = NotificationChannel(channelId, "Persistent Notification", IMPORTANCE_MIN)
             notificationManager.createNotificationChannel(serviceChannel)
         }
-        notification = NotificationCompat.Builder(this, channelId).let {
-            it.setContentTitle("Captive Portal detection")
-            it.setContentText("Running in background")
-            it.setSmallIcon(R.drawable.wifi_lock_open)
-            it.setStyle(NotificationCompat.BigTextStyle())
+        notification = NotificationCompat.Builder(this, channelId).let { builder ->
+            builder.setContentTitle("Captive Portal detection")
+            builder.setContentText("Running in background")
+            builder.setSmallIcon(R.drawable.wifi_lock_open)
+            builder.setStyle(NotificationCompat.BigTextStyle())
             
             // start HomeActivity on click
-            val launchHomeIntent = Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
+            val launchHomeIntent =
+                Intent().apply { component = ComponentName.createRelative(application.packageName, ".HomeActivity") }
             launchHomeIntent.addFlags(FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TASK)
-            it.setContentIntent(PendingIntent.getActivity(this, 0, launchHomeIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE))
+            builder.setContentIntent(
+                PendingIntent.getActivity(
+                    this, 0, launchHomeIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE
+                )
+            )
             
             // add button to try liberating again
             val retryIntent = Intent(this, this::class.java)
             retryIntent.putExtra("retry", true)
-            val pendingRetryIntent = PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            it.addAction(NotificationCompat.Action.Builder(null, "Liberate now", pendingRetryIntent).build())
+            val pendingRetryIntent =
+                PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
+            builder.addAction(NotificationCompat.Action.Builder(null, "Liberate now", pendingRetryIntent).build())
             
             val captureIntent = Intent(this, GeckoViewActivity::class.java)
-            val pendingCaptureIntent = PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            it.addAction(NotificationCompat.Action.Builder(null, "Capture portal", pendingCaptureIntent).build())
+            val pendingCaptureIntent =
+                PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
+            builder.addAction(NotificationCompat.Action.Builder(null, "Capture portal", pendingCaptureIntent).build())
             
-            it.setOnlyAlertOnce(true)
+            builder.setOnlyAlertOnce(true)
         }.build()
         
         try {
@@ -291,32 +301,106 @@ class ConnectivityChangeListenerService : Service() {
             val userAgent: String by SharedPreferences.liberator_user_agent
             val portalTestUrl: String by SharedPreferences.liberator_captive_test_url
             
-            val (newLocation, tried) = Liberator(
+            val res = Liberator(
+                { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
                 portalTestUrl,
                 userAgent,
-                { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
             ).liberate()
             
-            if (newLocation == null) {
-                if (tried) {
-                    Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
-                    t.cancel()
-                    log("broke out of the portal")
-                } else {
+            t.cancel()
+            
+            when (res) {
+                Liberator.LiberationResult.NotCaught -> {
                     log("not caught in portal")
-                    t.cancel()
-                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT)
+                        .show()
+                    // no report
                 }
-            } else {
-                log("Failed to liberate: still in portal: $newLocation")
-                t.cancel()
-                Toast.makeText(applicationContext, "Failed to liberate: still in portal: $newLocation", Toast.LENGTH_LONG).show()
+                is Liberator.LiberationResult.Success -> {
+                    log("broke out of the portal")
+                    Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
+                    Stats.liberator.reportSuccess(
+                        Success(
+                            BuildConfig.VERSION_NAME,
+                            System.currentTimeMillis(),
+                            networkStateLock.read { networkState?.ssid.toString() },
+                            res.url,
+                        )
+                    )
+                }
+                is Liberator.LiberationResult.Error -> {
+                    log("failed to liberate: ${res.message}", res.exception)
+                    Toast.makeText(
+                        applicationContext,
+                        "Failed to liberate: ${res.exception::class.simpleName} - ${res.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Stats.liberator.reportError(
+                        Error(
+                            BuildConfig.VERSION_NAME,
+                            System.currentTimeMillis(),
+                            networkState?.ssid.toString(),
+                            res.url,
+                            res.message,
+                        )
+                    )
+                }
+                is Liberator.LiberationResult.Timeout -> {
+                    log("failed to liberate: timeout")
+                    Toast.makeText(applicationContext, "Failed to liberate: timeout", Toast.LENGTH_SHORT).show()
+                    // no timeout report
+                }
+                is Liberator.LiberationResult.UnknownPortal -> {
+                    log("failed to liberate: unknown portal")
+                    Toast.makeText(
+                        applicationContext, "Failed to liberate: unknown portal ${res.url}", Toast.LENGTH_SHORT
+                    ).show()
+                    Stats.liberator.reportError(
+                        Error(
+                            BuildConfig.VERSION_NAME,
+                            System.currentTimeMillis(),
+                            networkState?.ssid.toString(),
+                            res.url,
+                            "unknown portal",
+                        )
+                    )
+                }
+                is Liberator.LiberationResult.StillCaptured -> {
+                    log("failed to liberate: still captured")
+                    Toast.makeText(
+                        applicationContext,
+                        "Failed to liberate: still captured ${res.url}",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    Stats.liberator.reportError(
+                        Error(
+                            BuildConfig.VERSION_NAME,
+                            System.currentTimeMillis(),
+                            networkState?.ssid.toString(),
+                            res.url,
+                            "still captured",
+                        )
+                    )
+                }
             }
         } catch (e: Exception) {
-            log("failed to liberate", e)
-            val message = e.message ?: e.localizedMessage ?: "no error message"
             t.cancel()
-            Toast.makeText(applicationContext, "Failed to liberate: ${e::class.simpleName} - $message", Toast.LENGTH_LONG).show()
+            log("failed to liberate", e)
+            val message = e.localizedMessage ?: e.message ?: "no error message"
+            Toast.makeText(
+                applicationContext,
+                "Failed to liberate: ${e::class.simpleName} - $message",
+                Toast.LENGTH_LONG,
+            ).show()
+            Stats.liberator.reportError(
+                Error(
+                    BuildConfig.VERSION_NAME,
+                    System.currentTimeMillis(),
+                    networkState?.ssid.toString(),
+                    "",
+                    message,
+                )
+            )
         } finally {
             forceReevaluation()
             
@@ -341,7 +425,8 @@ class ConnectivityChangeListenerService : Service() {
     
     // FLAG_INCLUDE_LOCATION_INFO not available pre API 31
     @RequiresApi(31)
-    class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
+    class NetworkCallback31(val wrapped: ConnectivityManager.NetworkCallback) :
+        ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
         //<editor-fold defaultstate="collapsed" desc="delegates">
         override fun onAvailable(network: Network) {
             wrapped.onAvailable(network)
@@ -375,7 +460,9 @@ class ConnectivityChangeListenerService : Service() {
     
     object SsidCompat {
         val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
-        val connectivityManager by lazy { ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!! }
+        val connectivityManager by lazy {
+            ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!!
+        }
         
         const val UNKNOWN_SSID = "<unknown ssid>"
         
@@ -383,7 +470,10 @@ class ConnectivityChangeListenerService : Service() {
             var ssid: String?
             
             // pre API 29, but try anyway
-            ssid = tryOrNull { @Suppress("DEPRECATION") wifiManager.connectionInfo.ssid.takeIf { it != UNKNOWN_SSID }?.let(::decodeSsid) }
+            ssid = tryOrNull {
+                @Suppress("DEPRECATION") //
+                wifiManager.connectionInfo.ssid.takeIf { it != UNKNOWN_SSID }?.let(::decodeSsid)
+            }
             if (ssid != null) {
                 log("got ssid from wifiManager.connectionInfo.ssid: $ssid")
                 return ssid
@@ -418,7 +508,9 @@ class ConnectivityChangeListenerService : Service() {
         val serviceStateLock = ReentrantReadWriteLock(true)
         
         @delegate:GuardedBy("serviceStateLock")
-        var serviceState: ServiceState by Delegates.observable(ServiceState(running = false, restart = false)) { _, oldState, newState ->
+        var serviceState: ServiceState by Delegates.observable(
+            ServiceState(running = false, restart = false)
+        ) { _, oldState, newState ->
             if (oldState != newState) serviceStateLock.read {
                 log("notifying ${serviceListeners.size} serviceListeners...")
                 serviceListeners.javaForEach { it(oldState, newState) }
@@ -448,7 +540,10 @@ class ConnectivityChangeListenerService : Service() {
                 }
                 return
             }
-            ContextCompat.startForegroundService(applicationContext, Intent(applicationContext, ConnectivityChangeListenerService::class.java))
+            ContextCompat.startForegroundService(
+                applicationContext,
+                Intent(applicationContext, ConnectivityChangeListenerService::class.java),
+            )
         }
         
         fun stop() {

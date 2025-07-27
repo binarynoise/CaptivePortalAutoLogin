@@ -11,7 +11,6 @@ import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlinx.serialization.json.Json
 
-
 /**
  * A simple JSON database
  *
@@ -30,7 +29,7 @@ class JsonDB(
     
     inline fun <reified T : Any> base(): Path = root.resolve(T::class.simpleName ?: T::class.java.simpleName)
     
-    inline fun <reified T : Any> store(key: String, value: T, extension: String = "json") {
+    inline fun <reified T : Any> store(key: String, value: T, extension: String = DEFAULT_EXTENSION) {
         val json = serializer.encodeToString<T>(value)
         val file = file<T>(key, extension)
         file.createParentDirectories()
@@ -38,7 +37,7 @@ class JsonDB(
         println("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
     }
     
-    inline fun <reified T : Any> load(key: String, extension: String = "json"): T? {
+    inline fun <reified T : Any> load(key: String, extension: String = DEFAULT_EXTENSION): T? {
         val file = file<T>(key, extension)
         if (!file.exists()) {
             println("file ${file.absolutePathString()} for ${T::class.simpleName} with key $key does not exist")
@@ -50,18 +49,22 @@ class JsonDB(
         return decoded
     }
     
-    inline fun <reified T : Any> delete(key: String, extension: String = "json") {
+    inline fun <reified T : Any> delete(key: String, extension: String = DEFAULT_EXTENSION) {
         val file = file<T>(key, extension)
         file.deleteIfExists()
     }
     
-    inline fun <reified T : Any> storeAll(map: Map<String, T>) {
-        map.forEach { store(it.key, it.value) }
+    inline fun <reified T : Any> storeAll(map: Map<String, T>, extension: String = DEFAULT_EXTENSION) {
+        map.forEach { store(it.key, it.value, extension) }
     }
     
-    inline fun <reified T : Any> loadAll(extension: String): Map<String, T> {
+    inline fun <reified T : Any> loadAll(extension: String = DEFAULT_EXTENSION): Map<String, T> {
         val files = base<T>().listDirectoryEntries("*.$extension")
         return files.asSequence().map { it.nameWithoutExtension }.associateWithNotNull { load<T>(it) }
+    }
+    
+    companion object {
+        const val DEFAULT_EXTENSION = "json"
     }
 }
 

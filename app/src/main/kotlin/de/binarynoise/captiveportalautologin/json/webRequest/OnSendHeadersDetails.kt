@@ -49,7 +49,10 @@ class OnSendHeadersDetails(
                 json.getInt("tabId"),
                 json.getString("type"),
                 json.getDouble("timeStamp").toFloat(),
-                json.optJSONArray("requestHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray()
+                json.optJSONArray("requestHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
             )
         }
     }

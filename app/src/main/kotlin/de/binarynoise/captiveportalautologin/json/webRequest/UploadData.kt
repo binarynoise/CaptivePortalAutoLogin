@@ -9,13 +9,13 @@ import org.json.JSONObject
  * @param file A string with the file's path and name.
  */
 class UploadData(
-    val bytes: Array<Byte>? = null,
+    val bytes: ByteArray? = null,
     val file: String? = null,
 ) {
     companion object {
         fun fromJson(json: JSONObject): UploadData {
             return UploadData(
-                json.optJSONArray("bytes")?.toList()?.map { (it as Number).toByte() }?.toTypedArray(),
+                json.optJSONArray("bytes")?.toList()?.map { (it as Number).toByte() }?.toByteArray(),
                 json.optString("file"),
             )
         }

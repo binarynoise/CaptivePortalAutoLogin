@@ -8,13 +8,13 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
-import android.os.UserManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.util.startActivity
+import de.binarynoise.liberator.cast
 
 @Suppress("ANNOTATION_WILL_BE_APPLIED_ALSO_TO_PROPERTY_OR_FIELD")
 class Permission private constructor(
@@ -41,7 +41,9 @@ class Permission private constructor(
         description,
         descriptionRes,
         if (minSdk == 0) granted else { context -> (Build.VERSION.SDK_INT < minSdk) || granted(context) },
-        if (minSdk == 0) request else { componentActivity -> if (Build.VERSION.SDK_INT >= minSdk) request(componentActivity) },
+        if (minSdk == 0) request else { componentActivity ->
+            if (Build.VERSION.SDK_INT >= minSdk) request(componentActivity)
+        },
         if (minSdk == 0) enabled else { context -> (Build.VERSION.SDK_INT >= minSdk) && enabled(context) },
     )
     
@@ -73,7 +75,9 @@ object Permissions : Set<Permission> by allPermissions {
         "Send Notifications",
         "Show a persistent status notification and show little messages at the bottom of the screen",
         { context ->
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
             ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
@@ -85,7 +89,9 @@ object Permissions : Set<Permission> by allPermissions {
         "Fine Location",
         "Collect the SSID of Portals. Required for the background service",
         { context ->
-            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
             componentActivity.requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 0)
@@ -97,10 +103,14 @@ object Permissions : Set<Permission> by allPermissions {
         "Background Location",
         "Collect the SSID of Portals. Required for the background service",
         { context ->
-            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         },
         { componentActivity ->
-            ActivityCompat.requestPermissions(componentActivity, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 0)
+            ActivityCompat.requestPermissions(
+                componentActivity, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 0
+            )
         },
         { context ->
             fineLocation.granted(context)
@@ -124,9 +134,7 @@ object Permissions : Set<Permission> by allPermissions {
     val openSettings = Permission(
         "Open Settings",
         "Open the app settings",
-        { context ->
-            !ContextCompat.getSystemService(context, UserManager::class.java)!!.isUserAGoat
-        },
+        { _ -> true },
         { componentActivity ->
             componentActivity.startActivity {
                 action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
@@ -137,7 +145,7 @@ object Permissions : Set<Permission> by allPermissions {
     
     @Deprecated("Deprecated in Java for some reason")
     override fun <T : Any> toArray(generator: IntFunction<Array<out T>>): Array<out T> {
-        return (this as java.util.Set<*>).toArray(generator.apply(0))
+        return this.cast<java.util.Set<*>>().toArray(generator.apply(0))
     }
     
     init {

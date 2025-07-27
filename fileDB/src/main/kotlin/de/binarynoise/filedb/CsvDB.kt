@@ -6,7 +6,6 @@ import kotlin.io.path.exists
 import kotlin.io.path.readLines
 import kotlin.io.path.writeText
 
-
 /**
  * A simple CSV database
  *

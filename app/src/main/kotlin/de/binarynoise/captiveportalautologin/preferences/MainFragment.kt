@@ -95,7 +95,10 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             
             addPreference(Preference(ctx)) {
                 title = "Liberate me now"
-                summary = "Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled."
+                summary = """
+                    Liberate the current Captive Portal now.
+                    Use this after network errors or when automatic liberating is disabled.
+                """.trimIndent()
                 
                 setOnPreferenceClickListener {
                     ConnectivityChangeListenerService.retry()

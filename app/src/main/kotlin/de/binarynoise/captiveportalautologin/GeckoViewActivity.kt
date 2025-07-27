@@ -75,6 +75,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.mozilla.geckoview.BuildConfig.MOZILLA_VERSION
+import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
@@ -196,13 +197,13 @@ class GeckoViewActivity : ComponentActivity() {
                 runtime.webExtensionController.installBuiltIn(extensionPath)
             } else {
                 runtime.webExtensionController.ensureBuiltIn(extensionPath, extensionID)
-            }.accept({
-                extension = it!!
-                log("Extension installed: ${it.id}")
+            }.accept({ e ->
+                extension = e!!
+                log("Extension installed: ${e.id}")
                 
                 mainHandler.postIfCreated {
-                    session.webExtensionController.setMessageDelegate(it, messageDelegate, "browser")
-                    it.setMessageDelegate(messageDelegate, "browser")
+                    session.webExtensionController.setMessageDelegate(e, messageDelegate, "browser")
+                    e.setMessageDelegate(messageDelegate, "browser")
                     
                     networkListeners.add(::networkListener)
                     networkListener(null, networkStateLock.read { networkState })
@@ -250,10 +251,18 @@ class GeckoViewActivity : ComponentActivity() {
                     menuItem.setOnMenuItemClickListener {
                         networkStateLock.write {
                             networkState = networkState?.copy(debug = true) ?: run {
-                                val connectivityManager = ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
+                                val connectivityManager =
+                                    ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
                                 val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
                                     Parcel.obtain().apply { writeInt(-1) })
-                                NetworkState(network, "debug", hasPortal = true, liberating = false, liberated = false, debug = true)
+                                NetworkState(
+                                    network,
+                                    "debug",
+                                    hasPortal = true,
+                                    liberating = false,
+                                    liberated = false,
+                                    debug = true
+                                )
                             }
                         }
                         mainHandler.post {
@@ -291,7 +300,11 @@ class GeckoViewActivity : ComponentActivity() {
                     toast.cancel()
                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
-                    Toast.makeText(this, e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     log("Error saving file", e)
                 }
                 
@@ -326,7 +339,9 @@ class GeckoViewActivity : ComponentActivity() {
         val ssid = networkState?.ssid
         har.comment = ssid
         val portalTestHost = portalTestUrl.toHttpUrl().host
-        val host = har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost } ?: portalTestHost
+        val host =
+            har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost }
+                ?: portalTestHost
         val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
         val fileName = "$ssid $host $timestamp.har"
         val json = har.toJson()
@@ -384,13 +399,13 @@ class GeckoViewActivity : ComponentActivity() {
     private val browser = Browser("Gecko", MOZILLA_VERSION)
     
     private val log = Log("1.2", creator, browser, mutableListOf(), mutableListOf())
-    private var har = HAR(log)
+    private val har = HAR(log)
     
-    private var requestCache: MutableMap<String, Request> = mutableMapOf()
-    private var responseCache: MutableMap<String, Response> = mutableMapOf()
-    private var contentCache: MutableMap<String, String> = mutableMapOf()
-    private var redirectCount: MutableMap<String, Int> = mutableMapOf()
-    private var startTimeCache: MutableMap<String, LocalDateTime> = mutableMapOf()
+    private val requestCache: MutableMap<String, Request> = mutableMapOf()
+    private val responseCache: MutableMap<String, Response> = mutableMapOf()
+    private val contentCache: MutableMap<String, String> = mutableMapOf()
+    private val redirectCount: MutableMap<String, Int> = mutableMapOf()
+    private val startTimeCache: MutableMap<String, LocalDateTime> = mutableMapOf()
     
     val backgroundHandler = Handler(HandlerThread("background").apply { start() }.looper)
     
@@ -450,7 +465,8 @@ class GeckoViewActivity : ComponentActivity() {
                     val onBeforeRequestDetails = OnBeforeRequestDetails.fromJson(details)
                     requestCache[requestIdWithRedirectCount] = Request(onBeforeRequestDetails)
                     startTimeCache[requestIdWithRedirectCount] =
-                        Instant.fromEpochMilliseconds(onBeforeRequestDetails.timeStamp).toLocalDateTime(TimeZone.currentSystemDefault())
+                        Instant.fromEpochMilliseconds(onBeforeRequestDetails.timeStamp)
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
                 }
                 "onBeforeSendHeaders" -> {
                     val onBeforeSendHeadersDetails = OnBeforeSendHeadersDetails.fromJson(details)
@@ -509,13 +525,20 @@ class GeckoViewActivity : ComponentActivity() {
                     return
                 }
             }
-        } catch (e: Throwable) {
-            Toast.makeText(this, e::class.java.simpleName + ": " + e.message + "\n" + "Please restart.", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                e::class.java.simpleName + ": " + e.message + "\n" + "Please restart.",
+                Toast.LENGTH_SHORT,
+            ).show()
             log("handleMessage error", e)
         }
     }
     
-    private fun finalizeResponse(requestIdWithRedirectCount: String, content: String? = contentCache[requestIdWithRedirectCount]) {
+    private fun finalizeResponse(
+        requestIdWithRedirectCount: String,
+        content: String? = contentCache[requestIdWithRedirectCount],
+    ) {
         if (content == null) {
             log("content is null"); return
         }
@@ -555,8 +578,14 @@ class GeckoViewActivity : ComponentActivity() {
             consoleOutput(BuildConfig.DEBUG)
             aboutConfigEnabled(BuildConfig.DEBUG)
             globalPrivacyControlEnabled(false)
+            contentBlocking(ContentBlocking.Settings.Builder().apply {
+                safeBrowsing(ContentBlocking.SafeBrowsing.NONE)
+                safeBrowsingProviders(/* none */)
+            }.build())
         }.build()
-        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) // TODO: move to onCreate
+        
+        // TODO: move to onCreate
+        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) 
 
 //        init {
 //            runtime.shutdown() // TODO: move to onDestroy

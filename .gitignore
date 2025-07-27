@@ -64,3 +64,6 @@ build
 # login captures
 *.har
 /har
+
+# application files
+/db.sqlite

@@ -62,7 +62,10 @@ class OnCompletedDetails(
                 json.optString("ip"),
                 json.getBoolean("fromCache"),
                 json.getInt("statusCode"),
-                json.optJSONArray("responseHeaders")?.toList()?.map { HttpHeader.fromJson(it as JSONObject) }?.toTypedArray(),
+                json.optJSONArray("responseHeaders")
+                    ?.toList()
+                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.toTypedArray(),
                 json.getString("statusLine"),
             )
         }
