@@ -17,6 +17,7 @@ import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.Routing
 import de.binarynoise.captiveportalautologin.server.Tables
 import de.binarynoise.captiveportalautologin.server.module
+import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.application.*
@@ -56,9 +57,7 @@ class ApiClientTests {
             port = 8080,
             host = "::",
             module = Application::module,
-        ).apply {
-            application.install(LoggingPlugin)
-        }
+        )
         
         @AfterAll
         @JvmStatic
@@ -154,7 +153,7 @@ class ApiClientTests {
                     result.first()[Tables.Successes.count]
                 }
             }
-            println("before: $before")
+            log("before: $before")
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
                     "test ssid",
@@ -172,25 +171,8 @@ class ApiClientTests {
                     result.first()[Tables.Successes.count]
                 }
             }
-            println("after: $after")
+            log("after: $after")
             assertEquals(before + 1, after)
         }
     }
-}
-
-val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "LoggingPlugin") {
-    onCallReceive { call, body ->
-        println("receiving call to ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
-    }
-    onCallRespond { call, body ->
-        println("responding to call ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
-    }
-    
-    on(CallFailed, handler = object : suspend (ApplicationCall, Throwable) -> Unit {
-        override suspend fun invoke(call: ApplicationCall, cause: Throwable) {
-            System.err.println("call failed:\n${cause.stackTraceToString()}")
-        }
-    })
-    
-    println("Logger is installed!")
 }

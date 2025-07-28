@@ -33,7 +33,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
             try {
                 apiClient.har.submitHar(key, har)
                 jsonDB.delete<HAR>(key)
-                log("Uploaded har $key")
+                log("Uploaded HAR $key")
             } catch (e: Exception) {
                 log("Failed to upload har", e)
                 // retry on the next worker run
@@ -46,7 +46,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
             try {
                 apiClient.liberator.reportError(error)
                 jsonDB.delete<Api.Liberator.Error>(key)
-                log("Uploaded error $key")
+                log("Uploaded Api.Liberator.Error $key")
             } catch (e: Exception) {
                 log("Failed to upload error", e)
                 return Result.retry()
@@ -58,7 +58,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
             try {
                 apiClient.liberator.reportSuccess(success)
                 jsonDB.delete<Api.Liberator.Success>(key)
-                log("Uploaded success $key")
+                log("Uploaded Api.Liberator.Success $key")
             } catch (e: Exception) {
                 log("Failed to upload success", e)
                 return Result.retry()

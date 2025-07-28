@@ -3,6 +3,7 @@ package de.binarynoise.filedb
 import java.nio.file.Path
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.minutes
+import de.binarynoise.logger.Logger.log
 
 /**
  * A wrapper around [CsvDB] that keeps a cache of the database contents in memory.
@@ -43,7 +44,7 @@ class CachedCsvDB(
         val found = cache.find { it.subList(0, key.size) == key }
         
         if (found == null) {
-            println("key $key not found in $dbName")
+            log("key $key not found in $dbName")
         }
         
         return found

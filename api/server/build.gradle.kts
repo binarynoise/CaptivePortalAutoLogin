@@ -8,9 +8,9 @@ plugins {
 
 
 dependencies {
-    // api to pass dependencies through to client tests
-    api(projects.api)
-    api(projects.fileDB)
+    implementation(projects.api)
+    implementation(projects.fileDB)
+    implementation(projects.logger)
     
     implementation(platform(libs.ktor.bom))
     implementation(libs.ktor.server.core.jvm)
@@ -42,6 +42,17 @@ tasks.withType<Jar> {
 tasks.withType<ShadowJar> {
     archiveClassifier.set("shadow")
     mergeServiceFiles()
-    minimize()
-    exclude("**/*.kotlin_*")
+    minimize {
+        exclude(dependency(libs.exposed.jdbc.get()))
+        exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
+    }
+    exclude(
+        "**/*.kotlin_*",
+        "**/*.pro",
+        "/*/default/linkdata/",
+        "/*/default/manifest",
+        "/DebugProbesKt.bin",
+        "/META-INF/native-image/",
+        "/META-INF/maven/"
+    )
 }

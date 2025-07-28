@@ -16,8 +16,8 @@ import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.filedb.JsonDB
+import de.binarynoise.logger.Logger.log
 import org.jetbrains.exposed.v1.core.Column
-import org.jetbrains.exposed.v1.core.DatabaseConfig
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable
@@ -43,19 +43,27 @@ class ApiServer(root: Path = Path(".")) : Api {
             url = "jdbc:sqlite:${root.resolve("db.sqlite").absolutePathString()}"
             setEncoding("UTF-8")
         }
-        Database.connect(ds, databaseConfig = DatabaseConfig {
-            this.sqlLogger = StdOutSqlLogger
-        })
+        Database.connect(ds)
         
         transaction {
+            addLogger(StdOutSqlLogger)
             SchemaUtils.createDatabase()
-            SchemaUtils.create(Tables.Successes, Tables.Errors)
+            val tables = arrayOf(Tables.Successes, Tables.Errors)
+            SchemaUtils.create(*tables)
+            val inconsistencies = SchemaUtils.checkMappingConsistence(*tables)
+            check(inconsistencies.isEmpty()) {
+                log("found inconsistencies:")
+                inconsistencies.forEach(::println)
+            }
+            
+            log("Database initialized")
         }
     }
     
     override val har: Api.Har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {
             jsonDb.store(name, har, "har")
+            log("stored har $name")
         }
     }
     
@@ -81,6 +89,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     it[timestamp] = Instant.fromEpochMilliseconds(error.timestamp)
                 }
             }
+            log("Stored Api.Liberator.Error: $error")
         }
         
         override fun reportSuccess(success: Api.Liberator.Success) {
@@ -97,6 +106,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     it[count] = 1
                 }
             }
+            log("Stored Api.Liberator.Success: $success")
         }
     }
 }

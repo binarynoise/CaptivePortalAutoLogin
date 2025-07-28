@@ -198,8 +198,8 @@ fun OkHttpClient.postForm(
  * @throws IllegalStateException if the response is not successful or if the path contains "401" or "403"
  */
 fun Response.checkSuccess() {
-    check(code in 200..399) {
-        "HTTP error: $code $message"
+    if (code !in 200..399) {
+        throw HttpStatusCodeException(code, message)
     }
     val location = getLocationUnchecked()
     if (location != null) {
@@ -210,6 +210,8 @@ fun Response.checkSuccess() {
         }
     }
 }
+
+class HttpStatusCodeException(code: Int, message: String) : IllegalStateException("$code $message")
 
 /**
  * Retrieves the redirect location from the HTTP response.

@@ -9,20 +9,25 @@ import de.binarynoise.captiveportalautologin.portalproxy.portal.checkCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.net.NetSocket
 import io.vertx.kotlin.coroutines.coAwait
 
-private val allowlistDomain = listOf("localhost", "127.0.0.1", "www.google.com", "am-i-captured.binarynoise.de")
+private val allowlistDomain = listOf("am-i-captured.binarynoise.de", "www.google.com")
 private val allowlistPort = listOf("80", "443")
 
-fun forward(ctx: HttpServerRequest) {
-    if (checkCaptured(ctx)) {
-        redirect(ctx)
+fun forward(request: HttpServerRequest) {
+    if (checkCaptured(request)) {
+        redirect(request)
         return
     }
     
-    ctx.response().setStatusCode(204).end()
+    if (request.method() == HttpMethod.GET) {
+        request.response().setStatusCode(204).end()
+        return
+    }
+    request.response().setStatusCode(405).end("${request.method()} ${request.uri()} is not allowed")
 }
 
 suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
@@ -67,7 +72,10 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
         if (e is CancellationException) throw e
         
         log("Failed to handle CONNECT request", e)
-        request.response().setStatusCode(500).end("Failed to handle CONNECT request")
+        
+        if (!request.response().headWritten()) {
+            request.response().setStatusCode(500).end("Failed to handle CONNECT request")
+        }
     }
 }
 

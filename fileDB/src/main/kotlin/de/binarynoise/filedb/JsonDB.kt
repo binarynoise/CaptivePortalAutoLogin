@@ -10,6 +10,7 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlinx.serialization.json.Json
+import de.binarynoise.logger.Logger.log
 
 /**
  * A simple JSON database
@@ -34,18 +35,18 @@ class JsonDB(
         val file = file<T>(key, extension)
         file.createParentDirectories()
         file.writeText(json)
-        println("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
+        log("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
     }
     
     inline fun <reified T : Any> load(key: String, extension: String = DEFAULT_EXTENSION): T? {
         val file = file<T>(key, extension)
         if (!file.exists()) {
-            println("file ${file.absolutePathString()} for ${T::class.simpleName} with key $key does not exist")
+            log("file ${file.absolutePathString()} for ${T::class.simpleName} with key $key does not exist")
             return null
         }
         val json = file.readText()
         val decoded = serializer.decodeFromString<T>(json)
-        println("loaded ${T::class.simpleName} with key $key from ${file.absolutePathString()}")
+        log("loaded ${T::class.simpleName} with key $key from ${file.absolutePathString()}")
         return decoded
     }
     
@@ -59,7 +60,10 @@ class JsonDB(
     }
     
     inline fun <reified T : Any> loadAll(extension: String = DEFAULT_EXTENSION): Map<String, T> {
-        val files = base<T>().listDirectoryEntries("*.$extension")
+        val base = base<T>()
+        if (!base.exists()) return emptyMap()
+        
+        val files = base.listDirectoryEntries("*.$extension")
         return files.asSequence().map { it.nameWithoutExtension }.associateWithNotNull { load<T>(it) }
     }
     
