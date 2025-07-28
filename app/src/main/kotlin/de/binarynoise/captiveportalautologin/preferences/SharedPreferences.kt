@@ -11,32 +11,36 @@ object SharedPreferences {
     val liberator_automatically_liberate by PreferenceProperty(true)
     val liberator_captive_test_url by PreferenceProperty(PortalDetection.defaultBackend)
     val liberator_user_agent by PreferenceProperty(PortalDetection.defaultUserAgent)
+    val liberator_send_stats by PreferenceProperty(true)
+    val api_base by PreferenceProperty("")
     
     private class PreferenceProperty<T>(private val defaultValue: T) {
         operator fun getValue(parent: Any, property: KProperty<*>): PreferencePropertyDelegate<T> {
-            return PreferencePropertyDelegate(property.name, defaultValue)
+            return PreferencePropertyDelegate(property, defaultValue)
         }
     }
 }
 
 
-class PreferencePropertyDelegate<T>(val key: String, val defaultValue: T) : (Preference) -> Unit {
+class PreferencePropertyDelegate<T>(val parent: KProperty<*>, val defaultValue: T) : (Preference) -> Unit {
+    val key = parent.name
+    
     override fun invoke(preference: Preference) {
         preference.setDefaultValue(defaultValue)
         preference.key = key
     }
     
     @Suppress("UNCHECKED_CAST")
-    operator fun getValue(parent: Nothing?, property: KProperty<*>): T {
+    operator fun getValue(parent: Nothing?, property: KProperty<*>?): T {
         with(PreferenceManager.getDefaultSharedPreferences(applicationContext)) {
             return if (contains(key)) all[key] as T
             else defaultValue
         }
     }
     
-    operator fun getValue(parent: Any, property: KProperty<*>): T = getValue(null, property)
+    operator fun getValue(parent: Any, property: KProperty<*>?): T = getValue(null, null)
     
-    operator fun setValue(parent: Nothing?, property: KProperty<*>, newValue: T?) {
+    operator fun setValue(parent: Nothing?, property: KProperty<*>?, newValue: T) {
         PreferenceManager.getDefaultSharedPreferences(applicationContext).edit {
             when (newValue) {
                 null -> remove(key)
@@ -50,5 +54,7 @@ class PreferencePropertyDelegate<T>(val key: String, val defaultValue: T) : (Pre
         }
     }
     
-    operator fun setValue(parent: Any, property: KProperty<*>, newValue: T?) = setValue(null, property, newValue)
+    fun get(): T = getValue(null, null)
+    
+    fun set(newValue: T) = setValue(null, null, newValue)
 }

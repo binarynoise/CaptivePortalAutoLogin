@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditText
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:autofillHints=""
+    android:inputType="textUri"
+    android:id="@+id/edit_text"
+    android:hint="https://am-i-captured.binarynoise.de/"
+    tools:ignore="HardcodedText"
+    tools:layout_gravity="end"
+    android:layout_marginLeft="-4dp"
+    android:layout_marginRight="-4dp"
+    />

@@ -10,12 +10,13 @@ import androidx.work.WorkerParameters
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-val API_BASE = "https://am-i-captured.binarynoise.de/api/".toHttpUrl()
+const val API_BASE = "https://am-i-captured.binarynoise.de/api/"
 
 private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats")
 private val jsonDB = JsonDB(localCacheRoot)
@@ -24,8 +25,8 @@ private val jsonDB = JsonDB(localCacheRoot)
 class StatsWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
     
     override suspend fun doWork(): Result {
-        
-        val apiClient = ApiClient(API_BASE)
+        val apiBaseFromPreference by SharedPreferences.api_base
+        val apiClient = ApiClient((apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrl())
         
         val harFiles = jsonDB.loadAll<HAR>("har")
         harFiles.forEach { (key, har) ->

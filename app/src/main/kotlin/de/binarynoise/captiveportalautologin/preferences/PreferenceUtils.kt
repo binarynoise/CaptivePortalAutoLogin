@@ -1,12 +1,24 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.annotation.LayoutRes
+import androidx.core.content.getSystemService
+import androidx.core.view.get
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceViewHolder
+import de.binarynoise.captiveportalautologin.R
+import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPreferenceBinding
 
 //fun Preference.PreferenceIcon(icon: IIcon): Drawable {
 //    return IconicsDrawable(context, icon).apply {
@@ -34,14 +46,23 @@ fun PreferenceGroup.removeOnClickListenersRecursively() {
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: T.() -> Unit) {
-    if (preference is PreferenceGroup) {
-        // PreferenceGroup needs to be added to the tree before other prefrences can be added to it
+    contract {
+        callsInPlace(setup, InvocationKind.EXACTLY_ONCE)
+    }
+    
+    val isPreferenceGroup = preference is PreferenceGroup
+    
+    if (isPreferenceGroup) {
+        // PreferenceGroup needs to be added to the tree before other preferences can be added to it
         addPreference(preference)
-        preference.apply(setup)
-    } else {
+    }
+    
+    preference.apply(setup)
+    
+    if (!isPreferenceGroup) {
         // normal preferences need the setup applied before being added to the tree
-        preference.apply(setup)
         addPreference(preference)
     }
 }
@@ -54,29 +75,64 @@ abstract class AutoCleanupPreferenceFragment : PreferenceFragmentCompat() {
     }
 }
 
-open class ViewHolderPreference(ctx: Context, @LayoutRes layout: Int? = null) : Preference(ctx) {
+open class ViewHolderPreference(
+    ctx: Context,
+    @LayoutRes layout: Int? = null,
+) : Preference(ctx) {
     init {
         if (layout != null) {
             layoutResource = layout
         }
     }
     
-    var onBindViewHolder: ((View) -> Unit)? = null
-    fun setOnBindViewHolderListener(setup: (View) -> Unit) {
+    var onBindViewHolder: (Preference.(View) -> Unit)? = null
+    fun setOnBindViewHolderListener(setup: Preference.(View) -> Unit) {
         onBindViewHolder = setup
     }
     
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
-        onBindViewHolder?.invoke(holder.itemView)
+        onBindViewHolder?.invoke(this, holder.itemView.findViewById<LinearLayout>(android.R.id.widget_frame)[0])
     }
 }
 
-class WidgetPreference(ctx: Context, @LayoutRes layout: Int, setup: (View) -> Unit) : ViewHolderPreference(ctx) {
+class WidgetPreference(
+    ctx: Context,
+    @LayoutRes layout: Int,
+    setup: Preference.(View) -> Unit,
+) : ViewHolderPreference(ctx) {
     init {
         widgetLayoutResource = layout
         setOnBindViewHolderListener(setup)
     }
+}
+
+fun EditTextPreference(
+    ctx: Context,
+    defaultValue: String,
+    onTextUpdated: (EditText, String) -> Unit,
+): WidgetPreference = WidgetPreference(ctx, R.layout.item_inline_edit_text_preference) {
+    val binding = ItemInlineEditTextPreferenceBinding.bind(it)
+    with(binding) {
+        editText.setText(defaultValue)
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(e: Editable?) {
+                e ?: return
+                val s = e.toString()
+                onTextUpdated(editText, s)
+            }
+        })
+        editText.setOnClickListener { }
+        setOnPreferenceClickListener { preference ->
+            editText.requestFocus()
+            context.getSystemService<InputMethodManager>()?.showSoftInput(editText, 0)
+            true
+        }
+    }
+}.apply {
+    layoutResource = R.layout.preference_horizontal
 }
 
 var Preference.titleRes: Int
