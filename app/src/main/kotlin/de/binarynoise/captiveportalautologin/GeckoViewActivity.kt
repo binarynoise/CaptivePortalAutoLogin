@@ -582,10 +582,18 @@ class GeckoViewActivity : ComponentActivity() {
                 safeBrowsing(ContentBlocking.SafeBrowsing.NONE)
                 safeBrowsingProviders(/* none */)
             }.build())
+            
+            val configFilePath = applicationContext.filesDir.resolve("geckoview-config.yaml")
+            applicationContext.assets.open("geckoview-config.yaml").use { inputStream ->
+                configFilePath.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            configFilePath(configFilePath.absolutePath)
         }.build()
         
         // TODO: move to onCreate
-        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings) 
+        val runtime: GeckoRuntime = GeckoRuntime.create(applicationContext, geckoRuntimeSettings)
 
 //        init {
 //            runtime.shutdown() // TODO: move to onDestroy
