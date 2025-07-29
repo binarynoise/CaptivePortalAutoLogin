@@ -9,6 +9,8 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
+const val portalHost = "portal.binarynoise.de"
+
 private val database = HashMap<String, Boolean>()
 
 fun CoroutineScope.portalRouter(vertx: Vertx): Router {
@@ -46,7 +48,7 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
 }
 
 fun redirect(request: HttpServerRequest) {
-    request.response().putHeader("Location", "http://portal/").setStatusCode(303).end()
+    request.response().putHeader("Location", "http://$portalHost/").setStatusCode(303).end()
 }
 
 fun checkCaptured(request: HttpServerRequest): Boolean {
@@ -58,26 +60,54 @@ private fun servePortalPage(request: HttpServerRequest) {
     val captured = checkCaptured(request)
     
     val html = createHTML().html {
+        attributes += "lang" to "en"
+        
         head {
             title { +"Captive Portal" }
+            meta { name = "viewport"; content = "width=device-width, initial-scale=1" }
+            meta { charset = "utf-8" }
+            style {
+                unsafe {
+                    raw(
+                        """
+                            @media (prefers-color-scheme: dark) {
+                                html {
+                                    color-scheme: dark;
+                                }
+                            }
+                            
+                            html {
+                                font-family: sans-serif;
+                            }
+                        """.trimIndent()
+                    )
+                }
+            }
         }
         body {
             h1 { +"Captive Portal" }
             p { +"You are currently ${if (captured) "captured" else "not captured"}" }
             
-            form("/login", method = FormMethod.post) {
+            form("/login") {
                 p {
                     button(type = ButtonType.submit) { +"Get out of the portal" }
                 }
             }
             
-            form("/logout", method = FormMethod.post) {
+            form("/logout") {
                 p {
                     button(type = ButtonType.submit) { +"Back into the portal" }
                 }
             }
+            
+            p {
+                +"This page can be opened again at"
+                br()
+                val href = "http://$portalHost/"
+                a(href = href) { +href }
+            }
         }
     }
     
-    request.response().putHeader("Content-Type", "text/html").end(html)
+    request.response().putHeader("Content-Type", "text/html").end("<!DOCTYPE html>\n$html")
 }

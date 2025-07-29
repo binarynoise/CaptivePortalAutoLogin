@@ -67,6 +67,12 @@ class JsonDB(
         return files.asSequence().map { it.nameWithoutExtension }.associateWithNotNull { load<T>(it) }
     }
     
+    inline fun <reified T : Any> listAll(extension: String = DEFAULT_EXTENSION): List<String> {
+        val base = base<T>()
+        if (!base.exists()) return emptyList()
+        return base.listDirectoryEntries("*.$extension").map { it.nameWithoutExtension }
+    }
+    
     companion object {
         const val DEFAULT_EXTENSION = "json"
     }

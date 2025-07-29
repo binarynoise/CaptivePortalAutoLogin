@@ -7,20 +7,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.server.Routing.api
 import de.binarynoise.logger.Logger.log
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.ApplicationPlugin
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.application.hooks.CallFailed
-import io.ktor.server.application.install
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.origin
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.httpMethod
-import io.ktor.server.request.uri
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 
 fun main() {
     api = ApiServer(Path("."))
@@ -58,7 +53,14 @@ val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "Log
         log("receiving call to ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
     }
     onCallRespond { call, body ->
-        log("responding to call ${call.request.httpMethod.value} ${call.request.origin.uri} with body $body")
+        log(buildString {
+            append("responding to call ")
+            append(call.request.httpMethod.value)
+            append(" ")
+            append(call.request.origin.uri)
+            append(" with body ")
+            append(body.toString().substringBefore("\n"))
+        })
     }
     
     on(CallFailed, handler = object : suspend (ApplicationCall, Throwable) -> Unit {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.CancellationException
 import de.binarynoise.captiveportalautologin.portalproxy.portal.checkCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
+import io.netty.handler.codec.http.HttpResponseStatus
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServerRequest
@@ -24,10 +25,12 @@ fun forward(request: HttpServerRequest) {
     }
     
     if (request.method() == HttpMethod.GET) {
-        request.response().setStatusCode(204).end()
+        request.response().setStatusCode(HttpResponseStatus.NO_CONTENT.code()).end()
         return
     }
-    request.response().setStatusCode(405).end("${request.method()} ${request.uri()} is not allowed")
+    request.response()
+        .setStatusCode(HttpResponseStatus.FORBIDDEN.code())
+        .end("Access to ${request.uri()} is not allowed")
 }
 
 suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
@@ -43,14 +46,16 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
         
         val hostPort = uri.split(":", limit = 2)
         if (hostPort.size != 2) {
-            request.response().setStatusCode(400).end("Invalid CONNECT request")
+            request.response().setStatusCode(HttpResponseStatus.BAD_REQUEST.code()).end("Invalid CONNECT request")
             return
         }
         
         val (host, port) = hostPort
         
         if (host !in allowlistDomain || port !in allowlistPort) {
-            request.response().setStatusCode(405).end("CONNECT to $host:$port is not allowed")
+            request.response()
+                .setStatusCode(HttpResponseStatus.FORBIDDEN.code())
+                .end("Access to $host:$port is not allowed")
             return
         }
         
@@ -64,14 +69,16 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
             if (e is CancellationException) throw e
             
             log("Failed to connect to $host:$port", e)
-            request.response().setStatusCode(502).end("Failed to connect to $host:$port")
+            request.response()
+                .setStatusCode(HttpResponseStatus.BAD_GATEWAY.code())
+                .end("Failed to connect to $host:$port")
             return
         }
         handleServerConnected(request, netSocket)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         
-        log("Failed to handle CONNECT request", e)
+        log("Failed to handle CONNECT request to ${request.uri()}", e)
         
         if (!request.response().headWritten()) {
             request.response().setStatusCode(500).end("Failed to handle CONNECT request")

@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.portalproxy
 
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.launch
+import de.binarynoise.captiveportalautologin.portalproxy.portal.portalHost
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalRouter
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.forward
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.forwardConnect
@@ -20,7 +21,7 @@ class MainVerticle : CoroutineVerticle() {
         val router = Router.router(vertx)
         
         // Portal routes
-        router.route().virtualHost("portal").handler { ctx ->
+        router.route().virtualHost(portalHost).handler { ctx ->
             log("route portal")
             ctx.next()
         }.subRouter(portalRouter(vertx))
