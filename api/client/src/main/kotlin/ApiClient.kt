@@ -38,11 +38,13 @@ class ApiClient(private val base: HttpUrl) : Api {
     private fun post(url: String, json: String) {
         val response = httpClient.postJson(base, url, json)
         response.checkSuccess()
+        response.close()
     }
     
     private fun put(url: String, json: String) {
         val response = httpClient.putJson(base, url, json)
         response.checkSuccess()
+        response.close()
     }
 }
 
