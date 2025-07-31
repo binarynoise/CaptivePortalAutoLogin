@@ -1,0 +1,15 @@
+[Unit]
+Description=Portal Proxy Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+StateDirectory=captive-portal-proxy
+WorkingDirectory=/var/lib/captive-portal-proxy
+ExecStart=/usr/bin/java -jar /opt/CaptivePortalAutoLogin/portalProxy/build/libs/portalProxy-shadow.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

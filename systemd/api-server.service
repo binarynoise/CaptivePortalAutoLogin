@@ -1,0 +1,15 @@
+[Unit]
+Description=API Server Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+StateDirectory=captive-portal-api
+WorkingDirectory=/var/lib/captive-portal-api
+ExecStart=/usr/bin/java -jar /opt/CaptivePortalAutoLogin/api/server/build/libs/server-shadow.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
