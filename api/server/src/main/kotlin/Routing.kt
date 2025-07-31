@@ -25,10 +25,10 @@ object Routing {
 
 fun Application.configureRouting() {
     routing {
-        get("/") {
-            call.respondText("Welcome to Captive Portal Auto Login API")
-        }
         route("/api") {
+            get("/") {
+                call.respondText("Welcome to Captive Portal Auto Login API")
+            }
             route("/har") {
                 put("/{name}") {
                     val har = call.receive<HAR>()
