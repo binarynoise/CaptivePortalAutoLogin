@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.server
 
+import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.format
@@ -9,6 +10,7 @@ import kotlinx.html.*
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.Routing.api
+import de.binarynoise.logger.Logger.log
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
@@ -109,19 +111,20 @@ private fun stats(): Route.() -> Unit = {
             body {
                 h1 { +"Captive Portal Auto Login - Statistics" }
                 p {
-                    a(href = "successes") { +"Successes" }
+                    a(href = "successes/") { +"Successes" }
                 }
                 p {
-                    a(href = "errors") { +"Errors" }
+                    a(href = "errors/") { +"Errors" }
                 }
                 p {
-                    a(href = "har") { +"Submitted HAR files" }
+                    a(href = "har/") { +"Submitted HAR files" }
                 }
             }
         }
     }
     
-    get("successes") {
+    get("successes") { call.response.header("Location", "successes/"); call.respond(HttpStatusCode.MovedPermanently) }
+    get("successes/") {
         call.respondHtml {
             head {
                 title { +"Captive Portal Auto Login - Successes" }
@@ -161,7 +164,8 @@ private fun stats(): Route.() -> Unit = {
         }
     }
     
-    get("errors") {
+    get("errors") { call.response.header("Location", "errors/"); call.respond(HttpStatusCode.MovedPermanently) }
+    get("errors/") {
         call.respondHtml {
             head {
                 title { +"Captive Portal Auto Login - Errors" }
@@ -198,7 +202,8 @@ private fun stats(): Route.() -> Unit = {
         }
     }
     
-    route("har") {
+    get("har") { call.response.header("Location", "har/"); call.respond(HttpStatusCode.MovedPermanently) }
+    route("har/") {
         get {
             call.respondHtml {
                 head {
@@ -218,12 +223,18 @@ private fun stats(): Route.() -> Unit = {
                             tr {
                                 th { +"Name" }
                                 th { +"Download Link" }
+                                th { +"Delete" }
                             }
                             harEntries.forEach { k ->
                                 tr {
                                     td { +k }
                                     td {
                                         a("download/$k.har") { +"download" }
+                                    }
+                                    td {
+                                        form(action = "delete/$k.har", method = FormMethod.post) {
+                                            button(type = ButtonType.submit) { +"Delete" }
+                                        }
                                     }
                                 }
                             }
@@ -238,10 +249,21 @@ private fun stats(): Route.() -> Unit = {
             
             val path = api.jsonDb.base<HAR>().resolve(id)
             if (!path.exists()) {
-                call.response.status(HttpStatusCode.NotFound)
+                log("file not found: $path")
+                call.respond(HttpStatusCode.NotFound)
                 return@get
             }
             call.respondPath(path)
+        }
+        
+        post("delete/{id}") {
+            val id = call.parameters["id"] ?: error("id not set")
+            val path = api.jsonDb.base<HAR>().resolve(id)
+            path.deleteIfExists()
+            
+            call.response.header("Location", "../")
+            call.respond(HttpStatusCode.SeeOther)
+            
         }
     }
 }

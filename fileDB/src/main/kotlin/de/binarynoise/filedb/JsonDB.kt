@@ -1,5 +1,6 @@
 package de.binarynoise.filedb
 
+import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createParentDirectories
@@ -38,11 +39,10 @@ class JsonDB(
         log("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
     }
     
-    inline fun <reified T : Any> load(key: String, extension: String = DEFAULT_EXTENSION): T? {
+    inline fun <reified T : Any> load(key: String, extension: String = DEFAULT_EXTENSION): T {
         val file = file<T>(key, extension)
         if (!file.exists()) {
-            log("file ${file.absolutePathString()} for ${T::class.simpleName} with key $key does not exist")
-            return null
+            throw FileNotFoundException("file ${file.absolutePathString()} for ${T::class.simpleName} with key $key does not exist")
         }
         val json = file.readText()
         val decoded = serializer.decodeFromString<T>(json)
@@ -64,7 +64,7 @@ class JsonDB(
         if (!base.exists()) return emptyMap()
         
         val files = base.listDirectoryEntries("*.$extension")
-        return files.asSequence().map { it.nameWithoutExtension }.associateWithNotNull { load<T>(it) }
+        return files.asSequence().map { it.nameWithoutExtension }.associateWith { load<T>(it, extension) }
     }
     
     inline fun <reified T : Any> listAll(extension: String = DEFAULT_EXTENSION): List<String> {
@@ -76,12 +76,4 @@ class JsonDB(
     companion object {
         const val DEFAULT_EXTENSION = "json"
     }
-}
-
-inline fun <K : Any, V : Any> Sequence<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K, V> {
-    val result = LinkedHashMap<K, V>()
-    for (element in this) {
-        result[element] = valueSelector(element) ?: continue
-    }
-    return result
 }

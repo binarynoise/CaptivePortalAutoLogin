@@ -333,8 +333,8 @@ class GeckoViewActivity : ComponentActivity() {
         }
         R.id.action_upload -> {
             prepareHar()
-            val fileName = "${getHarName()}.har"
-            Stats.har.submitHar(fileName, har)
+            Stats.har.submitHar(getHarName(), har)
+            Toast.makeText(this, "HAR scheduled for upload", Toast.LENGTH_SHORT).show()
             true
         }
         

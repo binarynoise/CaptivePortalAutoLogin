@@ -8,14 +8,14 @@
         android:id="@+id/action_upload"
         android:title="Upload HAR"
         android:icon="@drawable/cloud_upload"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         />
     
     <item
         android:id="@+id/action_reload_page"
         android:title="Reload page"
         android:icon="@drawable/reload"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         />
     
     <item

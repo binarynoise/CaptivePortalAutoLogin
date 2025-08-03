@@ -33,7 +33,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
         harFiles.forEach { (key, har) ->
             try {
                 apiClient.har.submitHar(key, har)
-                jsonDB.delete<HAR>(key)
+                jsonDB.delete<HAR>(key, "har")
                 log("Uploaded HAR $key")
             } catch (e: Exception) {
                 log("Failed to upload har", e)
