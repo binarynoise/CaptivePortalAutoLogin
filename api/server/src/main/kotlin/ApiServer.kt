@@ -49,8 +49,8 @@ class ApiServer(root: Path = Path(".")) : Api {
             addLogger(StdOutSqlLogger)
             SchemaUtils.createDatabase()
             val tables = arrayOf(Tables.Successes, Tables.Errors)
-            SchemaUtils.create(*tables)
-            val inconsistencies = SchemaUtils.checkMappingConsistence(*tables)
+            SchemaUtils.create(tables = tables)
+            val inconsistencies = SchemaUtils.checkMappingConsistence(tables = tables)
             check(inconsistencies.isEmpty()) {
                 log("found inconsistencies:")
                 inconsistencies.forEach(::println)

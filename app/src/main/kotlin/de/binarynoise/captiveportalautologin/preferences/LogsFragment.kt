@@ -1,7 +1,7 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.os.Bundle
@@ -40,6 +40,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                                     shareFile(file, "Share log")
                                                 }
                                             } catch (e: Exception) {
+                                                if (e is CancellationException) throw e
                                                 Toast.makeText(
                                                     view.context,
                                                     "Failed to share file: ${e.message}",
@@ -63,6 +64,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                                 toast.cancel()
                                                 Toast.makeText(view.context, "Saved", Toast.LENGTH_SHORT).show()
                                             } catch (e: Exception) {
+                                                if (e is CancellationException) throw e
                                                 Toast.makeText(
                                                     view.context,
                                                     e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.",

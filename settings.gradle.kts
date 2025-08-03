@@ -10,14 +10,14 @@ pluginManagement {
                 includeGroupAndSubgroups("androidx")
             }
         }
-        mavenCentral()
         gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
     }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal()
         google {
             content {
                 includeGroupAndSubgroups("com.android")
@@ -41,6 +41,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
 //        maven("https://jitpack.io")
 //        gradlePluginPortal()
     }

@@ -27,7 +27,7 @@ object Logger {
         /**
          * Allow dumping of objects?
          */
-        var debugDump: Boolean = false
+        var debugDump: Boolean = true
         
         /**
          * Log to file?

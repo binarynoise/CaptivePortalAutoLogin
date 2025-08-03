@@ -129,14 +129,13 @@ object FileUtils {
             relativePath,
             "$fileNameWithIndex%", // % is a wildcard, so android can do its renaming without annoying us more than needed
         )
-        val cursor =
-            context.applicationContext.contentResolver.query(extVolumeUri, projection, selection, selectionArgs, null)
-        cursor?.use {
-            if (cursor.count > 0) {
-                log("File with name $fileName already exists, trying again with counter ${counter + 1}")
-                return prepareFile(fileName, mimeType, counter + 1, context)
-            }
-        } ?: context.run { log("cursor is null, skipping check for existing file") }
+        context.applicationContext.contentResolver.query(extVolumeUri, projection, selection, selectionArgs, null)
+            ?.use { cursor ->
+                if (cursor.count > 0) {
+                    log("File with name $fileName already exists, trying again with counter ${counter + 1}")
+                    return prepareFile(fileName, mimeType, counter + 1, context)
+                }
+            } ?: context.run { log("cursor is null, skipping check for existing file") }
         log("File with name $fileName does not exist. Creating new file.")
         
         val values = ContentValues().apply {
