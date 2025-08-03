@@ -18,6 +18,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.Stats
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.liberator.PortalDetection
@@ -185,6 +186,15 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     "Do not send a small ping after successfully liberating a Captive Portal and keep errors for yourself so I can't fix the problems"
                 isChecked = true
                 isEnabled = false
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Send Statistics now"
+                
+                setOnPreferenceClickListener {
+                    Stats.triggerUpload()
+                    true
+                }
             }
             
             if (BuildConfig.DEBUG) {

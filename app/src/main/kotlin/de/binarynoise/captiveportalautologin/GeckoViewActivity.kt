@@ -283,16 +283,24 @@ class GeckoViewActivity : ComponentActivity() {
     }
     
     override fun onMenuItemSelected(featureId: Int, item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_reload -> {
+        R.id.action_restart -> {
             startActivity(Intent(this, this::class.java))
             finish()
             true
         }
+        R.id.action_reload_page -> {
+            session.reload(GeckoSession.LOAD_FLAGS_BYPASS_CACHE)
+            true
+        }
+        
         R.id.action_save -> {
             backgroundHandler.post {
                 val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
                 
-                val (fileName, json) = createHarJson()
+                prepareHar()
+                val fileName = "${getHarName()}.har"
+                val json = har.toJson()
+                
                 
                 try {
                     saveTextToSd(json, fileName, "application/har+json", this)
@@ -307,23 +315,26 @@ class GeckoViewActivity : ComponentActivity() {
                     ).show()
                     log("Error saving file", e)
                 }
-                
             }
             true
         }
-        R.id.action_reload_page -> {
-            session.reload(GeckoSession.LOAD_FLAGS_BYPASS_CACHE)
-            true
-        }
-        
-        R.id.action_send -> {
-            val (fileName, json) = createHarJson()
+        R.id.action_share -> {
+            prepareHar()
+            val fileName = "${getHarName()}.har"
+            val json = har.toJson()
+            
             try {
                 FileUtils.shareTextAsFile(json, fileName, "Share captured Portal", this, this)
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
                 log("Error sharing file $fileName", e)
             }
+            true
+        }
+        R.id.action_upload -> {
+            prepareHar()
+            val fileName = "${getHarName()}.har"
+            Stats.har.submitHar(fileName, har)
             true
         }
         
@@ -335,17 +346,19 @@ class GeckoViewActivity : ComponentActivity() {
         }
     }
     
-    private fun createHarJson(): Pair<String, String> {
+    private fun prepareHar() {
         val ssid = networkState?.ssid
         har.comment = ssid
+    }
+    
+    private fun getHarName(): String {
+        val ssid = networkState?.ssid
         val portalTestHost = portalTestUrl.toHttpUrl().host
         val host =
             har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost }
                 ?: portalTestHost
         val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
-        val fileName = "$ssid $host $timestamp.har"
-        val json = har.toJson()
-        return Pair(fileName, json)
+        return "$ssid $host $timestamp"
     }
     
     override fun shouldUpRecreateTask(targetIntent: Intent?): Boolean {

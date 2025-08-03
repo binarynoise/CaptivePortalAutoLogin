@@ -1,43 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="AppCompatResource"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     >
+    
+    <item
+        android:id="@+id/action_upload"
+        android:title="Upload HAR"
+        android:icon="@drawable/cloud_upload"
+        app:showAsAction="ifRoom"
+        />
     
     <item
         android:id="@+id/action_reload_page"
         android:title="Reload page"
-        android:icon="@android:drawable/ic_menu_rotate"
-        android:showAsAction="always"
+        android:icon="@drawable/reload"
+        app:showAsAction="ifRoom"
         />
     
     <item
-        android:id="@+id/action_reload"
+        android:id="@+id/action_restart"
         android:title="Restart"
-        android:icon="@android:drawable/ic_menu_revert"
-        android:showAsAction="ifRoom"
+        android:icon="@drawable/restart"
+        app:showAsAction="ifRoom"
         />
-    
+   
     <item
         android:id="@+id/action_save"
         android:title="Save HAR"
-        android:icon="@android:drawable/ic_menu_save"
-        android:showAsAction="always"
+        android:icon="@drawable/content_save"
+        app:showAsAction="ifRoom"
         />
     
     <item
-        android:id="@+id/action_send"
-        android:title="Send HAR to developer"
-        android:icon="@android:drawable/ic_menu_send"
-        android:showAsAction="ifRoom"
+        android:id="@+id/action_share"
+        android:title="Share HAR"
+        android:icon="@drawable/share_variant"
+        app:showAsAction="ifRoom"
         />
-    
-    <!--
-    <item
-        android:id="@+id/action_export"
-        android:title="Export HAR"
-        android:icon="@android:drawable/ic_menu_share"
-        android:showAsAction="ifRoom" />
-        -->
 </menu>

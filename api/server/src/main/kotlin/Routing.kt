@@ -133,6 +133,14 @@ private fun stats(): Route.() -> Unit = {
                     a(href = "/stats/") { +"back" }
                 }
                 table {
+                    tr {
+                        th { +"Year" }
+                        th { +"Month" }
+                        th { +"Version" }
+                        th { +"SSID" }
+                        th { +"URL" }
+                        th { +"Count" }
+                    }
                     transaction {
                         Tables.Successes.selectAll().orderBy(
                             Tables.Successes.year to SortOrder.DESC,
@@ -165,6 +173,13 @@ private fun stats(): Route.() -> Unit = {
                     a(href = "/stats/") { +"back" }
                 }
                 table {
+                    tr {
+                        th { +"Timestamp" }
+                        th { +"Version" }
+                        th { +"SSID" }
+                        th { +"URL" }
+                        th { +"Message" }
+                    }
                     transaction {
                         Tables.Errors.selectAll().orderBy(
                             Tables.Errors.timestamp to SortOrder.DESC
@@ -200,6 +215,10 @@ private fun stats(): Route.() -> Unit = {
                         p { +"no entries" }
                     } else {
                         table {
+                            tr {
+                                th { +"Name" }
+                                th { +"Download Link" }
+                            }
                             harEntries.forEach { k ->
                                 tr {
                                     td { +k }

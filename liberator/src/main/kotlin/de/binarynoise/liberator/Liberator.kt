@@ -522,7 +522,7 @@ class Liberator(
                 
                 // PortalProxy
                 //<editor-fold defaultstate="collapsed">
-                "portal" == locationUrl.host -> {
+                "binarynoise.de" == locationUrl.host -> {
                     val base = location.toHttpUrl()
                     client.postForm(base, "/login", emptyMap()).followRedirects(client).checkSuccess()
                 }

@@ -25,6 +25,7 @@ private val jsonDB = JsonDB(localCacheRoot)
 class StatsWorker(appContext: Context, workerParams: WorkerParameters) : CoroutineWorker(appContext, workerParams) {
     
     override suspend fun doWork(): Result {
+        log("StatsWorker started")
         val apiBaseFromPreference by SharedPreferences.api_base
         val apiClient = ApiClient((apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrl())
         
@@ -65,6 +66,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
             }
         }
         
+        log("StatsWorker finished")
         return Result.success()
     }
 }
@@ -105,9 +107,10 @@ object Stats : Api {
     }
     
     // Schedule the WorkRequest
-    private fun triggerUpload() {
+    fun triggerUpload() {
         val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val uploadRequest = OneTimeWorkRequestBuilder<StatsWorker>().setConstraints(constraints).build()
         WorkManager.getInstance(applicationContext).enqueue(uploadRequest)
+        log("Scheduled upload")
     }
 }
