@@ -10,7 +10,7 @@ android {
     defaultConfig {
         minSdk = 23
         //noinspection EditedTargetSdkVersion
-        targetSdk = 34
+        targetSdk = 36
         multiDexEnabled = true
     }
     
