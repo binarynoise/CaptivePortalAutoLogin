@@ -24,6 +24,7 @@ class XposedInit : IXposedHookLoadPackage {
             "com.android.systemui" -> {
                 LocationIndicatorHook().handleLoadPackage(lpparam)
                 DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
+                HideForegroundServiceHook().handleLoadPackage(lpparam)
             }
             "com.android.networkstack" -> NetworkConnectedHook().handleLoadPackage(lpparam)
             "com.android.settings" -> DoNotAutoOpenCaptivePortalHook().handleLoadPackage(lpparam)
