@@ -151,12 +151,12 @@ private fun stats(): Route.() -> Unit = {
                         ).limit(50).toList()
                     }.forEach {
                         tr {
-                            td { +it[Tables.Successes.year] }
-                            td { +it[Tables.Successes.month] }
+                            td { +it[Tables.Successes.year].toString() }
+                            td { +it[Tables.Successes.month].toString() }
                             td { +it[Tables.Successes.version] }
                             td { +it[Tables.Successes.ssid] }
                             td { +it[Tables.Successes.url] }
-                            td { +it[Tables.Successes.count] }
+                            td { +it[Tables.Successes.count].toString() }
                         }
                     }
                 }
@@ -178,23 +178,28 @@ private fun stats(): Route.() -> Unit = {
                 }
                 table {
                     tr {
-                        th { +"Timestamp" }
+                        th { +"Year" }
+                        th { +"Month" }
                         th { +"Version" }
                         th { +"SSID" }
                         th { +"URL" }
-                        th { +"Message" }
+                        th { +"message" }
+                        th { +"Count" }
                     }
                     transaction {
                         Tables.Errors.selectAll().orderBy(
-                            Tables.Errors.timestamp to SortOrder.DESC
+                            Tables.Errors.year to SortOrder.DESC,
+                            Tables.Errors.month to SortOrder.DESC,
                         ).limit(50).toList()
                     }.forEach {
                         tr {
-                            td { +it[Tables.Errors.timestamp].format(compoundFormat) }
+                            td { +it[Tables.Errors.year].toString() }
+                            td { +it[Tables.Errors.month].toString() }
                             td { +it[Tables.Errors.version] }
                             td { +it[Tables.Errors.ssid] }
                             td { +it[Tables.Errors.url] }
                             td { +it[Tables.Errors.message] }
+                            td { +it[Tables.Errors.count].toString() }
                         }
                     }
                 }

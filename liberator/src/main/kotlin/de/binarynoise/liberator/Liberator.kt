@@ -536,7 +536,7 @@ class Liberator(
                 }
             }
             
-            return LiberationResult.Success(response.requestUrl.toString())
+            return LiberationResult.Success(location)
         } catch (e: Exception) {
             return LiberationResult.Error(response.requestUrl.toString(), e, e.message.orEmpty())
         }

@@ -17,15 +17,12 @@ import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
-import org.jetbrains.exposed.v1.core.Column
+import io.ktor.http.*
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable
-import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
-import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.upsert
 import org.sqlite.SQLiteDataSource
@@ -80,13 +77,39 @@ class ApiServer(root: Path = Path(".")) : Api {
         private fun date() = dateTime().date
         
         override fun reportError(error: Api.Liberator.Error) {
+            val d = Instant.fromEpochMilliseconds(error.timestamp).toLocalDateTime(TimeZone.UTC)
+            
+            fun sanitizeUrl(oldUrl: String): String {
+                if (oldUrl == "") return ""
+                return URLBuilder(oldUrl).apply {
+                    val blockListed = listOf(
+                        "challenge",
+                        "sessionid",
+                        "called",
+                        "nasid",
+                        "ip",
+                        "ts",
+                        "mac",
+                    )
+                    parameters.names().intersect(blockListed).forEach { parameters[it] = "_" }
+                }.build().toString()
+            }
+            
+            val sanitizedUrl = sanitizeUrl(error.url)
+            
             transaction {
-                Tables.Errors.insert {
-                    it[version] = error.version
+                Tables.Errors.upsert(onUpdate = {
+                    it[Tables.Errors.count] = Tables.Errors.count + 1
+                }) {
                     it[ssid] = error.ssid
-                    it[url] = error.url
+                    it[url] = sanitizedUrl
                     it[message] = error.message
-                    it[timestamp] = Instant.fromEpochMilliseconds(error.timestamp)
+                    
+                    it[year] = d.year
+                    it[month] = d.month.number
+                    it[version] = error.version
+                    
+                    it[count] = 1
                 }
             }
             log("Stored Api.Liberator.Error: $error")
@@ -98,11 +121,13 @@ class ApiServer(root: Path = Path(".")) : Api {
                 Tables.Successes.upsert(onUpdate = {
                     it[Tables.Successes.count] = Tables.Successes.count + 1
                 }) {
-                    it[version] = success.version
                     it[ssid] = success.ssid
                     it[url] = success.url
+                    
                     it[year] = d.year
                     it[month] = d.month.number
+                    it[version] = success.version
+                    
                     it[count] = 1
                 }
             }
@@ -115,6 +140,7 @@ object Tables {
     object Successes : CompositeIdTable("successes") {
         val ssid = varchar("ssid", 128)
         val url = varchar("url", 1024)
+        
         val year = integer("year")
         val month = integer("month")
         val version = varchar("version", 128)
@@ -125,11 +151,18 @@ object Tables {
             PrimaryKey(arrayOf(version, ssid, url, year, month), name = "successes_pkey")
     }
     
-    object Errors : IntIdTable("errors") {
-        val version = varchar("version", 128)
-        val timestamp: Column<Instant> = timestamp("timestamp")
+    object Errors : CompositeIdTable("errors") {
         val ssid = varchar("ssid", 128)
         val url = varchar("url", 1024)
         val message = varchar("error", 1024)
+        
+        val year = integer("year")
+        val month = integer("month")
+        val version = varchar("version", 128)
+        
+        val count = integer("count")
+        
+        override val primaryKey: PrimaryKey =
+            PrimaryKey(arrayOf(ssid, url, message, year, month, version), name = "errors_pkey")
     }
 }
