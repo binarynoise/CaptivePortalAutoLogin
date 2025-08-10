@@ -301,6 +301,21 @@ class Liberator(
                     return inner(createDummyResponse().setLocation("http://192.168.44.1/prelogin").build())
                 }
                 
+                // Germany, DB
+                // Hotspot S-Bahn Rhein-Ruhr
+                //<editor-fold defaultstate="collapsed">
+                // http://10.10.10.1:2050/splash.html?redir=...
+                "10.10.10.1" == locationUrl.host && 2050 == locationUrl.port && "splash.html" == locationUrl.firstPathSegment -> {
+                    val html1 = client.get(locationUrl, null).parseHtml()
+                    client.get(
+                        locationUrl, "/nodogsplash_auth/", queryParameters = mapOf(
+                            "tok" to html1.getInput("tok"),
+                            "redir" to html1.getInput("redir"),
+                        )
+                    ).checkSuccess()
+                }
+                //</editor-fold>
+                
                 // Germany, Kaufland, Rewe
                 //<editor-fold defaultstate="collapsed">
                 // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
