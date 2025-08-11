@@ -21,11 +21,8 @@ import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.application.*
-import io.ktor.server.application.hooks.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.*
-import io.ktor.server.request.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -78,7 +75,7 @@ class ApiClientTests {
         @Test
         fun `test hello world`() {
             val http = OkHttpClient()
-            assertEquals("Hello World!", http.get(base, null).readText())
+            assertEquals("Welcome to Captive Portal Auto Login API", http.get(apiBase, null).readText())
             assertEquals(
                 "api/har/{name} here, name is test",
                 http.get(apiBase, "har/test") { method("ECHO", null) }.readText(),
