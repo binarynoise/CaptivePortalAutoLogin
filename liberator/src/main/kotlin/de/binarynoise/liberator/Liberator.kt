@@ -559,10 +559,12 @@ class Liberator(
     
     sealed class LiberationResult {
         data object NotCaught : LiberationResult()
+        
         data class Success(val url: String) : LiberationResult()
         data class Timeout(val url: String) : LiberationResult()
         data class Error(val url: String, val exception: Throwable, val message: String) : LiberationResult()
         data class UnknownPortal(val url: String) : LiberationResult()
         data class StillCaptured(val url: String) : LiberationResult()
+        data class UnsupportedPortal(val url: String) : LiberationResult()
     }
 }

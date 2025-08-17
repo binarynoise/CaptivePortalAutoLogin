@@ -382,6 +382,26 @@ class ConnectivityChangeListenerService : Service() {
                         )
                     )
                 }
+                is Liberator.LiberationResult.UnsupportedPortal -> {
+                    log("Failed to liberate: Portal will not be supported")
+                    Toast.makeText(
+                        applicationContext,
+                        "Failed to liberate: Portal will not be supported ${res.url}",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    // no report
+                    /*
+                    Stats.liberator.reportError(
+                        Error(
+                            BuildConfig.VERSION_NAME,
+                            System.currentTimeMillis(),
+                            networkState?.ssid.toString(),
+                            res.url,
+                            "Portal will not be supported",
+                        )
+                    )
+                    */
+                }
             }
         } catch (e: Exception) {
             t.cancel()

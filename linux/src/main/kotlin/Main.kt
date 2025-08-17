@@ -102,6 +102,7 @@ fun onConnectivityChanged(connectivity: String) {
                 is Liberator.LiberationResult.StillCaptured -> log("Failed to liberate: still in portal: ${result.url}")
                 is Liberator.LiberationResult.Timeout -> log("Failed to liberate: timeout")
                 is Liberator.LiberationResult.UnknownPortal -> log("Failed to liberate: unknown portal: ${result.url}")
+                is Liberator.LiberationResult.UnsupportedPortal -> log("Failed to liberate: Portal will not be supported: ${result.url}")
             }
         }
     } catch (e: Exception) {
