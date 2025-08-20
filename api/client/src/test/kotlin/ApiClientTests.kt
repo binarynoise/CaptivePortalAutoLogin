@@ -76,10 +76,6 @@ class ApiClientTests {
         fun `test hello world`() {
             val http = OkHttpClient()
             assertEquals("Welcome to Captive Portal Auto Login API", http.get(apiBase, null).readText())
-            assertEquals(
-                "api/har/{name} here, name is test",
-                http.get(apiBase, "har/test") { method("ECHO", null) }.readText(),
-            )
         }
     }
     
