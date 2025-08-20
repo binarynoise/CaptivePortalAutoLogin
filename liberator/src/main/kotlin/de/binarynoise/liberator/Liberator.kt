@@ -316,6 +316,19 @@ class Liberator(
                 }
                 //</editor-fold>
                 
+                // Germany, T mobile
+                // Airport-Frankfurt
+                // AIRPORT-FREE-WIFI
+                // verified
+                //<editor-fold defaultstate="collapsed">
+                // https://hotspot.t-mobile.net/wlan/redirect.do?origurl=_&ts=1754819868968
+                "hotspot.t-mobile.net" == locationUrl.host && locationUrl.decodedPath == "/wlan/redirect.do" -> {
+                    val response1 = client.postJson(locationUrl, "/wlan/rest/freeLogin", """{}""")
+                    val wlanLoginStatus = JSONObject(response1.readText()).getJSONObject("user").get("wlanLoginStatus")
+                    check(wlanLoginStatus == "online") { """wlanLoginStatus: "$wlanLoginStatus" != "online"""" }
+                }
+                //</editor-fold>
+                
                 // Germany, Kaufland, Rewe
                 //<editor-fold defaultstate="collapsed">
                 // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
