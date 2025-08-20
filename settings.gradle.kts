@@ -50,13 +50,4 @@ dependencyResolutionManagement {
 rootProject.name = "CaptivePortalAutoLogin"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
-include(":api")
-include(":api:client")
-include(":api:server")
-include(":app")
-include(":fileDB")
-include(":liberator")
-include(":linux")
-include(":logger")
-include(":portalProxy")
-include(":util:okhttp-kts")
+apply(from = "modules.gradle.kts")
