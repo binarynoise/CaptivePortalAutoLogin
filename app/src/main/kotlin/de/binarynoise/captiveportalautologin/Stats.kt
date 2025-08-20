@@ -16,7 +16,7 @@ import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-const val API_BASE = "https://am-i-captured.binarynoise.de/api/"
+const val API_BASE = "https://captiveportalautologin.binarynoise.de/api/"
 
 private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats")
 private val jsonDB = JsonDB(localCacheRoot)
