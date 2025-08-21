@@ -10,7 +10,6 @@ import androidx.preference.CheckBoxPreference
 import androidx.preference.DropDownPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
-import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
@@ -18,11 +17,8 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
-import de.binarynoise.captiveportalautologin.Stats
-import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.liberator.PortalDetection
-import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -186,15 +182,6 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     "Do not send a small ping after successfully liberating a Captive Portal and keep errors for yourself so I can't fix the problems"
                 isChecked = true
                 isEnabled = false
-            }
-            
-            addPreference(Preference(ctx)) {
-                title = "Send Statistics now"
-                
-                setOnPreferenceClickListener {
-                    Stats.triggerUpload()
-                    true
-                }
             }
             
             if (BuildConfig.DEBUG) {

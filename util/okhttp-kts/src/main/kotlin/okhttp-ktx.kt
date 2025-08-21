@@ -199,7 +199,8 @@ fun OkHttpClient.postForm(
  */
 fun Response.checkSuccess() {
     if (code !in 200..399) {
-        throw HttpStatusCodeException(code, message)
+        readText(skipStatusCheck = true)
+        throw HttpStatusCodeException(code, message, this)
     }
     val location = getLocationUnchecked()
     if (location != null) {
@@ -211,7 +212,7 @@ fun Response.checkSuccess() {
     }
 }
 
-class HttpStatusCodeException(code: Int, message: String) : IllegalStateException("$code $message")
+class HttpStatusCodeException(val code: Int, message: String, val response: Response) : IllegalStateException("$code $message")
 
 /**
  * Retrieves the redirect location from the HTTP response.

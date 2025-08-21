@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api(projects.api)
-    implementation(projects.util.okhttpKts)
+    api(projects.util.okhttpKts)
     
     implementation(libs.kotlinx.serialization.json)
     
