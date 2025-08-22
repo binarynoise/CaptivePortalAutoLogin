@@ -3,6 +3,7 @@ package de.binarynoise.captiveportalautologin.xposed
 import android.os.Build
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
@@ -16,11 +17,10 @@ class DoNotAutoOpenCaptivePortalHook : IXposedHookLoadPackage {
         }
         val StandardWifiEntryClass =
             XposedHelpers.findClass("com.android.wifitrackerlib.StandardWifiEntry", lpparam.classLoader)
-        val ConnectCallbackClass =
-            XposedHelpers.findClass("com.android.wifitrackerlib.WifiEntry\$ConnectCallback", lpparam.classLoader)
+        val connectMethod = StandardWifiEntryClass.declaredMethods.find { it.name == "connect" }
         
-        XposedHelpers.findAndHookMethod(
-            StandardWifiEntryClass, "connect", ConnectCallbackClass,
+        XposedBridge.hookMethod(
+            connectMethod,
             object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     XposedHelpers.setBooleanField(param.thisObject, "mShouldAutoOpenCaptivePortal", false)
