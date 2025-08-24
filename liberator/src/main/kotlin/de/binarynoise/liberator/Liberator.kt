@@ -35,6 +35,7 @@ class Liberator(
     private val clientInit: (OkHttpClient.Builder) -> Unit,
     val portalTestUrl: String,
     private val userAgent: String,
+    val debug: Boolean = false,
 ) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
@@ -233,7 +234,9 @@ class Liberator(
                 ("login.wifionice.de" == locationUrl.host || "wifi.bahn.de" == locationUrl.host) //
                     && "cna" == locationUrl.firstPathSegment -> {
                     val response1 = response.followRedirects(client)
-                    val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}")
+                    val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}") {
+                        header("X-Csrf-Token", "csrf")
+                    }
                     check(JSONObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
                 }
                 
@@ -287,6 +290,7 @@ class Liberator(
                 
                 // Germany, DB Regio BW
                 // freeWIFIahead!
+                // VIAS Free WiFi
                 // TODO
                 //<editor-fold defaultstate="collapsed">
                 // https://wasabi-splashpage.wifi.unwired.at?user_session_id=...
@@ -333,6 +337,8 @@ class Liberator(
                 //<editor-fold defaultstate="collapsed">
                 // https://portal-eu-ffm01.conn4.com/ident?client_ip=...&client_mac=...&site_id=15772&signature=...&loggedin=0&remembered_mac=0
                 locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident" -> {
+                    if (!debug) return LiberationResult.UnknownPortal(location)
+                    
                     val site_id = locationUrl.queryParameter("site_id") ?: error("no site_id")
                     val response1 = client.get(locationUrl, null)
                     val location1 = response1.getLocation() // https://portal-eu-ffm01.conn4.com/#

@@ -79,8 +79,7 @@ class ConnectivityChangeListenerService : Service() {
     @Suppress("unused")
     @SuppressLint("MissingPermission")
     private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
-        val n = notification
-        if (n == null) return
+        val n = notification ?: return
         notification = NotificationCompat.Builder(this, n).setContentText(newState?.toString().orEmpty()).build()
         NotificationManagerCompat.from(this).notify(notificationId, n)
     }

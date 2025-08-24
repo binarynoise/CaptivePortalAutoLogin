@@ -126,7 +126,7 @@ fun EditTextPreference(
             }
         })
         editText.setOnClickListener { }
-        setOnPreferenceClickListener { preference ->
+        setOnPreferenceClickListener { _ ->
             editText.requestFocus()
             context.getSystemService<InputMethodManager>()?.showSoftInput(editText, 0)
             true
