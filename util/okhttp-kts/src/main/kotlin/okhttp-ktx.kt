@@ -212,7 +212,8 @@ fun Response.checkSuccess() {
     }
 }
 
-class HttpStatusCodeException(val code: Int, message: String, val response: Response) : IllegalStateException("$code $message")
+class HttpStatusCodeException(val code: Int, message: String, val response: Response) :
+    IllegalStateException("$code $message")
 
 /**
  * Retrieves the redirect location from the HTTP response.

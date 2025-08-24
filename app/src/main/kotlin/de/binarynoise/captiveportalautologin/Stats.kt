@@ -6,6 +6,8 @@ import java.io.FileNotFoundException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import android.content.Context
 import androidx.work.Constraints
@@ -23,8 +25,6 @@ import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.HttpStatusCodeException
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 const val API_BASE = "https://captiveportalautologin.binarynoise.de/api/"
 

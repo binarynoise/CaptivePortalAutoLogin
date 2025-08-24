@@ -47,6 +47,7 @@ output.json
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
+!/.idea/codeStyles/*
 
 # Keystore files
 *.jks
