@@ -17,6 +17,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceViewHolder
+import androidx.preference.children
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPreferenceBinding
 
@@ -28,12 +29,12 @@ import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPrefe
 //    }
 //}
 
-fun PreferenceGroup.setIconSpaceReservedRecursively(iconSpaceReserved: Boolean) {
+fun Preference.setIconSpaceReservedRecursively(iconSpaceReserved: Boolean) {
     isIconSpaceReserved = iconSpaceReserved
-    for (i in 0 until preferenceCount) {
-        val preference = getPreference(i)
-        preference.isIconSpaceReserved = iconSpaceReserved
-        if (preference is PreferenceGroup) preference.setIconSpaceReservedRecursively(iconSpaceReserved)
+    if (this is PreferenceGroup) {
+        children.forEach { preference ->
+            preference.setIconSpaceReservedRecursively(isIconSpaceReserved)
+        }
     }
 }
 
