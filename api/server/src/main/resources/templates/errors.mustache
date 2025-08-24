@@ -1,0 +1,48 @@
+{{<base_layout}}
+    {{$content}}
+        <p>
+            <a href="?type=All">all</a>
+            |
+            <a href="?type=Unknown">unknown portals</a>
+            |
+            <a href="?type=NoNoise">hide noise</a>
+        </p>
+        
+        
+        <div style="overflow: scroll; white-space: nowrap; margin-top: 1em">
+            <table>
+                <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Version</th>
+                    <th>Domain</th>
+                    <th>Message</th>
+                    <th>Count</th>
+                </tr>
+                </thead>
+                {{#errors}}
+                    <tr>
+                        <td>{{year}}</td>
+                        <td>{{month}}</td>
+                        <td>{{version}}</td>
+                        <td>{{domain}}</td>
+                        <td>{{message}}</td>
+                        <td>{{count}}</td>
+                        <td>
+                            <form action="details" method="get">
+                                <input type="hidden" name="year" value="{{year}}">
+                                <input type="hidden" name="month" value="{{month}}">
+                                <input type="hidden" name="version" value="{{version}}">
+                                <input type="hidden" name="domain" value="{{domain}}">
+                                <input type="hidden" name="message" value="{{message}}">
+                                
+                                <button type="submit">Details</button>
+                            </form>
+                        </td>
+                    </tr>
+                {{/errors}}
+            </table>
+        </div>
+    {{/content}}
+{{/base_layout}}

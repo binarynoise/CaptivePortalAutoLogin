@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{title}} - Captive Portal Auto Login</title>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            html {
+                color-scheme: dark;
+            }
+        }
+        
+        html {
+            font-family: sans-serif;
+        }
+        
+        table {
+            border-collapse: collapse;
+        }
+        
+        table, th, td {
+            border: 1px solid gray;
+            padding: 0.2em 0.5em;
+        }
+        
+        table {
+            max-width: 100%;
+        }
+        
+        table > thead~* {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<h1>Captive Portal Auto Login - {{title}}</h1>
+{{#backLink}}
+    <p><a href="{{.}}">back</a></p>
+{{/backLink}}
+
+{{$content}}
+{{/content}}
+</body>
+</html>

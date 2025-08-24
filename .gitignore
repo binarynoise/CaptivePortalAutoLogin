@@ -67,4 +67,4 @@ build
 /har
 
 # application files
-/db.sqlite
+db.sqlite

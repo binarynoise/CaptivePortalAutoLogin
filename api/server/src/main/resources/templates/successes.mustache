@@ -1,0 +1,24 @@
+{{<base_layout}}
+    {{$content}}
+        <table>
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Version</th>
+                <th>SSID</th>
+                <th>URL</th>
+                <th>Count</th>
+            </tr>
+            {{#successes}}
+                <tr>
+                    <td>{{year}}</td>
+                    <td>{{month}}</td>
+                    <td>{{version}}</td>
+                    <td>{{ssid}}</td>
+                    <td>{{url}}</td>
+                    <td>{{count}}</td>
+                </tr>
+            {{/successes}}
+        </table>
+    {{/content}}
+{{/base_layout}}

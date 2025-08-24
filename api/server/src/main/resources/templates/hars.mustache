@@ -1,0 +1,27 @@
+{{<base_layout}}
+    {{$content}}
+        {{^hasEntries}}
+            <p>no entries</p>
+        {{/hasEntries}}
+        {{#hasEntries}}
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Download Link</th>
+                    <th>Delete</th>
+                </tr>
+                {{#harEntries}}
+                    <tr>
+                        <td>{{.}}</td>
+                        <td><a href="download/{{.}}.har">download</a></td>
+                        <td>
+                            <form action="delete/{{.}}.har" method="post">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {{/harEntries}}
+            </table>
+        {{/hasEntries}}
+    {{/content}}
+{{/base_layout}}

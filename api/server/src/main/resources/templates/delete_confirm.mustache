@@ -1,0 +1,13 @@
+{{<base_layout}}
+    {{$content}}
+        <p>Are you sure you want to delete this file?</p>
+        <p>{{id}}</p>
+        
+        <form method="post">
+            <button type="submit">Delete</button>
+        </form>
+        <form method="get" action="../">
+            <button type="submit">Cancel</button>
+        </form>
+    {{/content}}
+{{/base_layout}}

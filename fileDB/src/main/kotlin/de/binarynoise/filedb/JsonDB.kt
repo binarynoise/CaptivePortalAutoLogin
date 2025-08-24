@@ -27,6 +27,7 @@ class JsonDB(
     },
 ) {
     
+    // TODO: prevent path traversal
     inline fun <reified T : Any> file(key: String, extension: String): Path = base<T>().resolve("$key.$extension")
     
     inline fun <reified T : Any> base(): Path = root.resolve(T::class.simpleName ?: T::class.java.simpleName)
