@@ -130,13 +130,10 @@ private fun Route.stats() {
                         All -> query
                         Unknown -> query.where { Tables.Errors.message like "unknown portal" }
                         NoNoise -> {
-                            // filter:
-                            // - Failed to connect to ...
-                            // - Unable to resolve host ...
-                            // - Software caused connection abort
                             query.where {
                                 not(
                                     (Tables.Errors.message like "unknown portal") //
+                                        or (Tables.Errors.message like "connection closed") //
                                         or (Tables.Errors.message like "Failed to connect to %") // 
                                         or (Tables.Errors.message like "Unable to resolve host %") //
                                         or (Tables.Errors.message like "Software caused connection abort")
