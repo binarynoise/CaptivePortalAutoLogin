@@ -1,5 +1,6 @@
 package de.binarynoise.liberator
 
+@Suppress("SpellCheckingInspection")
 object PortalDetection {
     val backends = mapOf(
         "Binarynoise" to "http://am-i-captured.binarynoise.de",

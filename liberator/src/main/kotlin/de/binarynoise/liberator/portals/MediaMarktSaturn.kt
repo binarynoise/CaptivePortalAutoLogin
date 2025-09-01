@@ -13,7 +13,7 @@ import okhttp3.Response
 @SSID("media-kunden")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object MediaMarktSaturn : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
         return "192.0.2.1" == locationUrl.host && locationUrl.decodedPath == "fs/customwebauth/login.html"
     }
     

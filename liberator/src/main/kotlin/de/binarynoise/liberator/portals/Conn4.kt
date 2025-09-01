@@ -1,7 +1,6 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
-import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
@@ -17,14 +16,14 @@ import org.json.JSONObject
 // Kaufland, Rewe
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object Conn4 : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
-        return PortalLiberatorConfig.debug && locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
+        return locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val site_id = locationUrl.queryParameter("site_id") ?: error("no site_id")
         val response1 = client.get(locationUrl, null)
-        val location1 = response1.getLocation() // https://portal-eu-ffm01.conn4.com/#
+        val location1 = response1.getLocation()
         
         val response2 = client.get(response1.requestUrl, location1)
         val token = response2.readText().let { html ->
@@ -38,7 +37,7 @@ object Conn4 : PortalLiberator {
             check(jsObjectEnd != -1) { "jsObjectEnd not found" }
             
             val jsObject = JSONObject(html.substring(jsObjectStart, jsObjectEnd))
-            jsObject.getString("token")
+            jsObject.getString("token") ?: error("no token")
         }
         
         val response3 = client.postForm(
@@ -56,7 +55,7 @@ object Conn4 : PortalLiberator {
         val response4 = client.postForm(
             locationUrl, "/wbs/api/v1/register/free/",
             mapOf(
-                "authorization" to "session:$session",
+                "authorization" to "session=$session",
                 "registration_type" to "terms-only",
                 "registration[terms]" to "1",
             ),

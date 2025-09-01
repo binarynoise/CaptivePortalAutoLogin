@@ -18,7 +18,7 @@ import okhttp3.Response
 @SSID("WIFI@DB")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object Hotsplots : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
         return "www.hotsplots.de" == locationUrl.host && "/auth/login.php" == locationUrl.encodedPath
     }
     

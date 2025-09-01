@@ -161,7 +161,7 @@ class Liberator(
             
             
             val solver: PortalLiberator? = allPortalLiberators.firstOrNull { solver ->
-                solver.canSolve(locationUrl, client)
+                solver.canSolve(locationUrl)
             }
             
             if (solver == null) {

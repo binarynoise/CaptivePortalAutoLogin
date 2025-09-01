@@ -18,7 +18,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("DSW21-WLAN", "Hotspot Westfalenhallen")
 object Dokom21Hotspot : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
         return "hotspot.dokom21.de" == locationUrl.host && "/([^/]+)/Index".toRegex().matches(locationUrl.encodedPath)
     }
     

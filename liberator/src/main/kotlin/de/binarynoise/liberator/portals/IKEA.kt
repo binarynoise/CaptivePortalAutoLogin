@@ -19,7 +19,7 @@ import org.json.JSONObject
 @SSID("IKEA WiFi")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object IKEA : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
         return "yo-wifi.net" == locationUrl.host && "authen" == locationUrl.firstPathSegment
     }
     

@@ -10,7 +10,7 @@ import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object Commerzbank : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, client: OkHttpClient): Boolean {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
         return "wifiaccess.co" == locationUrl.host && locationUrl.pathSegments.lastOrNull() == "portal"
     }
     
