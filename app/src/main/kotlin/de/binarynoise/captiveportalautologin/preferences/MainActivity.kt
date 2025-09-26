@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.R
 
@@ -34,6 +35,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
             }
             supportFragmentManager.addOnBackStackChangedListener(::updateActionBar)
             updateActionBar()
+            actionBar.subtitle = BuildConfig.VERSION_NAME
         }
         
         if (intent.getBooleanExtra("startService", true)) {

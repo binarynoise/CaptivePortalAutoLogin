@@ -103,6 +103,8 @@ class GeckoViewActivity : ComponentActivity() {
         ) {
             log("onLocationChange: $url")
             location = url
+            
+            actionBar?.subtitle = url
         }
     }
     
@@ -110,18 +112,7 @@ class GeckoViewActivity : ComponentActivity() {
         usePrivateMode(true)
     }.build()).apply {
         contentDelegate = ContentDelegate
-        navigationDelegate = object : GeckoSession.NavigationDelegate {
-            var location: String? = null
-            override fun onLocationChange(
-                session: GeckoSession,
-                url: String?,
-                perms: List<GeckoSession.PermissionDelegate.ContentPermission>,
-                hasUserGesture: Boolean,
-            ) {
-                log("onLocationChange: $url")
-                location = url
-            }
-        }
+        navigationDelegate = this@GeckoViewActivity.navigationDelegate
     }
     
     private var extension: WebExtension? = null
