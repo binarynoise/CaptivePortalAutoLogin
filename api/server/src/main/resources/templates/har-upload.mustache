@@ -1,0 +1,35 @@
+{{<base-layout}}
+    {{$content}}
+        <link rel="stylesheet" href="/static/har-upload.css">
+        
+        <div id="har-drop-area" class="drop-area">
+            <div class="drop-area__instructions">
+                <p>Drag and drop HAR files here or
+                    <button id="har-select-button" type="button">choose a file</button>
+                </p>
+                <input id="har-file-input" class="hidden" type="file" accept=".har,application/json" multiple>
+            </div>
+            <div class="drop-area__actions">
+                <p>Files will be uploaded immediately after dropping or selecting them.</p>
+            </div>
+        </div>
+        <ul id="har-upload-messages" class="upload-messages" aria-live="polite"></ul>
+        
+        <script type="module">
+            import {HarUploader} from '/static/har-upload.js';
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                try {
+                    new HarUploader({
+                        dropAreaId: 'har-drop-area',
+                        fileInputId: 'har-file-input',
+                        selectButtonId: 'har-select-button',
+                        messagesId: 'har-upload-messages'
+                    });
+                } catch (error) {
+                    console.error('Failed to initialize HAR uploader:', error);
+                }
+            });
+        </script>
+    {{/content}}
+{{/base-layout}}

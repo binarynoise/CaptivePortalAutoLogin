@@ -1,20 +1,24 @@
-{{<base_layout}}
+{{<base-layout}}
     {{$content}}
         <div style="overflow: scroll; white-space: nowrap;">
             <table>
                 <thead>
                 <tr>
                     <th>SSID</th>
+                    <th>Version</th>
                     <th>URL</th>
+                    <th>Count</th>
                 </tr>
                 </thead>
-                {{#errors}}
-                    <tr>
+                {{#successes}}
+                    <tr class="mono">
                         <td>{{ssid}}</td>
+                        <td>{{version}}</td>
                         <td>{{url}}</td>
+                        <td>{{count}}</td>
                     </tr>
-                {{/errors}}
+                {{/successes}}
             </table>
         </div>
     {{/content}}
-{{/base_layout}}
+{{/base-layout}}

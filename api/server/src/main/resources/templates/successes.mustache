@@ -1,24 +1,36 @@
-{{<base_layout}}
+{{<base-layout}}
     {{$content}}
-        <table>
-            <tr>
-                <th>Year</th>
-                <th>Month</th>
-                <th>Version</th>
-                <th>SSID</th>
-                <th>URL</th>
-                <th>Count</th>
-            </tr>
-            {{#successes}}
+        <div style="overflow: scroll; white-space: nowrap; margin-top: 1em">
+            <table>
+                <thead>
                 <tr>
-                    <td>{{year}}</td>
-                    <td>{{month}}</td>
-                    <td>{{version}}</td>
-                    <td>{{ssid}}</td>
-                    <td>{{url}}</td>
-                    <td>{{count}}</td>
+                    <th>Year</th>
+                    <th>Month</th>
+                    <th>Version</th>
+                    <th>Domain</th>
+                    <th>Count</th>
                 </tr>
-            {{/successes}}
-        </table>
+                </thead>
+                {{#successes}}
+                    <tr class="mono">
+                        <td>{{year}}</td>
+                        <td>{{month}}</td>
+                        <td>{{majorVersion}}</td>
+                        <td>{{domain}}</td>
+                        <td>{{count}}</td>
+                        <td>
+                            <form action="details" method="get">
+                                <input type="hidden" name="year" value="{{year}}">
+                                <input type="hidden" name="month" value="{{month}}">
+                                <input type="hidden" name="version" value="{{version}}">
+                                <input type="hidden" name="domain" value="{{domain}}">
+                                
+                                <button type="submit">Details</button>
+                            </form>
+                        </td>
+                    </tr>
+                {{/successes}}
+            </table>
+        </div>
     {{/content}}
-{{/base_layout}}
+{{/base-layout}}

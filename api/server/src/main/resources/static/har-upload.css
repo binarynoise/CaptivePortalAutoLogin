@@ -1,0 +1,31 @@
+.drop-area {
+    border: 2px dashed #888;
+    border-radius: 8px;
+    padding: 2em;
+    text-align: center;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    margin: 1em 0;
+}
+
+.drop-area.dragover {
+    border-color: #4caf50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.upload-messages {
+    margin-top: 1em;
+    list-style: none;
+    padding: 0;
+}
+
+.upload-messages li + li {
+    margin-top: 0.5em;
+}
+
+.upload-messages__error {
+    color: #c62828;
+}
+
+.upload-messages__success {
+    color: #2e7d32;
+}

@@ -1,0 +1,24 @@
+{{<base-layout}}
+    {{$content}}
+        <div style="overflow: scroll; white-space: nowrap;">
+            <table>
+                <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Version</th>
+                    <th>SSID</th>
+                    <th>URL</th>
+                </tr>
+                </thead>
+                {{#errors}}
+                    <tr class="mono">
+                        <td>{{timestamp}}</td>
+                        <td>{{version}}</td>
+                        <td>{{ssid}}</td>
+                        <td>{{url}}</td>
+                    </tr>
+                {{/errors}}
+            </table>
+        </div>
+    {{/content}}
+{{/base-layout}}

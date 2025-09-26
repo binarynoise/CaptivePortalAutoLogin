@@ -1,0 +1,17 @@
+table {
+    border-collapse: collapse;
+    max-width: 100%;
+}
+
+table, th, td {
+    border: 1px solid gray;
+    padding: 0.2em 0.5em;
+}
+
+.hidden {
+    display: none;
+}
+
+.mono {
+    font-family: monospace;
+}

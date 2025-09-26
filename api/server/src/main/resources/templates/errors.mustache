@@ -1,4 +1,4 @@
-{{<base_layout}}
+{{<base-layout}}
     {{$content}}
         <p>
             <a href="?type=All">all</a>
@@ -22,10 +22,10 @@
                 </tr>
                 </thead>
                 {{#errors}}
-                    <tr>
+                    <tr class="mono">
                         <td>{{year}}</td>
                         <td>{{month}}</td>
-                        <td>{{version}}</td>
+                        <td>{{majorVersion}}</td>
                         <td>{{domain}}</td>
                         <td>{{message}}</td>
                         <td>{{count}}</td>
@@ -45,4 +45,4 @@
             </table>
         </div>
     {{/content}}
-{{/base_layout}}
+{{/base-layout}}

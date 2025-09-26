@@ -1,0 +1,32 @@
+{{<base-layout}}
+    {{$content}}
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Timestamp</th>
+                <th>Download</th>
+                <th>Archive</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#entries}}
+                <tr class="mono">
+                    <td>{{name}}</td>
+                    <td>{{timestamp}}</td>
+                    <td>
+                        <a href="{{download}}">
+                            <button type="button">download</button>
+                        </a>
+                    </td>
+                    <td>
+                        <form action="{{archiveAction}}" method="post">
+                            <button type="submit">Archive</button>
+                        </form>
+                    </td>
+                </tr>
+            {{/entries}}
+            </tbody>
+        </table>
+    {{/content}}
+{{/base-layout}}

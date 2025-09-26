@@ -1,27 +1,27 @@
-{{<base_layout}}
+{{<base-layout}}
     {{$content}}
-        {{^hasEntries}}
-            <p>no entries</p>
-        {{/hasEntries}}
-        {{#hasEntries}}
-            <table>
-                <tr>
-                    <th>Name</th>
-                    <th>Download Link</th>
-                    <th>Delete</th>
+        <p><a href="har-upload" class="button">Upload HAR File</a></p>
+        <table>
+            <thead>
+            <tr>
+                <th>Domain</th>
+                <th>Count</th>
+                <th>Details</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#groups}}
+                <tr class="mono">
+                    <td>{{domain}}</td>
+                    <td>{{count}}</td>
+                    <td>
+                        <a href="group/{{domain}}/">
+                            <button type="button">open</button>
+                        </a>
+                    </td>
                 </tr>
-                {{#harEntries}}
-                    <tr>
-                        <td>{{.}}</td>
-                        <td><a href="download/{{.}}.har">download</a></td>
-                        <td>
-                            <form action="delete/{{.}}.har" method="post">
-                                <button type="submit">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {{/harEntries}}
-            </table>
-        {{/hasEntries}}
+            {{/groups}}
+            </tbody>
+        </table>
     {{/content}}
-{{/base_layout}}
+{{/base-layout}}

@@ -32,6 +32,10 @@ import org.sqlite.SQLiteDataSource
 
 class ApiServer(root: Path = Path(".")) : Api {
     
+    companion object {
+        lateinit var api: ApiServer
+    }
+    
     val jsonDb = JsonDB(root, Json {
         encodeDefaults = false
         explicitNulls = false
