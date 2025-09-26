@@ -51,12 +51,7 @@ class ApiServer(root: Path = Path(".")) : Api {
             SchemaUtils.create(tables = tables)
             
             val migration = MigrationUtils.statementsRequiredForDatabaseMigration(tables = tables)
-            check(
-                migration.isEmpty() || migration == listOf(
-                    "ALTER TABLE errors MODIFY COLUMN id INTEGER PRIMARY KEY AUTOINCREMENT",
-                    "ALTER TABLE errors ADD PRIMARY KEY (id)"
-                )
-            ) { "\nneed migration:\n" + migration.joinToString("\n") }
+            check(migration.isEmpty()) { "\nneed migration:\n" + migration.joinToString("\n") }
             
             log("Database initialized")
         }

@@ -47,6 +47,7 @@ tasks.withType<ShadowJar> {
     minimize {
         exclude(dependency(libs.exposed.jdbc.get()))
         exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
+        exclude(dependency(libs.slf4j.simple.get()))
     }
     exclude(
         "**/*.kotlin_*",
