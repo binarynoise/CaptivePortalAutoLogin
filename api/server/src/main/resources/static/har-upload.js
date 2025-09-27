@@ -94,14 +94,7 @@ export class HarUploader {
      * @returns {string}
      */
     deriveHarName(file) {
-        let baseName = file.name.replace(/\.(har|json)$/i, '') || 'uploaded-har';
-        const timestampRegex = / \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-
-        if (!timestampRegex.test(baseName)) {
-            const timestamp = new Date().toISOString();
-            baseName = `${baseName} ${timestamp}`;
-        }
-        return baseName;
+        return file.name.replace(/\.(har|json)$/i, '') || `unknown ${new Date().toISOString()}`;
     }
 
     /**
@@ -145,10 +138,10 @@ export class HarUploader {
             }
 
             // Validate JSON
-            const parsed = JSON.parse(content);
+            JSON.parse(content);
             const harName = this.deriveHarName(file);
 
-            await this.sendToServer(harName, parsed);
+            await this.sendToServer(harName, content);
             this.showMessage(`Uploaded ${file.name} as ${harName}.`, 'success');
 
         } catch (error) {
@@ -181,20 +174,20 @@ export class HarUploader {
     /**
      * Send data to the server
      * @param {string} harName
-     * @param {Object} data
+     * @param {string} content
      */
-    async sendToServer(harName, data) {
+    async sendToServer(harName, content) {
         const response = await fetch(`/api/har/${encodeURIComponent(harName)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: content,
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(errorText || response.statusText);
+            throw new Error(response.statusText || errorText);
         }
 
         return response;

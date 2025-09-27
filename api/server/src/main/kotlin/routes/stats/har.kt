@@ -39,16 +39,36 @@ internal fun Route.harRoutes() {
             }.sortedWith(
                 compareBy<Map<String, Comparable<*>>> { entry -> entry["isIP"] }.then(
                     Comparator { a, b ->
+                        if (a == b) return@Comparator 0
+                        
                         val domainA = a["domain"] as String
                         val isIPA = a["isIP"] as Boolean
                         val domainB = b["domain"] as String
                         val isIPB = b["isIP"] as Boolean
                         
-                        val partsA = domainA.split('.').let { if (isIPA) it else it.reversed().drop(1) }
-                        val partsB = domainB.split('.').let { if (isIPB) it else it.reversed().drop(1) }
+                        fun compareArray(a: List<String>, b: List<String>): Int {
+                            val minLength = minOf(a.size, b.size)
+                            for (i in 0 until minLength) {
+                                val cmp = a[i].compareTo(b[i])
+                                if (cmp != 0) return cmp
+                            }
+                            return a.size.compareTo(b.size)
+                        }
                         
-                        partsA.zip(partsB).firstOrNull { it.first != it.second }?.let { it.first.compareTo(it.second) }
-                            ?: 0
+                        fun <T> List<T>.dropOneButNotLast() = if (size <= 1) this else this.subList(1, size)
+                        
+                        val partsA = domainA.split('.')
+                        val partsB = domainB.split('.')
+                        
+                        when {
+                            isIPA && isIPB -> compareArray(partsA, partsB)
+                            isIPA -> 1
+                            isIPB -> -1
+                            else -> compareArray(
+                                partsA.reversed().dropOneButNotLast(),
+                                partsB.reversed().dropOneButNotLast(),
+                            )
+                        }
                     })
             ).let { if (unlimited) it else it.take(100) }
             
