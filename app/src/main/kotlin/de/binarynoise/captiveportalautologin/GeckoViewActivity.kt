@@ -230,6 +230,8 @@ class GeckoViewActivity : ComponentActivity() {
         networkListeners.remove(::networkListener)
         serviceListeners.remove(::serviceListener)
         
+        ConnectivityChangeListenerService.forceReevaluation()
+        
         super.onDestroy()
     }
     
