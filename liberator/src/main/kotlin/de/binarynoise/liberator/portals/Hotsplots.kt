@@ -49,3 +49,25 @@ object Hotsplots : PortalLiberator {
         ).followRedirects(client)
     }
 }
+
+object HotsplotsAuth : PortalLiberator {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
+        return "auth.hotsplots.de" == locationUrl.host && "/login" == locationUrl.encodedPath
+    }
+    
+    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val response1 = client.get(response.requestUrl, response.getLocation())
+        val html1 = response1.parseHtml()
+        
+        val login_status_form = html1.getElementById("login_status_form") ?: error("no login_status_form")
+        val inputs = login_status_form.children().associate { element ->
+            element.attr("name") to element.attr("value")
+        }.filter { (name, _) -> name.isNotBlank() }
+        check(inputs.isNotEmpty()) { "no inputs" }
+        
+        client.postForm(
+            response1.requestUrl, null,
+            inputs,
+        ).followRedirects(client)
+    }
+}
