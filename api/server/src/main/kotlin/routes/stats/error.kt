@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.server.mustache.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.not
@@ -49,12 +50,14 @@ internal fun Route.errorRoutes() {
                                         (Tables.Errors.message like "connection closed") or //
                                         (Tables.Errors.message like "Failed to connect to %") or //
                                         (Tables.Errors.message like "Unable to resolve host %") or //
-                                        (Tables.Errors.message like "Software caused connection abort") //
+                                        (Tables.Errors.message like "Software caused connection abort") or //
+                                        (Tables.Errors.message like "Binding socket to network % failed: %") or //
+                                        (Op.TRUE)
                                 )
                             }
                         }
                     }.let { query ->
-                        if (unlimited) query else query.limit(100)
+                        if (unlimited) query else query.limit(1000)
                     }
                 }.map {
                     val dateTime = it[Tables.Errors.timestamp].toLocalDateTime(UTC)
