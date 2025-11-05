@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.logger)
+    implementation(projects.util.logger)
     implementation(libs.jsoup)
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)

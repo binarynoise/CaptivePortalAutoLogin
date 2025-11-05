@@ -9,8 +9,8 @@ plugins {
 
 dependencies {
     implementation(projects.api)
-    implementation(projects.fileDB)
-    implementation(projects.logger)
+    implementation(projects.util.fileDB)
+    implementation(projects.util.logger)
     
     implementation(platform(libs.ktor.bom))
     implementation(libs.ktor.server.core.jvm)

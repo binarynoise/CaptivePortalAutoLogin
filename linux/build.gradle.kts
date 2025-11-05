@@ -7,9 +7,9 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.logger)
-    implementation(projects.liberator)
     implementation(projects.api.client)
+    implementation(projects.liberator)
+    implementation(projects.util.logger)
     compileOnly(libs.okhttp)
 }
 

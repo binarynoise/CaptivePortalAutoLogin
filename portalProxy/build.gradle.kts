@@ -8,7 +8,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.logger)
+    implementation(projects.util.logger)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.html)
     implementation(libs.slf4j.simple)

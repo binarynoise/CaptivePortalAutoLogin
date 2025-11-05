@@ -12,8 +12,8 @@ dependencies {
     implementation(libs.okhttp.urlconnection)
     
     testImplementation(projects.api.server)
-    testImplementation(projects.fileDB)
-    testImplementation(projects.logger)
+    testImplementation(projects.util.fileDB)
+    testImplementation(projects.util.logger)
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.ktor.bom))
     testImplementation(libs.ktor.server.core.jvm)

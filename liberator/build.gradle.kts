@@ -4,8 +4,9 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.logger)
+    implementation(projects.util.logger)
     implementation(projects.util.okhttpKts)
+    implementation(projects.util.rhino)
     
     implementation(libs.jsoup)
     implementation(libs.okhttp)

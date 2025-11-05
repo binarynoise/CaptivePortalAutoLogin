@@ -95,10 +95,10 @@ android {
 }
 
 dependencies {
-    implementation(projects.logger)
-    implementation(projects.liberator)
     implementation(projects.api.client)
-    implementation(projects.fileDB)
+    implementation(projects.liberator)
+    implementation(projects.util.fileDB)
+    implementation(projects.util.logger)
     
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)

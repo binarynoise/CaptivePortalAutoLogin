@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.util.logger)
     implementation(libs.kotlinx.serialization.json)
-    implementation(projects.logger)
     
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.datetime)
