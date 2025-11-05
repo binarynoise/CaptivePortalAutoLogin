@@ -2,6 +2,7 @@
 
 dependencyResolutionManagement {
     repositories {
+        gradlePluginPortal()
         google {
             content {
                 includeGroupAndSubgroups("com.android")
