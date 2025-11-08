@@ -314,7 +314,7 @@ object Logger {
                 val fields = mutableSetOf<Field>()
                 val methods = mutableSetOf<Method>()
                 
-                generateSequence<Class<*>>(this::class.java) { it.superclass }.forEach { cls ->
+                generateSequence(this::class.java) { it.superclass }.forEach { cls ->
                     fields.addAll(cls.declaredFields.filterNot { Modifier.isStatic(it.modifiers) })
                     methods.addAll(cls.declaredMethods.filter { !Modifier.isStatic(it.modifiers) && it.parameterCount == 0 })
                 }
