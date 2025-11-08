@@ -20,7 +20,12 @@ class PlatformImpl : Platform {
         System.err.println(t)
     }
     
-    private val backgroundExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    private val backgroundExecutor: ExecutorService = Executors.newSingleThreadExecutor {
+        Thread(it, "Logger-Background").apply {
+            isDaemon = true
+        }
+    }
+    
     
     override fun runInBackground(block: () -> Unit) {
         backgroundExecutor.execute(block)
