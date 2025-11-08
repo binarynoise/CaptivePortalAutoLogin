@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.api.client)
     implementation(projects.liberator)
     implementation(projects.util.logger)
+    implementation(libs.clikt)
     compileOnly(libs.okhttp)
 }
 
@@ -24,6 +25,8 @@ tasks.withType<Jar> {
 tasks.withType<ShadowJar> {
     archiveClassifier.set("shadow")
     mergeServiceFiles()
-    minimize()
+    minimize {
+        exclude(dependency("com.github.ajalt.mordant:mordant-jvm-jna"))
+    }
     exclude("**/*.kotlin_*")
 }
