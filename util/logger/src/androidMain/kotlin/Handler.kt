@@ -6,5 +6,6 @@ import android.os.HandlerThread
 fun Any.createBackgroundHandler(): Handler {
     val handlerThread = HandlerThread(this::class.simpleName + "-background")
     handlerThread.start()
+    handlerThread.isDaemon = true
     return Handler(handlerThread.looper)
 }

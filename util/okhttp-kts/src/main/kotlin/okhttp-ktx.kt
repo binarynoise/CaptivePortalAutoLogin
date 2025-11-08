@@ -257,7 +257,12 @@ fun Document.getInput(name: String) = selectFirst("input[name=$name]")?.attr("va
 fun Document.hasInput(name: String) = selectFirst("input[name=$name]") != null
 
 private val cache = mutableMapOf<Response, String>()
-private val executor = Executors.newSingleThreadScheduledExecutor()
+private val executor = Executors.newSingleThreadScheduledExecutor {
+    Thread(it, "okhttp-cache-daemon").apply {
+        isDaemon = true
+    }
+}
+
 fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit, command: Runnable): ScheduledFuture<*> =
     schedule(command, delay, unit)
 
