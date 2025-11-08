@@ -14,7 +14,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object BinarynoisePortalProxy : PortalLiberator {
     override fun canSolve(locationUrl: HttpUrl): Boolean {
-        return PortalLiberatorConfig.debug && "binarynoise.de" == locationUrl.host
+        return PortalLiberatorConfig.experimental && "binarynoise.de" == locationUrl.host
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {

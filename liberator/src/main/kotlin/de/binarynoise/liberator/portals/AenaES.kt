@@ -26,7 +26,7 @@ import org.json.JSONObject
 @SSID("AIRPORT FREE WIFI AENA")
 object AenaES : PortalLiberator {
     override fun canSolve(locationUrl: HttpUrl): Boolean {
-        return PortalLiberatorConfig.debug && "freewifi.aena.es" == locationUrl.host
+        return PortalLiberatorConfig.experimental && "freewifi.aena.es" == locationUrl.host
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {

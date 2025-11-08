@@ -7,7 +7,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 object PortalLiberatorConfig {
-    var debug: Boolean = false
+    var experimental: Boolean = false
         set(value) {
             field = value
             log("PortalLiberatorConfig.debug = $value")

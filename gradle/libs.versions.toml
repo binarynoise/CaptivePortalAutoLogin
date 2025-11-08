@@ -7,6 +7,7 @@ androidxAnnotation = "1.9.1"
 androidxAppCompat = "1.7.1"
 androidxCore = "1.17.0"
 blockhound = "1.0.14.RELEASE"
+clikt = "5.0.3"
 collectionKtx = "1.5.0"
 exposed = "1.0.0-beta-5"
 geckoview = "142.0.20250827004350"
@@ -51,6 +52,7 @@ androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtim
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 blockhound = { module = "io.projectreactor.tools:blockhound", version.ref = "blockhound" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
