@@ -79,9 +79,12 @@ class ConnectivityChangeListenerService : Service() {
     @Suppress("unused")
     @SuppressLint("MissingPermission")
     private fun updateNotification(oldState: NetworkState?, newState: NetworkState?) {
-        val n = notification ?: return
-        notification = NotificationCompat.Builder(this, n).setContentText(newState?.toString().orEmpty()).build()
-        NotificationManagerCompat.from(this).notify(notificationId, n)
+        val oldNotification = notification ?: return
+        val text = newState?.toString().orEmpty()
+        log("updateNotification: $text")
+        val newNotification = NotificationCompat.Builder(this, oldNotification).setContentText(text).build()
+        NotificationManagerCompat.from(this).notify(notificationId, newNotification)
+        notification = newNotification
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -177,8 +180,13 @@ class ConnectivityChangeListenerService : Service() {
             networkListeners.remove(::bindNetworkToProcess)
             networkListeners.remove(::updateNotification)
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-            notification?.actions?.forEach { it.actionIntent?.cancel() }
-            notification = null
+            
+            val n = notification
+            if (n != null) {
+                n.actions?.forEach { it.actionIntent?.cancel() }
+                NotificationManagerCompat.from(this).cancel(notificationId)
+                notification = null
+            }
             
             backgroundHandler.looper.quit()
             backgroundHandler.looper.thread.interrupt()
