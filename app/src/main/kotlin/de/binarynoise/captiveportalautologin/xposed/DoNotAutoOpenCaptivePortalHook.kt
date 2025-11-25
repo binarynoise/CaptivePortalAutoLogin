@@ -9,12 +9,9 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class DoNotAutoOpenCaptivePortalHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (lpparam.packageName == "com.android.systemui" && Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            return
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            return
-        }
+        if (lpparam.packageName == "com.android.systemui" && Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        
         val StandardWifiEntryClass =
             XposedHelpers.findClass("com.android.wifitrackerlib.StandardWifiEntry", lpparam.classLoader)
         val connectMethod = StandardWifiEntryClass.declaredMethods.find { it.name == "connect" }

@@ -10,9 +10,7 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 
 class LocationIndicatorHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            return
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         XposedHelpers.findAndHookMethod(
             "com.android.systemui.appops.AppOpsControllerImpl",
             lpparam.classLoader,

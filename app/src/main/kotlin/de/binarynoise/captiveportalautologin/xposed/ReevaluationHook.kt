@@ -19,9 +19,7 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 
 class ReevaluationHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-            return
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         // TODO: find out if and where the ConnectivityManager was before S
         try {
             val ConnectivityManagerClass = Class.forName("android.net.ConnectivityManager", false, lpparam.classLoader)

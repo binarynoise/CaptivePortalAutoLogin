@@ -12,7 +12,6 @@ class XposedInit : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         Logger.Config.apply {
             toSOut = true
-            
             toXposedBridge = BuildConfig.DEBUG && lpparam.packageName != BuildConfig.APPLICATION_ID
         }
         
