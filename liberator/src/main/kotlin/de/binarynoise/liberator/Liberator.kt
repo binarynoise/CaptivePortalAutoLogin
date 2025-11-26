@@ -139,12 +139,15 @@ class Liberator(
             return res
         }
         
-        Thread.sleep(1000)
-        
-        // check if the user is still in the portal, try both http and https to avoid false positives
-        val location =
-            client.get(null, portalTestUrl).getLocation() ?: client.get(null, portalTestUrl.replace("http:", "https:"))
-                .getLocation()
+        var location: String? = ""
+        var count = 0
+        while (location != null && count++ < 3) {
+            Thread.sleep(1000)
+            
+            // check if the user is still in the portal, try both http and https to avoid false positives
+            location = client.get(null, portalTestUrl).getLocation() //
+                ?: client.get(null, portalTestUrl.replace("http:", "https:")).getLocation()
+        }
         return if (location.isNullOrBlank()) {
             res
         } else {
