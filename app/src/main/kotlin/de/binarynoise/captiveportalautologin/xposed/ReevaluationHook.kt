@@ -19,8 +19,7 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 
 class ReevaluationHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        // TODO: find out if and where the ConnectivityManager was before S
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         try {
             val ConnectivityManagerClass = Class.forName("android.net.ConnectivityManager", false, lpparam.classLoader)
             
@@ -30,10 +29,10 @@ class ReevaluationHook : IXposedHookLoadPackage {
                     override fun afterHookedMethod(param: MethodHookParam) = with(param) {
                         if (instance != null) return
                         
-                        val icm = args[1]
-                        if (icm::class.qualifiedName?.contains("Proxy") == true) return
-                        if (icm::class.java.declaredFields.none { it.name == "mNetworkAgentInfos" }) return
-                        instance = icm
+                        val connectivityService = XposedHelpers.getObjectField(thisObject, "mService") ?: return
+                        if (connectivityService::class.qualifiedName?.contains("Proxy") == true) return
+                        if (connectivityService::class.java.declaredFields.none { it.name == "mNetworkAgentInfos" }) return
+                        instance = connectivityService
                         
                         val context: Context = XposedHelpers.getObjectField(thisObject, "mContext") as Context
                         ContextCompat.registerReceiver(
@@ -85,6 +84,7 @@ class ReevaluationReceiver(val lpparam: XC_LoadPackage.LoadPackageParam) : Broad
             
             for (nai in networkAgentInfos) {
                 val nm = XposedHelpers.callMethod(nai, "networkMonitor")
+                // before Q this function didn't exist, would be possible by calling the network monitor with the reevaluation command
                 XposedHelpers.callMethod(nm, "forceReevaluation", -1 /* INVALID_UID */)
             }
             
