@@ -7,6 +7,7 @@ import android.os.StrictMode.VmPolicy
 import android.os.strictmode.DiskReadViolation
 import android.os.strictmode.UntaggedSocketViolation
 import android.widget.Toast
+import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.logger.Logger.log
 
 class DebugApplication : Application() {
@@ -14,6 +15,8 @@ class DebugApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
+        
+        /*
         StrictMode.setVmPolicy(
             VmPolicy.Builder().apply {
                 detectAll()
@@ -52,5 +55,7 @@ class DebugApplication : Application() {
                 }
             }
         }.build())
+        */
+        PortalLiberatorConfig.experimental = true
     }
 }

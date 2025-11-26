@@ -226,7 +226,6 @@ class ConnectivityChangeListenerService : Service() {
             }
             
             override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-                log("onCapabilitiesChanged: $network")
                 updateNetworkState(network, networkCapabilities)
             }
             

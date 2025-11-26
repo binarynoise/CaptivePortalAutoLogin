@@ -38,7 +38,7 @@ val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
- * @throws Error if both url and context are null.
+ * @throws IllegalArgumentException if both url and context are null.
  */
 fun OkHttpClient.get(
     base: HttpUrl?,
@@ -75,7 +75,7 @@ fun OkHttpClient.get(
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
- * @throws Error if both url and context are null.
+ * @throws IllegalArgumentException if both url and context are null.
  */
 fun OkHttpClient.call(
     base: HttpUrl?,
@@ -112,7 +112,7 @@ fun OkHttpClient.call(
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
  * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
- * @throws Error if both url and context are null.
+ * @throws IllegalArgumentException if both url and context are null.
  */
 fun OkHttpClient.postJson(
     base: HttpUrl?,

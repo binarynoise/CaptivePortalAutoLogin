@@ -47,6 +47,8 @@ object Dokom21Hotspot : PortalLiberator {
                 "ctl00\$GenericContent\$SubmitLogin" to "Einloggen",
             ),
         )
-        check(response3.followRedirects(client).readText().contains("Login erfolgreich."))
+        check(response3.followRedirects(client).readText().contains("Login erfolgreich.")) {
+            "response does not contain success"
+        }
     }
 }

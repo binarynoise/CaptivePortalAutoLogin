@@ -14,7 +14,6 @@ import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
-import de.binarynoise.captiveportalautologin.server.Routing
 import de.binarynoise.captiveportalautologin.server.Tables
 import de.binarynoise.captiveportalautologin.server.module
 import de.binarynoise.logger.Logger.log
@@ -42,7 +41,7 @@ class ApiClientTests {
     @BeforeTest
     fun setup() {
         server = ApiServer(tempDirectory)
-        Routing.api = server
+        ApiServer.api = server
         client = ApiClient(apiBase)
     }
     

@@ -10,6 +10,7 @@
     android:showDividers="middle"
     tools:context=".ExperimentActivity"
     tools:ignore="HardcodedText"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
     >
     
     <LinearLayout
