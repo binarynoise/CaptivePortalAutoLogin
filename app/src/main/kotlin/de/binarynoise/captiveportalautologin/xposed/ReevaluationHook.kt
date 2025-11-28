@@ -20,6 +20,14 @@ import de.robv.android.xposed.XC_MethodHook as MethodHook
 class ReevaluationHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        if (!listOf(
+                "com.android.providers.telephony",
+                "com.android.server.telecom",
+            ).contains(lpparam.packageName)
+        ) return
+        applyLoggerConfig(lpparam)
+        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
+        
         try {
             val ConnectivityManagerClass = Class.forName("android.net.ConnectivityManager", false, lpparam.classLoader)
             
