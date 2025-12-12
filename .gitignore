@@ -44,9 +44,6 @@ output.json
 *.iml
 .idea/
 .kotlin/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
 !/.idea/codeStyles/*
 
 # Keystore files
@@ -58,9 +55,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
-
-# Ignore Gradle build output directory
-build
 
 # login captures
 *.har
