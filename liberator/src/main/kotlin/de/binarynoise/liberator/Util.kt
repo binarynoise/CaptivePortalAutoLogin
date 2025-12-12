@@ -1,6 +1,7 @@
 package de.binarynoise.liberator
 
 import de.binarynoise.logger.Logger.log
+import org.json.JSONArray
 
 // TODO: move somewhere else
 
@@ -55,5 +56,18 @@ inline fun tryOrLog(block: () -> Unit) {
         block()
     } catch (e: Exception) {
         log("exception in tryOrLog", e)
+    }
+}
+
+/**
+ * Returns an iterable view of this JSONArray that can be used on Android
+ * as the Android implementation of JSONArray does not implement Iterable.
+ */
+@Suppress("USELESS_IS_CHECK") // instance check not useless on Android
+fun JSONArray.asIterable(): Iterable<Any> = if (this is Iterable<Any>) this else object : Iterable<Any> {
+    override fun iterator(): Iterator<Any> = object : Iterator<Any> {
+        private var index = 0
+        override fun hasNext(): Boolean = index < length()
+        override fun next(): Any = get(index++)
     }
 }
