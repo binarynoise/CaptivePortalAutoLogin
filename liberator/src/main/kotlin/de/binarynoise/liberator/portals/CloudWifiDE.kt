@@ -2,6 +2,7 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
@@ -24,7 +25,7 @@ object CloudWifiDE : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(response.requestUrl, response.getLocation())
+        val response1 = client.get(locationUrl, null)
         val html1 = response1.parseHtml()
         
         val response2 = client.postForm(
@@ -60,5 +61,36 @@ object CloudWifiDE : PortalLiberator {
         val res = url3.toHttpUrl().queryParameter("res")
         check(res == "success") { "res=$res" }
         client.get(response.requestUrl, url3).checkSuccess()
+    }
+}
+
+@SSID("-free Koenigsbau Passagen", "-Free -Thier Galerie Dortmund")
+object SomethingDotCloudWifiDE : PortalLiberator {
+    override fun canSolve(locationUrl: HttpUrl): Boolean {
+        return locationUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(locationUrl)
+    }
+    
+    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val response1 = client.get(locationUrl, null)
+        val html1 = response1.parseHtml()
+        val script1 = html1.getElementsByTag("body").single().getElementsByTag("script").single().wholeText()
+        val assignments = RhinoParser().parseAssignments(script1)
+        
+        val deviceMac = assignments["FX_redirect.0"] ?: error("no deviceMac")
+        val userMac = assignments["FX_redirect.1"] ?: error("no userMac")
+        val loginUrl = assignments["FX_redirect.2"] ?: error("no loginUrl")
+//        val redirectUrl = assignments["FX_redirect.3"]
+//        val error = assignments["FX_redirect.4"]
+//        val success = assignments["FX_redirect.5"]
+        
+        
+        val response2 = client.get(
+            null, "https://start.cloudwifi.de", queryParameters = mapOf(
+                "ros_mac" to deviceMac,
+                "ros_user_mac" to userMac,
+                "ros_login_url" to loginUrl,
+            )
+        )
+        CloudWifiDE.solve(response2.requestUrl, client, response2, cookies)
     }
 }
