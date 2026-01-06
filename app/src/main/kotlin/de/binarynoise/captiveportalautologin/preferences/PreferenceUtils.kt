@@ -33,7 +33,7 @@ fun Preference.setIconSpaceReservedRecursively(iconSpaceReserved: Boolean) {
     isIconSpaceReserved = iconSpaceReserved
     if (this is PreferenceGroup) {
         children.forEach { preference ->
-            preference.setIconSpaceReservedRecursively(isIconSpaceReserved)
+            preference.setIconSpaceReservedRecursively(iconSpaceReserved)
         }
     }
 }
