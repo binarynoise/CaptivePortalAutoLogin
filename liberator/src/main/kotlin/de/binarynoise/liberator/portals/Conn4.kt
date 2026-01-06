@@ -142,6 +142,7 @@ object Conn4 : PortalLiberator {
         )
         val json5 = JSONObject(response5.readText())
         check(json5.getBoolean("ok")) { "response5 not ok" }
+        check(json5.getBoolean("loggedIn")) { "response5 not loggedIn" }
 //        val session5 = json5.getString("session")
 //        
 //        val response6 = client.postForm(
