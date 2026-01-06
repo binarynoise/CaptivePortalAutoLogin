@@ -34,6 +34,7 @@ export class HarUploader {
         this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
         this.selectButton.addEventListener('click', () => this.fileInput.click());
     }
+
     /**
      * Handle drag over event
      * @param {DragEvent} event

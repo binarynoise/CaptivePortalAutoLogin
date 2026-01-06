@@ -2,6 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:divider="@drawable/divider8dp"
@@ -10,7 +11,6 @@
     android:showDividers="middle"
     tools:context=".ExperimentActivity"
     tools:ignore="HardcodedText"
-    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
     >
     
     <LinearLayout

@@ -2,11 +2,11 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:animateLayoutChanges="true"
-    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
+    android:orientation="vertical"
     >
     
     <TextView
@@ -14,10 +14,10 @@
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
         android:paddingTop="@dimen/padding"
         android:text="Not connected to any network. You may need to disable mobile data and try again."
+        android:visibility="gone"
         tools:visibility="visible"
         />
     
@@ -26,10 +26,10 @@
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
         android:paddingTop="@dimen/padding"
         android:text="Captive Portal not detected. If you just liberated the network, save the capture now."
+        android:visibility="gone"
         tools:visibility="visible"
         />
     
@@ -38,9 +38,9 @@
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
         android:text="Service is not running. Enable the Service and try again."
+        android:visibility="gone"
         tools:visibility="visible"
         />
     
@@ -49,9 +49,9 @@
         style="@style/CaptivePortalAutoLogin.Text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
         android:paddingHorizontal="@dimen/padding"
         android:text="Error setting up the browser. Please Force Close the app and try again."
+        android:visibility="gone"
         tools:visibility="visible"
         />
     

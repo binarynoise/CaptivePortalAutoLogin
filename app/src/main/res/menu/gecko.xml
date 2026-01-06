@@ -6,36 +6,36 @@
     
     <item
         android:id="@+id/action_upload"
-        android:title="Upload HAR"
         android:icon="@drawable/cloud_upload"
+        android:title="Upload HAR"
         app:showAsAction="always"
         />
     
     <item
         android:id="@+id/action_reload_page"
-        android:title="Reload page"
         android:icon="@drawable/reload"
+        android:title="Reload page"
         app:showAsAction="always"
         />
     
     <item
         android:id="@+id/action_restart"
-        android:title="Restart"
         android:icon="@drawable/restart"
+        android:title="Restart"
         app:showAsAction="ifRoom"
         />
-   
+    
     <item
         android:id="@+id/action_save"
-        android:title="Save HAR"
         android:icon="@drawable/content_save"
+        android:title="Save HAR"
         app:showAsAction="ifRoom"
         />
     
     <item
         android:id="@+id/action_share"
-        android:title="Share HAR"
         android:icon="@drawable/share_variant"
+        android:title="Share HAR"
         app:showAsAction="ifRoom"
         />
 </menu>

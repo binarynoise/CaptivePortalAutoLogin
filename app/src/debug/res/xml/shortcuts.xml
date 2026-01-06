@@ -1,16 +1,16 @@
 <shortcuts
     xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
-        android:shortcutId="experiment"
         android:enabled="true"
-        android:shortcutShortLabel="@string/shortcut_short"
-        android:shortcutLongLabel="@string/shortcut_long"
         android:icon="@drawable/stat_sys_vitals"
+        android:shortcutId="experiment"
+        android:shortcutLongLabel="@string/shortcut_long"
+        android:shortcutShortLabel="@string/shortcut_short"
         >
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="de.binarynoise.captiveportalautologin"
             android:targetClass="de.binarynoise.captiveportalautologin.ExperimentActivity"
+            android:targetPackage="de.binarynoise.captiveportalautologin"
             />
     </shortcut>
 </shortcuts>

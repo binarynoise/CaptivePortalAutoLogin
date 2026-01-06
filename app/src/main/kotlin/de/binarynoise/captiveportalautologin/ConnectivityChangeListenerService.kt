@@ -592,7 +592,8 @@ class ConnectivityChangeListenerService : Service() {
             }
         }
         
-        context(context: Context) fun forceReevaluation() {
+        context(context: Context)
+        fun forceReevaluation() {
             context.sendBroadcast(Intent(ReevaluationHook.ACTION))
             log("sent broadcast ${ReevaluationHook.ACTION}")
         }

@@ -208,9 +208,7 @@ object Logger {
                     } else {
                         println()
                         this.forEachIndexed { index, value ->
-                            value.dump(
-                                index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
-                            )
+                            value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
                         }
                     }
                 } else { // primitive Array like int[]
@@ -224,9 +222,7 @@ object Logger {
                 } else {
                     println()
                     this.forEachIndexed { index, value ->
-                        value.dump(
-                            index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
-                        )
+                        value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
                     }
                 }
             }
@@ -236,29 +232,17 @@ object Logger {
                 } else {
                     println()
                     this.forEach { (k, v) ->
-                        v.dump(
-                            k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
-                        )
+                        v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
                     }
                 }
             }
             this is Method -> {
                 println(
-                    "${this.modifiers} ${this.returnType} ${this.declaringClass.canonicalNameOrName}.${this.name}(${
-                        this.parameterTypes.joinToString(
-                            ", "
-                        )
-                    })"
+                    "$modifiers $returnType ${declaringClass.canonicalNameOrName}.$name(${parameterTypes.joinToString(", ")})"
                 )
             }
             this is Constructor<*> -> {
-                println(
-                    "${this.modifiers} ${this.declaringClass.canonicalNameOrName}(${
-                        this.parameterTypes.joinToString(
-                            ", "
-                        )
-                    })"
-                )
+                println("$modifiers ${declaringClass.canonicalNameOrName}(${parameterTypes.joinToString(", ")})")
             }
             this is Field -> {
                 println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}.${this.type} ${this.name}")
