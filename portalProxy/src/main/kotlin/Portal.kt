@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.portalproxy.portal
 
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.html.*
 import kotlinx.html.stream.*
@@ -12,7 +13,7 @@ import io.vertx.kotlin.coroutines.coroutineRouter
 const val portalHost = "binarynoise.de"
 const val portalPort = 8000
 
-private val database = HashMap<String, Boolean>()
+private val database = ConcurrentHashMap<String, Boolean>()
 
 fun CoroutineScope.portalRouter(vertx: Vertx): Router {
     val router = Router.router(vertx)
