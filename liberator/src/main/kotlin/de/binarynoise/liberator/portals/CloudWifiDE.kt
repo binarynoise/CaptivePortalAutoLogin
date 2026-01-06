@@ -56,11 +56,11 @@ object CloudWifiDE : PortalLiberator {
         // http://192.168.182.1:3990/logon?username=...%3D&password=...&userurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F
         check(url2.isNotBlank()) { "no url2" }
         
-        val response3 = client.get(response.requestUrl, url2)
+        val response3 = client.get(locationUrl, url2)
         val url3 = response3.getLocation() ?: error("no url3")
         val res = url3.toHttpUrl().queryParameter("res")
         check(res == "success") { "res=$res" }
-        client.get(response.requestUrl, url3).checkSuccess()
+        client.get(locationUrl, url3).checkSuccess()
     }
 }
 

@@ -1,9 +1,6 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "UNREACHABLE_CODE") @file:OptIn(ExperimentalUuidApi::class)
-
 package de.binarynoise.liberator
 
 import java.util.concurrent.TimeUnit.*
-import kotlin.uuid.ExperimentalUuidApi
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
@@ -172,7 +169,7 @@ class Liberator(
                 
                 // follow redirects and try again
                 check(depth < 10) { "too many redirects" }
-                return recurse(client.get(response.requestUrl, response.getLocation()), depth + 1)
+                return recurse(client.get(locationUrl, null), depth + 1)
             }
             
             solver.solve(locationUrl, client, response, cookies)

@@ -5,7 +5,6 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
-import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.hasInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
@@ -23,7 +22,7 @@ object Hotsplots : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(response.requestUrl, response.getLocation())
+        val response1 = client.get(locationUrl, null)
         val html1 = response1.parseHtml()
         
         client.postForm(
@@ -56,7 +55,7 @@ object HotsplotsAuth : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(response.requestUrl, response.getLocation())
+        val response1 = client.get(locationUrl, null)
         val html1 = response1.parseHtml()
         
         val login_status_form = html1.getElementById("login_status_form") ?: error("no login_status_form")

@@ -24,7 +24,7 @@ object IKEA : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(response.requestUrl, response.getLocation())
+        val response1 = client.get(locationUrl, null)
         
         val url1 = response1.getLocation() ?: error("no location 1")
         val mac = response1.requestUrl.queryParameter("user_mac") ?: error("no mac")
