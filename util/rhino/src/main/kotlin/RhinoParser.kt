@@ -2,6 +2,7 @@ package de.binarynoise.rhino
 
 import org.mozilla.javascript.Node
 import org.mozilla.javascript.Parser
+import org.mozilla.javascript.ast.AbstractObjectProperty
 import org.mozilla.javascript.ast.Assignment
 import org.mozilla.javascript.ast.AstNode
 import org.mozilla.javascript.ast.ElementGet
@@ -80,16 +81,17 @@ class RhinoParser(private val debug: Boolean = false) {
         assignments: MutableMap<String, String>,
         js: String,
     ) {
-        obj.elements.forEach { prop: ObjectProperty ->
-            val propName = getValueString(prop.left, js)
+        obj.elements.forEach { prop: AbstractObjectProperty ->
+            prop as ObjectProperty
+            val propName = getValueString(prop.key, js)
             val fullPath = "$parentPath.$propName"
-            val value = getValueString(prop.right, js)
+            val value = getValueString(prop.value, js)
             if (debug) println("  $fullPath = $value")
             assignments[fullPath] = value
             
             // Recursively process nested object literals
-            if (prop.right is ObjectLiteral) {
-                processObjectLiteral(prop.right as ObjectLiteral, fullPath, assignments, js)
+            if (prop.value is ObjectLiteral) {
+                processObjectLiteral(prop.value as ObjectLiteral, fullPath, assignments, js)
             }
         }
     }

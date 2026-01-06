@@ -40,5 +40,6 @@
 -dontwarn java.beans.**
 -dontwarn java.lang.**
 -dontwarn com.google.android.gms.**
+-dontwarn com.google.re2j.**
 -dontwarn org.checkerframework.checker.**
 -dontwarn j$.**

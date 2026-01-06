@@ -23,7 +23,8 @@ dependencies {
     
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.migration)
+    implementation(libs.exposed.migration.core)
+    implementation(libs.exposed.migration.jdbc)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.kotlinx.datetime)
     implementation(libs.sqlite.jdbc)

@@ -7,3 +7,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.shadow) apply false
 }
+
+buildscript {
+    repositories {
+        maven("https://storage.googleapis.com/r8-releases/raw") {
+            content {
+                includeGroup("com.android.tools")
+            }
+        }
+    }
+    dependencies {
+        classpath(libs.r8)
+    }
+}

@@ -263,8 +263,8 @@ object Logger {
             this is Field -> {
                 println("${this.modifiers} ${this.declaringClass.canonicalNameOrName}.${this.type} ${this.name}")
             }
-            this is java.lang.Enum<*> -> {
-                println("${this::class.java.canonicalNameOrName}.${this.name()}")
+            this is Enum<*> -> {
+                println("${this::class.java.canonicalNameOrName}.${this.name}")
             }
             // skip classes that produce a lot of non-useful output, if not forced
             forceInclude.none { it == this } && forceIncludeClasses.none { it.isInstance(this) } && listOf(

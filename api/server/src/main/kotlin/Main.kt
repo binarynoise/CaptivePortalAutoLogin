@@ -31,6 +31,11 @@ val isDevelopment = hostname != "captiveportalautologin"
 fun main() {
     api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
     
+    val server = createServer()
+    server.start(wait = true)
+}
+
+fun createServer(): EmbeddedServer<*, *> {
     val factory = Netty
     val rootConfig: ServerConfig = serverConfig {
         developmentMode = isDevelopment
@@ -46,7 +51,7 @@ fun main() {
         shutdownTimeout = 1000
         enableHttp2 = false
     }
-    server.start(wait = true)
+    return server
 }
 
 fun Application.module() {

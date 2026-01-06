@@ -8,7 +8,7 @@ android {
     namespace = "de.binarynoise.captiveportalautologin"
     
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 36
         multiDexEnabled = true
@@ -102,6 +102,7 @@ dependencies {
     
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.viewbindingpropertydelegate.noreflection)
@@ -115,7 +116,6 @@ dependencies {
     
     coreLibraryDesugaring(libs.android.desugarJdkLibs)
     
-    // source: https://maven.mozilla.org/maven2/org/mozilla/geckoview/geckoview/125.0.20240419144423/geckoview-125.0.20240419144423-sources.jar
     implementation(libs.geckoview) {
         exclude("com.google.android.gms", "play-services-fido")
     }

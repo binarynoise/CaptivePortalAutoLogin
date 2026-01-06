@@ -15,15 +15,14 @@ import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.Tables
-import de.binarynoise.captiveportalautologin.server.module
+import de.binarynoise.captiveportalautologin.server.createServer
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
-import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
+import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -48,12 +47,7 @@ class ApiClientTests {
     companion object {
         private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
         
-        private val httpServer: EmbeddedServer<*, *> = embeddedServer(
-            Netty,
-            port = 8080,
-            host = "::",
-            module = Application::module,
-        )
+        private val httpServer: EmbeddedServer<*, *> = createServer()
         
         @AfterAll
         @JvmStatic

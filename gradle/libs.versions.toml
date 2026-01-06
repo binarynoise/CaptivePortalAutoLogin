@@ -1,62 +1,64 @@
 [versions]
-activityKtx = "1.11.0"
 androidDesugarJdkLibs = "2.1.5"
 androidGradlePlugin = "8.12.3"
-androidTools = "31.13.0"
+androidTools = "31.13.2"
+androidxActivityKtx = "1.12.2"
 androidxAnnotation = "1.9.1"
 androidxAppCompat = "1.7.1"
+androidXCollectionKtx = "1.5.0"
 androidxCore = "1.17.0"
-blockhound = "1.0.14.RELEASE"
+androidxFragment = "1.8.9"
+androidxLifecycleRuntimeKtx = "2.10.0"
+androidxPreferenceKtx = "1.2.1"
+androidxWorkRuntimeKtx = "2.11.0"
+blockhound = "1.0.15.RELEASE"
 clikt = "5.0.3"
-collectionKtx = "1.5.0"
-exposed = "1.0.0-beta-5"
-geckoview = "142.0.20250827004350"
+exposed = "1.0.0-rc-4"
+geckoview = "146.0.20251217121356"
 githubApi = "1.330"
 hiddenapibypass = "6.1"
 jebrainsAnnotations = "26.0.2-1"
-json = "20250517"
-jsoup = "1.21.2"
+json = "20251224"
+jsoup = "1.22.1"
 junitJupiterParams = "6.0.1"
-#noinspection NewerVersionAvailable -- check ksp
-kotlin = "2.2.20"
-kotlin-ksp = "2.2.20-2.0.3"
+kotlin = "2.3.0"
+kotlin-ksp = "2.3.4"
 kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
 kotlinxHtml = "0.12.0"
 kotlinxSerializationJson = "1.9.0"
-ktor = "3.3.2"
+ktor = "3.3.3"
 leakcanary = "2.14"
-lifecycleRuntimeKtx = "2.9.4"
-okhttp = "5.3.0"
-preferenceKtx = "1.2.1"
-rhino = "1.8.0"
-shadow = "9.2.2"
+okhttp = "5.3.2"
+rhino = "1.9.0"
+r8 = "9.0.28"
+shadow = "9.3.0"
 slf4jSimple = "2.0.17"
-#noinspection NewerVersionAvailable (too new for Exposed)
-sqliteJdbc = "3.50.1.0"
-vertx = "5.0.5"
+sqliteJdbc = "3.51.1.0"
+vertx = "5.0.6"
 viewbindingpropertydelegate = "1.5.9"
-workRuntimeKtx = "2.11.0"
 xposed = "82"
 
 [libraries]
 android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs_nio", version.ref = "androidDesugarJdkLibs" }
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
 android-tools-common = { module = "com.android.tools:common", version.ref = "androidTools" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivityKtx" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
-androidx-collection-ktx = { module = "androidx.collection:collection-ktx", version.ref = "collectionKtx" }
+androidx-collection-ktx = { module = "androidx.collection:collection-ktx", version.ref = "androidXCollectionKtx" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
-androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
-androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "androidxFragment" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycleRuntimeKtx" }
+androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "androidxPreferenceKtx" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWorkRuntimeKtx" }
 blockhound = { module = "io.projectreactor.tools:blockhound", version.ref = "blockhound" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
-exposed-migration = { module = "org.jetbrains.exposed:exposed-migration", version.ref = "exposed" }
+exposed-migration-core = { module = "org.jetbrains.exposed:exposed-migration-core", version.ref = "exposed" }
+exposed-migration-jdbc = { module = "org.jetbrains.exposed:exposed-migration-jdbc", version.ref = "exposed" }
 geckoview = { module = "org.mozilla.geckoview:geckoview", version.ref = "geckoview" }
 github-api = { module = "org.kohsuke:github-api", version.ref = "githubApi" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
@@ -85,6 +87,7 @@ ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
+r8 = { module = "com.android.tools:r8", version.ref = "r8" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqliteJdbc" }

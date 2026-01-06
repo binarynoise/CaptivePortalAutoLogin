@@ -17,17 +17,17 @@ import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
-import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 import org.jetbrains.exposed.v1.core.dao.id.CompositeIdTable
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.upsert
-import org.jetbrains.exposed.v1.migration.MigrationUtils
+import org.jetbrains.exposed.v1.migration.jdbc.MigrationUtils
 import org.sqlite.SQLiteDataSource
 
 class ApiServer(root: Path = Path(".")) : Api {
