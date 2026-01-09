@@ -173,7 +173,7 @@ class Liberator(
             }
             
             solver.solve(locationUrl, client, response, cookies)
-            return LiberationResult.Success(location)
+            return LiberationResult.Success(locationUrl.toString())
         } catch (e: Exception) {
             return LiberationResult.Error(response.requestUrl.toString(), e, e.message.orEmpty())
         }
