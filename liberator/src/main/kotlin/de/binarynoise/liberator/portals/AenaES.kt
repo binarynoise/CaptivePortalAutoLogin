@@ -1,10 +1,8 @@
-@file:OptIn(ExperimentalTime::class)
 
 package de.binarynoise.liberator.portals
 
 import java.util.*
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
