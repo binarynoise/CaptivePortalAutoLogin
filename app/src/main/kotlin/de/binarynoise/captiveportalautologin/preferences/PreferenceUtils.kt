@@ -111,6 +111,7 @@ class WidgetPreference(
 fun EditTextPreference(
     ctx: Context,
     defaultValue: String,
+    hint: String? = null,
     onTextUpdated: (EditText, String) -> Unit,
 ): WidgetPreference = WidgetPreference(ctx, R.layout.item_inline_edit_text_preference) {
     val binding = ItemInlineEditTextPreferenceBinding.bind(it)
@@ -131,6 +132,7 @@ fun EditTextPreference(
             context.getSystemService<InputMethodManager>()?.showSoftInput(editText, 0)
             true
         }
+        editText.setHint(hint)
     }
 }.apply {
     layoutResource = R.layout.preference_horizontal

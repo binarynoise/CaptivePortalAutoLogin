@@ -14,10 +14,8 @@
         android:layout_marginLeft="-4dp"
         android:layout_marginRight="-4dp"
         android:autofillHints=""
-        android:hint="https://am-i-captured.binarynoise.de/"
         android:inputType="textUri"
         android:orientation="horizontal"
-        tools:ignore="HardcodedText"
         tools:layout_gravity="end"
         />
 </FrameLayout>

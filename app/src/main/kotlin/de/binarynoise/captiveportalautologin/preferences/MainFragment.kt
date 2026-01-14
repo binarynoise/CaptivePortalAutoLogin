@@ -11,6 +11,7 @@ import androidx.preference.DropDownPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
+import de.binarynoise.captiveportalautologin.API_BASE
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
@@ -185,18 +186,24 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             if (BuildConfig.DEBUG) {
-                addPreference(EditTextPreference(ctx, SharedPreferences.api_base.get()) { editText, s ->
-                    if (s.isBlank()) {
-                        SharedPreferences.api_base.set("")
-                        editText.error = null
-                    } else try {
-                        val url = s.trim().toHttpUrl()
-                        SharedPreferences.api_base.set(url.toString())
-                        editText.error = null
-                    } catch (e: IllegalArgumentException) {
-                        editText.error = e.message ?: "Invalid URL"
-                    }
-                }) {
+                addPreference(
+                    EditTextPreference(
+                        ctx,
+                        SharedPreferences.api_base.get(),
+                        hint = API_BASE,
+                    ) { editText, s ->
+                        if (s.isBlank()) {
+                            SharedPreferences.api_base.set("")
+                            editText.error = null
+                        } else try {
+                            val url = s.trim().toHttpUrl()
+                            SharedPreferences.api_base.set(url.toString())
+                            editText.error = null
+                        } catch (e: IllegalArgumentException) {
+                            editText.error = e.message ?: "Invalid URL"
+                        }
+                    },
+                ) {
                     key = SharedPreferences.api_base.key
                     title = "api base"
                 }
