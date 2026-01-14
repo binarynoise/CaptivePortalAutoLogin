@@ -69,6 +69,7 @@ import de.binarynoise.captiveportalautologin.util.FileUtils.saveTextToSd
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.postIfCreated
+import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -237,6 +238,15 @@ class GeckoViewActivity : ComponentActivity() {
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gecko, menu)
+        if (Xposed.getEnabled()) {
+            menu.add("Force Re-evaluation").also { menuItem ->
+                menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+                menuItem.setOnMenuItemClickListener {
+                    ConnectivityChangeListenerService.forceReevaluation()
+                    true
+                }
+            }
+        }
         if (BuildConfig.DEBUG) {
             fun addLoadSiteMenuEntry(menu: Menu, title: String, uri: String) {
                 menu.add(title).also { menuItem ->
