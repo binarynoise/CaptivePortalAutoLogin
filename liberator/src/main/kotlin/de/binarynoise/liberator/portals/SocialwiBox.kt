@@ -15,7 +15,7 @@ import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object SocialwiBox : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "hotspot.socialwibox.com" == locationUrl.host
     }
     

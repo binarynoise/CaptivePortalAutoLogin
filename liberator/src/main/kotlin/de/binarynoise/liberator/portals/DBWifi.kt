@@ -25,7 +25,7 @@ object DBWifi : PortalLiberator {
         "wifi.bahn.de",
     )
     
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return locationUrl.host in domains
     }
     

@@ -13,7 +13,7 @@ import org.json.JSONObject
 
 @SSID("Telekom_free", "Airport-Frankfurt", "AIRPORT-FREE-WIFI")
 object TMobileHotspot : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "hotspot.t-mobile.net" == locationUrl.host && locationUrl.decodedPath == "/wlan/redirect.do"
     }
     

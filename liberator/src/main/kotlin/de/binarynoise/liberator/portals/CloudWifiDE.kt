@@ -20,7 +20,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("-free Milaneo Stuttgart")
 object CloudWifiDE : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "start.cloudwifi.de" == locationUrl.host
     }
     
@@ -66,8 +66,8 @@ object CloudWifiDE : PortalLiberator {
 
 @SSID("-free Koenigsbau Passagen", "-Free -Thier Galerie Dortmund")
 object SomethingDotCloudWifiDE : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
-        return locationUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(locationUrl)
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
+        return locationUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(locationUrl, response)
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {

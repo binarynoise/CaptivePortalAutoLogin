@@ -20,7 +20,7 @@ import org.json.JSONObject
 // Kaufland, Rewe
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object Conn4 : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return PortalLiberatorConfig.experimental && locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
     }
     

@@ -15,7 +15,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("uni-stuttgart-open")
 object UniStuttgartOpen : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return locationUrl.host == "guest-internet.tik.uni-stuttgart.de"
     }
     

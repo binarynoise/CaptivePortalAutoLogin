@@ -33,7 +33,7 @@ object Unwired : PortalLiberator {
         "wasabi.hotspot-local.unwired.at",
     )
     
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return PortalLiberatorConfig.experimental && locationUrl.host in supportedDomains
     }
     

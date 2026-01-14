@@ -12,7 +12,7 @@ import okhttp3.Response
 
 @SSID("RRX Hotspot")
 object IOB : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "portal.iob.de" == locationUrl.host
     }
     

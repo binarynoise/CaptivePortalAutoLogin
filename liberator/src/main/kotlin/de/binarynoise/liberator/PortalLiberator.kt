@@ -22,7 +22,7 @@ interface UnIndexedPortalLiberator {
      *                    This is typically the URL where the captive portal login page is hosted.
      * @return true if this liberator knows this captive portal and can solve it, false otherwise.
      */
-    fun canSolve(locationUrl: HttpUrl): Boolean
+    fun canSolve(locationUrl: HttpUrl, response: Response): Boolean
     
     /**
      * Attempts to solve the captive portal by performing the necessary authentication actions.

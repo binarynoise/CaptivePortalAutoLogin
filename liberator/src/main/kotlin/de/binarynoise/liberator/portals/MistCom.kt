@@ -11,7 +11,7 @@ import okhttp3.Response
 // Rossmann
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object MistCom : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl): Boolean {
+    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "portal.\\w+.mist.com".toRegex().matches(locationUrl.host)
     }
     
