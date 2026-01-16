@@ -11,7 +11,14 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
 
-@SSID("Telekom_free", "Airport-Frankfurt", "AIRPORT-FREE-WIFI")
+@SSID(
+    "Telekom_free",
+    "Airport-Frankfurt",
+    "AIRPORT-FREE-WIFI",
+    "Telekom",
+    "LHS-FREE",
+    "Galeria Kunden-WLAN",
+)
 object TMobileHotspot : PortalLiberator {
     override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return "hotspot.t-mobile.net" == locationUrl.host && locationUrl.decodedPath == "/wlan/redirect.do"
