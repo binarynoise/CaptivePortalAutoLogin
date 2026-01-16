@@ -18,7 +18,7 @@ object TMobileHotspot : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.postJson(locationUrl, "/wlan/rest/freeLogin", """{}""")
+        val response1 = client.postJson(locationUrl, "/wlan/rest/freeLogin", """{"rememberMe":false}""")
         val wlanLoginStatus = JSONObject(response1.readText()).getJSONObject("user").getString("wlanLoginStatus")
         check(wlanLoginStatus == "online") { """wlanLoginStatus: "$wlanLoginStatus" != "online"""" }
     }
