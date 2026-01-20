@@ -13,6 +13,7 @@ androidxPreferenceKtx = "1.2.1"
 androidxWorkRuntimeKtx = "2.11.0"
 blockhound = "1.0.15.RELEASE"
 clikt = "5.0.3"
+decourinator = "2.6.1"
 exposed = "1.0.0-rc-4"
 geckoview = "146.0.20251217121356"
 githubApi = "1.330"
@@ -100,6 +101,7 @@ xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+decourinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decourinator" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlin-ksp" }

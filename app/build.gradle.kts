@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.buildlogic.android.application)
     alias(libs.plugins.buildlogic.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.decourinator)
 }
 
 android {
@@ -12,6 +13,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdk = 36
         multiDexEnabled = true
+        
+        proguardFiles(decoroutinatorAndroidProGuardRules())
     }
     
     compileOptions {
