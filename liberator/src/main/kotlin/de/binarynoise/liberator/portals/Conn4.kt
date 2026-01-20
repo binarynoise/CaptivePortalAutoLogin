@@ -2,6 +2,7 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalLiberatorConfig
+import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
@@ -17,8 +18,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
 
-// Kaufland, Rewe
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+@SSID(
+    "-REWE gratis WLAN-",
+    "movenpick",
+    "BBHOTELSGuest",
+    "-Kaufland FreeWiFi-",
+)
 object Conn4 : PortalLiberator {
     override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
         return PortalLiberatorConfig.experimental && locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
