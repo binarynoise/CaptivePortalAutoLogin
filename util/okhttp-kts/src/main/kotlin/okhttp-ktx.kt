@@ -319,6 +319,14 @@ val HttpUrl.decodedPath: String
 val HttpUrl.firstPathSegment
     get() = pathSegments.firstOrNull()
 
+
+/**
+ * Tests whether the given [HttpUrl] has an IP address as host.
+ * Both IPv4 and IPv6 are supported.
+ */
+val HttpUrl.isIp: Boolean
+    get() = this.host.matches("^\\d{1,3}(\\.\\d{1,3}){0,3}$|^\\[?([a-f0-9:]{1,4}:+){1,7}[a-f0-9]{0,4}]?$".toRegex())
+
 /**
  * Resolves a new path relative to the given HttpUrl and throws an IllegalArgumentException if the resulting URL is not well-formed.
  *
