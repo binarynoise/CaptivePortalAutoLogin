@@ -18,7 +18,7 @@ import okhttp3.Response
 @SSID("Nordsee Gast")
 object Nordsee : PortalLiberator {
     fun HttpUrl.queryEntries(): Map<String, String> {
-        return (0..this.querySize).associate {
+        return (0 until this.querySize).associate {
             this.queryParameterName(it) to (this.queryParameterValue(it) ?: "")
         }
     }
