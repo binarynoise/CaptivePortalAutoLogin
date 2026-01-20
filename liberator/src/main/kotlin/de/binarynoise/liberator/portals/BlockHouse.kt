@@ -5,6 +5,7 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
@@ -22,10 +23,13 @@ object BlockHouse : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val hs_server = response.requestUrl.queryParameter("hs_server") ?: error("no hs_server")
-        val Qv = response.requestUrl.queryParameter("Qv") ?: error("no Qv")
+        val response1 = client.get(locationUrl, null)
+        response1.checkSuccess()
         
-        val scriptNode = response.parseHtml()
+        val hs_server = response1.requestUrl.queryParameter("hs_server") ?: error("no hs_server")
+        val Qv = response1.requestUrl.queryParameter("Qv") ?: error("no Qv")
+        
+        val scriptNode = response1.parseHtml()
             .getElementsByTag("script")
             .find { listOf("postToUrl", "port", "hs_server").all { str -> it.data().contains(str) } }
             ?: error("no script found")

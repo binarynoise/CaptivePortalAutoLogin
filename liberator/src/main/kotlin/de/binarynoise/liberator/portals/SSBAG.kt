@@ -3,6 +3,7 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
@@ -19,7 +20,8 @@ object SSBAG : PortalLiberator {
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val token = response.parseHtml().getInput("token")
+        val html1 = client.get(locationUrl, null).parseHtml()
+        val token = html1.getInput("token")
         client.postForm(
             locationUrl,
             "AupSubmit.action?from=AUP",
