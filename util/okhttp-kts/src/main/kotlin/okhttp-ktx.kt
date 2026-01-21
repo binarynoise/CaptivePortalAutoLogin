@@ -328,6 +328,13 @@ val HttpUrl.isIp: Boolean
     get() = this.host.matches("^\\d{1,3}(\\.\\d{1,3}){0,3}$|^\\[?([a-f0-9:]{1,4}:+){1,7}[a-f0-9]{0,4}]?$".toRegex())
 
 /**
+ * Check whether the given [HttpUrl] has one or more query parameters named [name]
+ */
+fun HttpUrl.hasQueryParameter(name:String): Boolean {
+    return this.queryParameterValues(name).isNotEmpty()
+}
+
+/**
  * Resolves a new path relative to the given HttpUrl and throws an IllegalArgumentException if the resulting URL is not well-formed.
  *
  * @param newPath the new path to resolve
