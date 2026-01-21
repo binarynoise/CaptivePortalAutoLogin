@@ -136,7 +136,7 @@ class GeckoViewActivity : ComponentActivity() {
                 geckoView.visibility = if (newState.hasPortal || newState.debug) VISIBLE else INVISIBLE
                 
                 if (newState.hasPortal) {
-                    if (session.isOpen && navigationDelegate.location == null || navigationDelegate.location == "about:blank") {
+                    if (session.isOpen && (navigationDelegate.location == null || navigationDelegate.location == "about:blank")) {
                         session.loadUri(portalTestUrl)
                     }
                 } else {
@@ -231,6 +231,8 @@ class GeckoViewActivity : ComponentActivity() {
         networkListeners.remove(::networkListener)
         serviceListeners.remove(::serviceListener)
         
+        backgroundHandler.looper.quit()
+        
         ConnectivityChangeListenerService.forceReevaluation()
         
         super.onDestroy()
@@ -277,9 +279,8 @@ class GeckoViewActivity : ComponentActivity() {
             }
             
             addLoadSiteMenuEntry(menu, "about:config", "about:config")
-            addLoadSiteMenuEntry(menu, "load form", "http://am-i-captured.binarynoise.de/portal/")
-            addLoadSiteMenuEntry(menu, "load form https", "https://am-i-captured.binarynoise.de/portal/")
-//            addLoadSiteMenuEntry(menu, "test ws", "http://192.168.0.95:3000/")
+            addLoadSiteMenuEntry(menu, "load 404", "http://am-i-captured.binarynoise.de/404")
+            addLoadSiteMenuEntry(menu, "load 404 https", "https://am-i-captured.binarynoise.de/404")
             addLoadSiteMenuEntry(menu, "jstest", "http://dev.jeffersonscher.com/jstest.asp")
         }
         return super.onCreateOptionsMenu(menu)
@@ -302,10 +303,9 @@ class GeckoViewActivity : ComponentActivity() {
                 
                 prepareHar()
                 val fileName = "${getHarName()}.har"
-                val json = har.toJson()
-                
                 
                 try {
+                    val json = har.toJson()
                     saveTextToSd(json, fileName, "application/har+json", this)
                     
                     toast.cancel()
@@ -324,9 +324,8 @@ class GeckoViewActivity : ComponentActivity() {
         R.id.action_share -> {
             prepareHar()
             val fileName = "${getHarName()}.har"
-            val json = har.toJson()
-            
             try {
+                val json = har.toJson()
                 FileUtils.shareTextAsFile(json, fileName, "Share captured Portal", this, this)
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
@@ -335,9 +334,18 @@ class GeckoViewActivity : ComponentActivity() {
             true
         }
         R.id.action_upload -> {
-            prepareHar()
-            Stats.har.submitHar(getHarName(), har)
-            Toast.makeText(this, "HAR scheduled for upload", Toast.LENGTH_SHORT).show()
+            try {
+                prepareHar()
+                Stats.har.submitHar(getHarName(), har)
+                Toast.makeText(this, "HAR scheduled for upload", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                log("Error uploading file", e)
+                Toast.makeText(
+                    this,
+                    e::class.java.simpleName + ": " + e.message + "\n" + "Try saving to disk.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
             true
         }
         
@@ -379,7 +387,13 @@ class GeckoViewActivity : ComponentActivity() {
         
         override fun onMessage(nativeApp: String, message: Any, sender: WebExtension.MessageSender): GeckoResult<Any>? {
             if (message is JSONObject) {
-                backgroundHandler.post { handleMessage(message) }
+                backgroundHandler.post {
+                    try {
+                        handleMessage(message)
+                    } catch (e: Exception) {
+                        log("Failed to handle message", e)
+                    }
+                }
             } else {
                 log("onMessage: else $message")
                 message.dump("onMessage")
@@ -403,7 +417,13 @@ class GeckoViewActivity : ComponentActivity() {
         
         override fun onPortMessage(message: Any, port: WebExtension.Port) {
             if (message is JSONObject) {
-                backgroundHandler.post { handleMessage(message) }
+                backgroundHandler.post {
+                    try {
+                        handleMessage(message)
+                    } catch (e: Exception) {
+                        log("Failed to handle message", e)
+                    }
+                }
             } else {
                 log("onMessage: else $message")
                 message.dump("onPortMessage")
