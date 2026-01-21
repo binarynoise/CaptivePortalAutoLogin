@@ -18,7 +18,7 @@ import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("-free Milaneo Stuttgart")
-object CloudWifiDE : PortalLiberator {
+object CloudWifi : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         return "start.cloudwifi.de" == response.requestUrl.host
     }
@@ -46,12 +46,11 @@ object CloudWifiDE : PortalLiberator {
             )
         )
         
+        // TODO: proper javascript parsing
         val html2 = response2.readText()
-        val src = html2
-        val start = src.indexOf("window.location.replace('")
-        val end = src.indexOf("')", start)
-        val url2 = src.substring(start + "window.location.replace('".length, end)
-        // http://192.168.182.1:3990/logon?username=...%3D&password=...&userurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F
+        val start = html2.indexOf("window.location.replace('")
+        val end = html2.indexOf("')", start)
+        val url2 = html2.substring(start + "window.location.replace('".length, end)
         check(url2.isNotBlank()) { "no url2" }
         
         val response3 = client.get(response.requestUrl, url2)
@@ -62,10 +61,20 @@ object CloudWifiDE : PortalLiberator {
     }
 }
 
-@SSID("-free Koenigsbau Passagen", "-Free -Thier Galerie Dortmund")
-object SomethingDotCloudWifiDE : PortalLiberator {
+@SSID(
+    "-free Koenigsbau Passagen",
+    "-Free -Thier Galerie Dortmund",
+    "Radiologie-GAST",
+)
+object CloudWifiRedirect : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(response)
+        if (CloudWifi.canSolve(response)) return false
+        return response.parseHtml()
+            .getElementsByTag("script")
+            .map { it.attr("src") }
+            .filter { it.isNotEmpty() }
+            .map { it.toHttpUrl() }
+            .any { url -> url.host == "start.cloudwifi.de" && url.pathSegments.any { it == "redirect" } }
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
@@ -80,7 +89,6 @@ object SomethingDotCloudWifiDE : PortalLiberator {
 //        val error = assignments["FX_redirect.4"]
 //        val success = assignments["FX_redirect.5"]
         
-        
         val response2 = client.get(
             null, "https://start.cloudwifi.de", queryParameters = mapOf(
                 "ros_mac" to deviceMac,
@@ -88,6 +96,6 @@ object SomethingDotCloudWifiDE : PortalLiberator {
                 "ros_login_url" to loginUrl,
             )
         )
-        CloudWifiDE.solve(client, response2, cookies)
+        CloudWifi.solve(client, response2, cookies)
     }
 }
