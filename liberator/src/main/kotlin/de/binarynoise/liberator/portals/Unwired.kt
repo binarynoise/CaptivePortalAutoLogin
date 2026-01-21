@@ -21,7 +21,7 @@ import kotlin.random.Random as random
     "DonauparkCamping",
     "Regio-S-Bahn WLAN",
     "WestfalenBahn",
-    //"WLAN@RB\s[0-9]+",
+    "/WLAN@RB\\s[0-9]+/",
 )
 object Unwired : PortalLiberator {
     
