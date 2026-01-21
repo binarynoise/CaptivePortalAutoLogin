@@ -353,6 +353,13 @@ val HttpUrl.decodedPath: String
 val HttpUrl.firstPathSegment
     get() = pathSegments.firstOrNull()
 
+/**
+ * Returns the last path segment of the HttpUrl.
+ *
+ * @return the last path segment of the HttpUrl, or null if the path is empty
+ */
+val HttpUrl.lastPathSegment
+    get() = pathSegments.lastOrNull()
 
 /**
  * Tests whether the given [HttpUrl] has an IP address as host.
