@@ -229,6 +229,17 @@ fun Response.getLocation(): String? {
     return getLocationUnchecked()
 }
 
+/**
+ * Retrieves the redirect location from the HTTP response.
+ *
+ * Parses Location Header and `meta[http-equiv="refresh"]`
+ *
+ * @return The redirect URL from the response header or parsed from the HTML if present, null otherwise.
+ */
+fun Response.getLocationUrl(): HttpUrl? {
+    return this.getLocation()?.toHttpUrl()
+}
+
 private fun Response.getLocationUnchecked(): String? {
     val html = parseHtml(skipStatusCheck = true)
     
