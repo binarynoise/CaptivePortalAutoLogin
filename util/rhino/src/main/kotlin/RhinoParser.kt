@@ -1,5 +1,6 @@
 package de.binarynoise.rhino
 
+import de.binarynoise.logger.Logger.log
 import org.mozilla.javascript.Node
 import org.mozilla.javascript.Parser
 import org.mozilla.javascript.ast.AbstractObjectProperty
@@ -126,7 +127,8 @@ class RhinoParser(private val debug: Boolean = false) {
         is ElementGet -> "${getValueString(node.target, js)}[${getValueString(node.element, js)}]"
         is AstNode -> {
             // Fallback: return the raw source code
-            js.substring(node.absolutePosition, node.absolutePosition + node.length)
+            log("using Fallback to return the raw source code")
+            js.substring(node.absolutePosition, node.absolutePosition + node.length).trim().trimEnd(';')
         }
         else -> "?"
     }
