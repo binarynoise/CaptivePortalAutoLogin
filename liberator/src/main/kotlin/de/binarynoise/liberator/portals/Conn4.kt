@@ -9,6 +9,7 @@ import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
+import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.parseHtml
@@ -33,44 +34,18 @@ import org.jsoup.nodes.Element
 )
 object Conn4 : PortalLiberator {
     override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return PortalLiberatorConfig.experimental && locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
+        return locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
     }
     
     override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-//        val (r: Response, l: String?) = if (locationUrl.pathSegments.isEmpty()) {
-//            // https://wbs-rewe.conn4.com/
-//            val response0 = client.get(locationUrl, null)
-//            val location0 = response0.getLocation()
-//            (response0 to location0)
-//        } else {
-//            (response to null)
-//        }
         
-        // https://1193.rdr.conn4.com/ident?client_ip=10.41.57.140&client_mac=2ADD70A19A17&site_id=1193&signature=...&loggedin=0&remembered_mac=0
-        // https://13329.bundbhotels.conn4.com/ident?client_ip=10.71.2.40&client_mac=1A941A354ACE&site_id=13329&signature=...&loggedin=0&remembered_mac=0
-        // https://15965.rdr.conn4.com/ident?client_ip=10.1.42.175&client_mac=B6459C927851&site_id=15965&signature=...&loggedin=0&remembered_mac=0
-        // https://portal-eu-ffm01.conn4.com/ident?client_ip=10.94.33.164&client_mac=9E92618A86AF&site_id=8274&signature=...&loggedin=0&remembered_mac=0
-        // https://rewe-wlan.conn4.com/ident?client_mac=5E0A09C52F79&client_ip=10.50.14.17&site_id=13900&signature=...
-        // https://rewe-wlan.conn4.com/ident?client_mac=C6659C5AFC3C&client_ip=10.50.12.12&site_id=13900&signature=...
-        // https://accor.conn4.com/ident?client_ip=10.1.45.88&client_mac=B6FD47D4C750&site_id=51&signature=...&loggedin=0&remembered_mac=0
-        val response1 = client.get(locationUrl, null)
         val site_id = locationUrl.queryParameter("site_id") ?: error("no site_id")
         
         if (locationUrl.queryParameter("loggedIn") != "0") log("loggedIn is ${locationUrl.queryParameter("loggedIn")}, expected 0")
         if (locationUrl.queryParameter("remembered_mac") != "0") log("remembered_mac is ${locationUrl.queryParameter("remembered_mac")}, expected 0")
         
-        val location1 = response1.getLocation()
-        
-        // https://1193.rdr.conn4.com/#
-        // https://13329.bundbhotels.conn4.com/#
-        // https://15965.rdr.conn4.com/#
-        // https://portal-eu-ffm01.conn4.com/#
-        // https://rewe-wlan.conn4.com/#
-        // https://accor.conn4.com/#
-        val response2 = client.get(response1.requestUrl, location1)
-        val html2 = response2.parseHtml()
-        
-        val scripts = html2.getElementsByTag("script").map { it.getScriptData(client) }
+        val html = client.get(locationUrl, null).followRedirects(client).parseHtml()
+        val scripts = html.getElementsByTag("script").map { it.getScriptData(client) }
         
         when {
             scripts.any { it.contains("conn4.hotspot.wbsToken") } -> solveScene(
@@ -100,12 +75,6 @@ object Conn4 : PortalLiberator {
         checkOk: Boolean = true,
         checkLoggedIn: Boolean = false,
     ): JSONObject {
-        // https://1193.rdr.conn4.com/wbs/api/v1/login/free/
-        // https://13329.bundbhotels.conn4.com/wbs/api/v1/create-session/
-        // https://15965.rdr.conn4.com/wbs/api/v1/create-session/
-        // https://portal-eu-ffm01.conn4.com/wbs/api/v1/create-session/
-        // https://wbs-rewe.conn4.com/api/v1/create-session/
-        // https://accor.conn4.com/wbs/api/v1/create-session/
         val response = client.postForm(
             apiBase, "create-session/",
             mapOf(
@@ -134,13 +103,7 @@ object Conn4 : PortalLiberator {
         registerFreeParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
     ): JSONObject {
-        // https://1193.rdr.conn4.com/wbs/api/v1/register/free/
-        // https://13329.bundbhotels.conn4.com/wbs/api/v1/register/free/
-        // https://15965.rdr.conn4.com/wbs/api/v1/register/free/
-        // https://portal-eu-ffm01.conn4.com/wbs/api/v1/register/free/
-        // https://wbs-rewe.conn4.com/api/v1/register/free/
-        // https://accor.conn4.com/wbs/api/v1/register/free/
-        val response4 = client.postForm(
+        val response = client.postForm(
             apiBase, "register/free/",
             mapOf(
                 "authorization" to "session=$sessionToken",
@@ -148,7 +111,7 @@ object Conn4 : PortalLiberator {
                 "registration[terms]" to "1",
             ) + registerFreeParams,
         )
-        val json = JSONObject(response4.readText())
+        val json = JSONObject(response.readText())
         if (checkOk) check(json.getBoolean("ok")) { "registerFree not ok" }
         return json
     }
@@ -170,43 +133,6 @@ object Conn4 : PortalLiberator {
             checkOk,
         )
         if (checkTariffMatch) check(json.getInt("tariff") == tariff) { "registerFreeTariff tariff doesn't match" }
-        return json
-    }
-    
-    fun loginFree(
-        client: OkHttpClient,
-        apiBase: HttpUrl,
-        sessionToken: String,
-        tariff: Int,
-        registerFreeParams: Map<String, String> = mapOf(),
-        checkOk: Boolean = true,
-    ): JSONObject {
-        return loginFree(client, apiBase, sessionToken, tariff.toString(), registerFreeParams, checkOk)
-    }
-    
-    fun loginFree(
-        client: OkHttpClient,
-        apiBase: HttpUrl,
-        sessionToken: String,
-        tariff: String,
-        registerFreeParams: Map<String, String> = mapOf(),
-        checkOk: Boolean = true,
-    ): JSONObject {
-        // https://1193.rdr.conn4.com/wbs/api/v1/login/free/
-        // https://13329.bundbhotels.conn4.com/wbs/api/v1/login/free/
-        // https://15965.rdr.conn4.com/wbs/api/v1/login/free/
-        // https://portal-eu-ffm01.conn4.com/wbs/api/v1/login/free/
-        // https://wbs-rewe.conn4.com/api/v1/login/free/
-        // https://accor.conn4.com/wbs/api/v1/login/free/
-        val response = client.postForm(
-            apiBase, "login/free/",
-            mapOf(
-                "authorization" to "session=$sessionToken",
-                "tariff" to tariff,
-            ) + registerFreeParams,
-        )
-        val json = JSONObject(response.readText())
-        if (checkOk) check(json.getBoolean("ok")) { "loginFree not ok" }
         return json
     }
     
@@ -248,28 +174,16 @@ object Conn4 : PortalLiberator {
         createSessionParams: Map<String, String> = mapOf(),
         registerFreeParams: Map<String, String> = mapOf(),
     ) {
+        if (!PortalLiberatorConfig.experimental) return doRegisterTermsOnlyAuthFlow(
+            client,
+            apiBase,
+            token,
+            site_id,
+            createSessionParams,
+            registerFreeParams,
+        )
         val session = createSession(client, apiBase, token, site_id)
         val tariffs = getTariffPreference(session)
-        if (tariffs.hasOneEntry) {
-            val res = tryTariff(
-                client,
-                apiBase,
-                site_id,
-                token,
-                session.session_id,
-                tariffs.first(),
-            )
-            if (res.isSuccess) return
-            return doRegisterTermsOnlyAuthFlow(
-                client,
-                apiBase,
-                token,
-                site_id,
-                createSessionParams,
-                registerFreeParams,
-                session,
-            )
-        }
         for (tariff in tariffs) {
             val res = tryTariff(
                 client,
