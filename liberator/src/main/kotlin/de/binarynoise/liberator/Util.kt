@@ -35,6 +35,22 @@ inline fun <T> tryOrNull(block: () -> T): T? {
 }
 
 /**
+ * Executes the given block and returns its result.
+ * If an exception is thrown, returns given default instead.
+ *
+ * @param default the value to return if an exception was thrown
+ * @param block The block to execute.
+ * @return The result of the block or default if an exception was thrown.
+ */
+inline fun <T> tryOrDefault(default: T, block: () -> T): T {
+    try {
+        return block()
+    } catch (_: Exception) {
+        return default
+    }
+}
+
+/**
  * Executes the given block and ignores any exceptions thrown.
  *
  * @param block The block to execute.

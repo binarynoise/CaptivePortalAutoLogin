@@ -4,6 +4,8 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
+import de.binarynoise.liberator.tryOrDefault
+import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
@@ -96,6 +98,7 @@ object Conn4 : PortalLiberator {
         session_id: String = "",
         createSessionParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
+        checkLoggedIn: Boolean = false,
     ): JSONObject {
         // https://1193.rdr.conn4.com/wbs/api/v1/login/free/
         // https://13329.bundbhotels.conn4.com/wbs/api/v1/create-session/
@@ -115,6 +118,7 @@ object Conn4 : PortalLiberator {
         )
         val json = JSONObject(response.readText())
         if (checkOk) check(json.getBoolean("ok")) { "createSession not ok" }
+        if (checkLoggedIn) check(json.getBoolean("loggedIn")) { "createSession not loggedIn" }
         return json
     }
     
@@ -146,6 +150,26 @@ object Conn4 : PortalLiberator {
         )
         val json = JSONObject(response4.readText())
         if (checkOk) check(json.getBoolean("ok")) { "registerFree not ok" }
+        return json
+    }
+    
+    fun registerFreeTariff(
+        client: OkHttpClient,
+        apiBase: HttpUrl,
+        sessionToken: String,
+        tariff: Int,
+        registerFreeParams: Map<String, String> = mapOf(),
+        checkOk: Boolean = true,
+        checkTariffMatch: Boolean = true,
+    ): JSONObject {
+        val json = registerFree(
+            client,
+            apiBase,
+            sessionToken,
+            mapOf("tariff" to tariff.toString()) + registerFreeParams,
+            checkOk,
+        )
+        if (checkTariffMatch) check(json.getInt("tariff") == tariff) { "registerFreeTariff tariff doesn't match" }
         return json
     }
     
@@ -186,7 +210,135 @@ object Conn4 : PortalLiberator {
         return json
     }
     
-    fun doRegisterAuthFlow(
+    fun tryTariff(
+        client: OkHttpClient,
+        apiBase: HttpUrl,
+        site_id: String,
+        token: String,
+        sessionToken: String,
+        tariff: JSONObject,
+        createSessionParams: Map<String, String> = mapOf(),
+        registerFreeParams: Map<String, String> = mapOf(),
+    ): Result<Unit> {
+        return runCatching {
+            registerFreeTariff(
+                client,
+                apiBase,
+                sessionToken,
+                tariff.getInt("id"),
+                registerFreeParams,
+            )
+            createSession(
+                client,
+                apiBase,
+                token,
+                site_id,
+                sessionToken,
+                createSessionParams,
+                checkLoggedIn = true,
+            )
+        }
+    }
+    
+    fun tryPossibleTariffs(
+        client: OkHttpClient,
+        apiBase: HttpUrl,
+        token: String,
+        site_id: String,
+        createSessionParams: Map<String, String> = mapOf(),
+        registerFreeParams: Map<String, String> = mapOf(),
+    ) {
+        val session = createSession(client, apiBase, token, site_id)
+        val tariffs = getTariffPreference(session)
+        if (tariffs.hasOneEntry) {
+            val res = tryTariff(
+                client,
+                apiBase,
+                site_id,
+                token,
+                session.session_id,
+                tariffs.first(),
+            )
+            if (res.isSuccess) return
+            return doRegisterTermsOnlyAuthFlow(
+                client,
+                apiBase,
+                token,
+                site_id,
+                createSessionParams,
+                registerFreeParams,
+                session,
+            )
+        }
+        for (tariff in tariffs) {
+            val res = tryTariff(
+                client,
+                apiBase,
+                site_id,
+                token,
+                session.session_id,
+                tariff,
+            )
+            if (res.isSuccess) return
+        }
+        error("no tariff matched")
+    }
+    
+    fun getTariffPreference(session: JSONObject): List<JSONObject> {
+        val tariffs = session.getJSONArray("tariffs").filterIsInstance<JSONObject>()
+        if (tariffs.hasOneEntry) return tariffs
+        fun JSONObject.isBooleanEqualTo(key: String, value: Boolean, default: Boolean): Boolean {
+            if (!this.has(key)) return default
+            return this.getBoolean(key) == value
+        }
+        
+        fun JSONObject.wanted(key: String): Boolean {
+            return this.isBooleanEqualTo(key, true, true)
+        }
+        
+        fun JSONObject.unwanted(key: String): Boolean {
+            return this.isBooleanEqualTo(key, false, true)
+        }
+        
+        // get tariff timeout in minutes
+        fun JSONObject.getTariffTimeout(): Int {
+            return tryOrNull { this.getInt("validity") } ?: tryOrNull { this.getInt("duration") / 60 } ?: 0
+        }
+        
+        fun JSONObject.getTariffBandwidth(): Int {
+            val bandWidth = tryOrNull { this.getInt("availableBandwidth") } ?: 1
+            return if (bandWidth == 0) Int.MAX_VALUE else bandWidth
+        }
+        
+        val availableTariffs = tariffs.filter {
+            tryOrDefault(0) { it.getInt("price") } == 0
+        }.filter { tariff ->
+            listOf(
+                "is_free",
+                "is_free_with_limitations",
+            ).any { tariff.wanted(it) }
+        }.filter { tariff ->
+            listOf(
+                "is_paid",
+                "is_free_seat_number_name", // we haven't seen an auth flow for this one yet
+                "is_third_party",
+                "is_smp",
+                "is_eap",
+                "is_paid_subscription",
+                "social_media_providers",
+            ).all { tariff.unwanted(it) }
+        }.sortedWith(
+            compareBy(
+                { it.getTariffTimeout() },
+                { it.getTariffBandwidth() },
+                // TODO: include "limitationAfterLimitExploited" into decision
+            )
+        )
+        if (availableTariffs.isEmpty()) error("no tariffs available")
+        return availableTariffs
+    }
+    
+    fun doRegisterTermsOnlyAuthFlow(
         client: OkHttpClient,
         apiBase: HttpUrl,
         token: String,
@@ -195,21 +347,41 @@ object Conn4 : PortalLiberator {
         registerFreeParams: Map<String, String> = mapOf(),
     ) {
         val session = createSession(client, apiBase, token, site_id, createSessionParams = createSessionParams)
-        
-        registerFree(client, apiBase, session.session_id, registerFreeParams = registerFreeParams)
-        
-        val session2 = createSession(
-            client, apiBase, token, site_id, session.session_id, createSessionParams = createSessionParams
+        return doRegisterTermsOnlyAuthFlow(
+            client,
+            apiBase,
+            token,
+            site_id,
+            createSessionParams,
+            registerFreeParams,
+            session,
         )
-        check(session2.getBoolean("loggedIn")) { "response5 not loggedIn" }
-
-//        val response6 = client.postForm(
-//            apiBase, "statistics/",
-//            mapOf(
-//                "authorization" to "session=$session2.session_id"
-//            ),
-//        )
-//        check(JSONObject(response6.readText()).getBoolean("ok")) { "response6 not ok" }
+    }
+    
+    fun doRegisterTermsOnlyAuthFlow(
+        client: OkHttpClient,
+        apiBase: HttpUrl,
+        token: String,
+        site_id: String,
+        createSessionParams: Map<String, String> = mapOf(),
+        registerFreeParams: Map<String, String> = mapOf(),
+        session: JSONObject,
+    ) {
+        registerFree(
+            client,
+            apiBase,
+            session.session_id,
+            registerFreeParams = registerFreeParams,
+        )
+        createSession(
+            client,
+            apiBase,
+            token,
+            site_id,
+            session.session_id,
+            createSessionParams,
+            checkLoggedIn = true,
+        )
     }
     
     fun solveScene(
@@ -260,7 +432,7 @@ object Conn4 : PortalLiberator {
             throw IllegalStateException("no scene with data-wbs-base-url :" + it.message, it)
         }
         
-        doRegisterAuthFlow(client, apiBase, token, site_id)
+        tryPossibleTariffs(client, apiBase, token, site_id)
     }
     
     fun solveAccor(
@@ -272,7 +444,7 @@ object Conn4 : PortalLiberator {
     ) {
         val token = cookies.find { it.name == "wbs-token" }?.value ?: error("no wbs-token cookie")
         val apiBase = locationUrl.resolveOrThrow("/wbs/api/v1") // TODO: properly parse wbs api base from scrips
-        doRegisterAuthFlow(client, apiBase, token, site_id)
+        tryPossibleTariffs(client, apiBase, token, site_id)
     }
 }
 
@@ -284,6 +456,8 @@ fun Element.getScriptData(client: OkHttpClient): String {
     }
     return this.data()
 }
+
+val <T> List<T>.hasOneEntry: Boolean get() = this.size == 1
 
 fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
     val exceptions = mutableListOf<Throwable>()
