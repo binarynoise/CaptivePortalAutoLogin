@@ -2,5 +2,6 @@ de.binarynoise.captiveportalautologin.xposed.DoNotAutoOpenCaptivePortalHook
 de.binarynoise.captiveportalautologin.xposed.HideForegroundServiceHook
 de.binarynoise.captiveportalautologin.xposed.LocationIndicatorHook
 de.binarynoise.captiveportalautologin.xposed.NetworkConnectedHook
+de.binarynoise.captiveportalautologin.xposed.ReEnableSupportedNetworksHook
 de.binarynoise.captiveportalautologin.xposed.ReevaluationHook
 de.binarynoise.captiveportalautologin.xposed.SelfHook
