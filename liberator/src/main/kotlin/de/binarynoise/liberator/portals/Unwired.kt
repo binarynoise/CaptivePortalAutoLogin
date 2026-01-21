@@ -7,8 +7,8 @@ import de.binarynoise.liberator.cast
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
+import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -33,17 +33,17 @@ object Unwired : PortalLiberator {
         "wasabi.hotspot-local.unwired.at",
     )
     
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return PortalLiberatorConfig.experimental && locationUrl.host in supportedDomains
+    override fun canSolve(response: Response): Boolean {
+        return PortalLiberatorConfig.experimental && response.requestUrl.host in supportedDomains
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         // f'ing graphql?
         // bro at least the websocket isn't relevant to the login flow...
-        val user_session_id = locationUrl.queryParameter("user_session_id")
+        val user_session_id = response.requestUrl.queryParameter("user_session_id")
         
         val response1 = client.postJson(
-            locationUrl,
+            response.requestUrl,
             GRAPHQL_URL,
             JSONObject(
                 mapOf(
@@ -72,7 +72,7 @@ object Unwired : PortalLiberator {
         val widgetId = connectWidget.getString("widget_id")!!
         
         client.postJson(
-            locationUrl,
+            response.requestUrl,
             GRAPHQL_URL,
             JSONObject(
                 mapOf(

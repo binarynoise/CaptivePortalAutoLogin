@@ -10,7 +10,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.resolveOrThrow
 import okhttp3.Cookie
 import okhttp3.FormBody
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -22,6 +21,7 @@ class Liberator(
     private val clientInit: (OkHttpClient.Builder) -> Unit,
     val portalTestUrl: String,
     private val userAgent: String,
+    private val ssid: String?,
 ) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
@@ -152,30 +152,32 @@ class Liberator(
         }
     }
     
-    private fun recurse(response: Response, depth: Int): LiberationResult {
+    private fun recurse(responseWithRedirect: Response, depth: Int): LiberationResult {
         try {
-            val location = response.getLocation()
-            if (location.isNullOrBlank()) return LiberationResult.UnknownPortal(response.requestUrl.toString())
+            val location = responseWithRedirect.getLocation()
+            if (location.isNullOrBlank()) return LiberationResult.UnknownPortal(responseWithRedirect.requestUrl.toString())
             
-            val locationUrl: HttpUrl = response.requestUrl.resolveOrThrow(location)
-            
+            val response = client.get(responseWithRedirect.requestUrl.resolveOrThrow(location), null)
             
             val solver: PortalLiberator? = allPortalLiberators.firstOrNull { solver ->
-                solver.canSolve(locationUrl, response)
+                solver.canSolve(response) && (!solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)))
             }
             
-            if (solver == null) {
-                log("unknown captive portal: ${response.getLocation()}")
+            if (solver == null || (!PortalLiberatorConfig.experimental && solver.isExperimental())) {
+                log("unknown captive portal: ${responseWithRedirect.getLocation()}")
                 
                 // follow redirects and try again
                 check(depth < 10) { "too many redirects" }
-                return recurse(client.get(locationUrl, null), depth + 1)
+                return recurse(response, depth + 1)
             }
             
-            solver.solve(locationUrl, client, response, cookies)
-            return LiberationResult.Success(locationUrl.toString())
+            log("solver ${solver::class.simpleName} found for $response.requestUrl")
+            solver.solve(client, response, cookies)
+            log("solver ${solver::class.simpleName} finished processing $response.requestUrl")
+            
+            return LiberationResult.Success(response.requestUrl.toString())
         } catch (e: Exception) {
-            return LiberationResult.Error(response.requestUrl.toString(), e, e.message.orEmpty())
+            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
         }
     }
     

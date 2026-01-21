@@ -1,10 +1,9 @@
-
 package de.binarynoise.liberator.portals
 
 import java.util.*
 import kotlin.time.Clock
+import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
-import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
@@ -13,7 +12,6 @@ import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -22,27 +20,25 @@ import org.json.JSONObject
 // Spain Airports
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("AIRPORT FREE WIFI AENA")
+@Experimental
 object AenaES : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return PortalLiberatorConfig.experimental && "freewifi.aena.es" == locationUrl.host
+    override fun canSolve(response: Response): Boolean {
+        return "freewifi.aena.es" == response.requestUrl.host
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val freeWifiBase = "https://freewifi.aena.es/".toHttpUrl()
         val loginBase = "https://login.aena.es/".toHttpUrl()
-
-//        val response1 = client.get(locationUrl, null)
-//        val location1 = response1.getLocation() ?: error("no location1")
-        // https://freewifi.aena.es/473fad84-1203-4d8d-8abf-6abb463db3ef?cmd=login&mac=_&ip=_&essid=%20&apname=_&apgroup=&url=_
-        val location1 = locationUrl.toString()
         
-        val response2 = client.get(locationUrl, null) // get cookies
-        val uuid = response2.requestUrl.firstPathSegment
-        val gigyaApiKey: String = response2.readText().let { text ->
+        // https://freewifi.aena.es/473fad84-1203-4d8d-8abf-6abb463db3ef?cmd=login&mac=_&ip=_&essid=%20&apname=_&apgroup=&url=_
+        val pageUrl = response.requestUrl.toString()
+        
+        val uuid = response.requestUrl.firstPathSegment
+        val gigyaApiKey: String = response.readText().let { text ->
             val pattern = "gigyaApiKey\\s*=\\s*[\"']([^\"']+)[\"']'".toRegex()
             pattern.find(text)?.groupValues?.get(1) ?: error("no gigyaApiKey")
         }
-        val mac = response2.requestUrl.queryParameter("mac") ?: error("no mac")
+        val mac = response.requestUrl.queryParameter("mac") ?: error("no mac")
         
         // https://freewifi.aena.es/api/portal/473fad84-1203-4d8d-8abf-6abb463db3ef
 
@@ -79,7 +75,7 @@ object AenaES : PortalLiberator {
             val response6 = client.postForm(
                 null, "https://login.aena.es/accounts.isAvailableLoginID", mapOf(
                     "format" to "json",
-                    "pageUrl" to location1,
+                    "pageUrl" to pageUrl,
                     "sdk" to "js_latest",
                     "sdkBuild" to "0",
                     "loginID" to loginID,
@@ -110,7 +106,7 @@ object AenaES : PortalLiberator {
                 "skd" to "latest",
                 "sdkBuild" to "0",
                 "authMode" to "cookie",
-                "pageUrl" to location1,
+                "pageUrl" to pageUrl,
             ),
         )
         val json5 = JSONObject(response5.readText())
@@ -144,7 +140,7 @@ object AenaES : PortalLiberator {
             loginBase, "/accounts.setAccountInfo", mapOf(
                 "format" to "json",
                 "source" to "showScreenSet",
-                "pageURL" to location1,
+                "pageURL" to pageUrl,
                 "regToken" to regToken,
                 "profile" to JSONObject(
                     mapOf<String, Any>(

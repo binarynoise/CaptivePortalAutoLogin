@@ -128,6 +128,6 @@ This will help me add support for it.
 Portal support lives under `liberator/src/main/kotlin/de/binarynoise/liberator/portals`. To add a portal:
 
 - Copy the `_Template` class and rename it.
-- Implement `PortalLiberator` with `canSolve(locationUrl)` and `solve(...)` methods.
+- Implement `PortalLiberator` with `canSolve(...)` and `solve(...)` methods.
 - Optionally annotate with `@SSID("ssid1", "ssid2", ...)`.
 - Submit a Pull Request.

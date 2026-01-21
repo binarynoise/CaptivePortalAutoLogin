@@ -92,8 +92,6 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
      * Runs the `nmcli networking connectivity` command and parses the output
      * to determine the current connectivity state.
      * The [onConnectivityChanged] function is called with the new state.
-     *
-     * The thread logs the output of the `nmcli networking connectivity` command and any errors that occur.
      */
     private fun startupCheck() {
         val process = processBuilder.command("nmcli", "networking", "connectivity").start()
@@ -106,8 +104,9 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
     /**
      * Reads the input from the console and executes actions based on the input.
      *
+     * Supports keyboard shortcuts:
      * - `r`: restart networking
-     * - `q`: quit
+     * - `q`: quit the application
      */
     private fun keyboardInput() {
         while (true) {
@@ -139,19 +138,38 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
     
     
     /**
+     * Queries the SSID of the currently active Wi-Fi connection.
+     * 
+     * Uses `nmcli` to get the list of Wi-Fi networks and returns the SSID of the first network
+     * that is marked as active. If no active Wi-Fi connection is found, returns null.
+     */
+    private fun querySSID(): String? {
+        val process =
+            processBuilder.command("nmcli -t -e no -f active,ssid dev wifi list --rescan no".split(" ")).start()
+        val input = process.inputReader().readLines()
+        val ssid = input.firstOrNull { it.startsWith("yes") }?.removePrefix("yes:")
+        log("ssid: $ssid")
+        return ssid
+    }
+    
+    
+    /**
      * Handles the event of connectivity state change.
-     *
-     * Parses the connectivity state and attempts to liberate the user if the state is "portal".
-     *
-     * @param connectivity The new connectivity state.
+     * 
+     * Parses the [connectivity] state and attempts to liberate the user if the state is "portal".
      */
     fun onConnectivityChanged(connectivity: String, oneshot: Boolean = false) {
         try {
             log("onConnectivityChanged: $connectivity")
             if (connectivity == "portal") {
-                val result = Liberator({
-                    if (oneshot) it.connectionPool(ConnectionPool(0, 1, SECONDS))
-                }, PortalDetection.defaultBackend, PortalDetection.defaultUserAgent).liberate()
+                val ssid = querySSID()
+                
+                val result = Liberator(
+                    { okhttpClient -> if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS)) },
+                    PortalDetection.defaultBackend,
+                    PortalDetection.defaultUserAgent,
+                    ssid,
+                ).liberate()
                 
                 when (result) {
                     is Liberator.LiberationResult.Success -> log("broke out of the portal")

@@ -11,7 +11,6 @@ import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
-import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
@@ -33,29 +32,33 @@ import org.jsoup.nodes.Element
     "ibisbudget",
 )
 object Conn4 : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return locationUrl.host.endsWith(".conn4.com") && locationUrl.firstPathSegment == "ident"
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.host.endsWith(".conn4.com") && response.requestUrl.firstPathSegment == "ident"
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         
-        val site_id = locationUrl.queryParameter("site_id") ?: error("no site_id")
+        val site_id = response.requestUrl.queryParameter("site_id") ?: error("no site_id")
         
-        if (locationUrl.queryParameter("loggedIn") != "0") log("loggedIn is ${locationUrl.queryParameter("loggedIn")}, expected 0")
-        if (locationUrl.queryParameter("remembered_mac") != "0") log("remembered_mac is ${locationUrl.queryParameter("remembered_mac")}, expected 0")
+        if (response.requestUrl.queryParameter("loggedIn") != "0") {
+            log("loggedIn is ${response.requestUrl.queryParameter("loggedIn")}, expected 0")
+        }
+        if (response.requestUrl.queryParameter("remembered_mac") != "0") {
+            log("remembered_mac is ${response.requestUrl.queryParameter("remembered_mac")}, expected 0")
+        }
         
-        val html = client.get(locationUrl, null).followRedirects(client).parseHtml()
+        val html = response.followRedirects(client).parseHtml()
         val scripts = html.getElementsByTag("script").map { it.getScriptData(client) }
         
         when {
             scripts.any { it.contains("conn4.hotspot.wbsToken") } -> solveScene(
-                locationUrl,
+                response,
                 client,
                 site_id,
                 scripts,
             )
             scripts.any { it.contains("accor/i-accor/html-page-scene-wbs") } -> solveAccor(
-                locationUrl,
+                response,
                 client,
                 site_id,
                 scripts,
@@ -299,12 +302,11 @@ object Conn4 : PortalLiberator {
     }
     
     fun solveScene(
-        locationUrl: HttpUrl,
+        response: Response,
         client: OkHttpClient,
         site_id: String,
         scripts: List<String>,
     ) {
-        
         val scriptNode =
             scripts.find { it.contains("conn4.hotspot.wbsToken") } ?: error("no script with conn4.hotspot.wbsToken")
         val assignments = RhinoParser().parseAssignments(scriptNode)
@@ -332,7 +334,7 @@ object Conn4 : PortalLiberator {
         
         val apiBase = sceneIds.asSequence().map { id ->
             runCatching {
-                val responseScene = client.get(locationUrl, template.replace("{id}", id))
+                val responseScene = client.get(response.requestUrl, template.replace("{id}", id))
                 val htmlScene = responseScene.parseHtml()
                 
                 val element =
@@ -350,14 +352,14 @@ object Conn4 : PortalLiberator {
     }
     
     fun solveAccor(
-        locationUrl: HttpUrl,
+        response: Response,
         client: OkHttpClient,
         site_id: String,
         scripts: List<String>,
         cookies: Set<Cookie>,
     ) {
         val token = cookies.find { it.name == "wbs-token" }?.value ?: error("no wbs-token cookie")
-        val apiBase = locationUrl.resolveOrThrow("/wbs/api/v1") // TODO: properly parse wbs api base from scrips
+        val apiBase = response.requestUrl.resolveOrThrow("/wbs/api/v1") // TODO: properly parse wbs api base from scrips
         tryPossibleTariffs(client, apiBase, token, site_id)
     }
 }

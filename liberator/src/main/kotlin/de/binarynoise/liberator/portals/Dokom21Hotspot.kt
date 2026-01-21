@@ -11,23 +11,21 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("DSW21-WLAN", "Hotspot Westfalenhallen")
 object Dokom21Hotspot : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return "hotspot.dokom21.de" == locationUrl.host && "/([^/]+)/Index".toRegex().matches(locationUrl.encodedPath)
+    override fun canSolve(response: Response): Boolean {
+        return "hotspot.dokom21.de" == response.requestUrl.host && "/([^/]+)/Index".toRegex().matches(response.requestUrl.encodedPath)
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val networkType = locationUrl.pathSegments.first()
-        val response1 = client.get(locationUrl, null)
-        response1.checkSuccess()
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val networkType = response.requestUrl.pathSegments.first()
+        response.checkSuccess()
         
-        val response2 = client.get(response1.requestUrl, "/$networkType/Login")
+        val response2 = client.get(response.requestUrl, "/$networkType/Login")
         val html2 = response2.parseHtml()
         
         val response3 = client.postForm(

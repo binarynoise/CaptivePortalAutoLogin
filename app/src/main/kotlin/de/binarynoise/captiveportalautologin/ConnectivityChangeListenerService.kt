@@ -274,7 +274,7 @@ class ConnectivityChangeListenerService : Service() {
     
     @WorkerThread
     fun tryLiberate() {
-        val network = networkStateLock.write {
+        val (network, ssid) = networkStateLock.write {
             val state = networkState
             if (state == null) {
                 log("no network")
@@ -297,7 +297,7 @@ class ConnectivityChangeListenerService : Service() {
                 return
             }
             networkState = state.copy(liberating = true)
-            state.network
+            state.network to state.ssid
         }
         
         val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_SHORT)
@@ -311,6 +311,7 @@ class ConnectivityChangeListenerService : Service() {
                 { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
                 portalTestUrl,
                 userAgent,
+                ssid,
             ).liberate()
             
             t.cancel()

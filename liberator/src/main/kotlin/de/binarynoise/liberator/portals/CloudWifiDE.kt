@@ -12,7 +12,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -20,16 +19,15 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("-free Milaneo Stuttgart")
 object CloudWifiDE : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return "start.cloudwifi.de" == locationUrl.host
+    override fun canSolve(response: Response): Boolean {
+        return "start.cloudwifi.de" == response.requestUrl.host
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(locationUrl, null)
-        val html1 = response1.parseHtml()
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val html1 = response.parseHtml()
         
         val response2 = client.postForm(
-            locationUrl, null, mapOf(
+            response.requestUrl, null, mapOf(
                 "FX_lang" to html1.getInput("FX_lang"),
                 "FX_loginTemplate" to html1.getInput("FX_loginTemplate"),
                 "FX_loginType" to html1.getInput("FX_loginType"),
@@ -56,23 +54,22 @@ object CloudWifiDE : PortalLiberator {
         // http://192.168.182.1:3990/logon?username=...%3D&password=...&userurl=http%3A%2F%2Fam-i-captured.binarynoise.de%2F
         check(url2.isNotBlank()) { "no url2" }
         
-        val response3 = client.get(locationUrl, url2)
+        val response3 = client.get(response.requestUrl, url2)
         val url3 = response3.getLocation() ?: error("no url3")
         val res = url3.toHttpUrl().queryParameter("res")
         check(res == "success") { "res=$res" }
-        client.get(locationUrl, url3).checkSuccess()
+        client.get(response.requestUrl, url3).checkSuccess()
     }
 }
 
 @SSID("-free Koenigsbau Passagen", "-Free -Thier Galerie Dortmund")
 object SomethingDotCloudWifiDE : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return locationUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(locationUrl, response)
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.host.endsWith(".cloudwifi.de") && !CloudWifiDE.canSolve(response)
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(locationUrl, null)
-        val html1 = response1.parseHtml()
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val html1 = response.parseHtml()
         val script1 = html1.getElementsByTag("body").single().getElementsByTag("script").single().wholeText()
         val assignments = RhinoParser().parseAssignments(script1)
         
@@ -91,6 +88,6 @@ object SomethingDotCloudWifiDE : PortalLiberator {
                 "ros_login_url" to loginUrl,
             )
         )
-        CloudWifiDE.solve(response2.requestUrl, client, response2, cookies)
+        CloudWifiDE.solve(client, response2, cookies)
     }
 }

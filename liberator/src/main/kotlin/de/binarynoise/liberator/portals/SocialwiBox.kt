@@ -8,20 +8,18 @@ import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object SocialwiBox : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return "hotspot.socialwibox.com" == locationUrl.host
+    override fun canSolve(response: Response): Boolean {
+        return "hotspot.socialwibox.com" == response.requestUrl.host
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(locationUrl, null)
-        val html1 = response1.parseHtml()
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val html1 = response.parseHtml()
         val form1 = html1.getElementsByTag("form").singleOrNull() ?: error("no form1")
         check(form1.attr("name") == "redirect") { "form name: ${form1.attr("name")} != redirect" }
         val location1 = form1.attr("action")
@@ -29,11 +27,11 @@ object SocialwiBox : PortalLiberator {
             .filterNot { it.attr("type") == "submit" }
             .associate { input -> input.attr("name") to input.attr("value") }
         
-        val response2 = client.postForm(locationUrl, location1, inputs1)
+        val response2 = client.postForm(response.requestUrl, location1, inputs1)
         val html2 = response2.parseHtml()
         val location2 = html2.selectXpath("footer > span.links-foot > a").single().attr("href")
         
-        val response3 = client.get(response1.requestUrl, location2).followRedirects(client)
+        val response3 = client.get(response.requestUrl, location2).followRedirects(client)
         val html3 = response3.parseHtml()
         
         val script3 = html3.getElementsByTag("script").find { it.wholeText().contains("redirectPost") }

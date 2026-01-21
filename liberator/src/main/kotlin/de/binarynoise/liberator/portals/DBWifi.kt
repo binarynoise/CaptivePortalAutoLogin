@@ -5,13 +5,11 @@ import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
-import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -25,17 +23,16 @@ object DBWifi : PortalLiberator {
         "wifi.bahn.de",
     )
     
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return locationUrl.host in domains
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.host in domains
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(locationUrl, null).followRedirects(client)
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val response1 = response.followRedirects(client)
         
         when {
             "cna" == response1.requestUrl.firstPathSegment -> {
                 log("cna")
-                val response1 = response.followRedirects(client)
                 val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}") {
                     header("X-Csrf-Token", "csrf")
                 }
@@ -45,7 +42,7 @@ object DBWifi : PortalLiberator {
                 // works
                 log("sp")
                 client.postForm(
-                    locationUrl, "/login", mapOf(
+                    response.requestUrl, "/login", mapOf(
                         "login" to "oneclick",
                         "oneSubscriptionForm_connect_policy_accept" to "on",
                     )

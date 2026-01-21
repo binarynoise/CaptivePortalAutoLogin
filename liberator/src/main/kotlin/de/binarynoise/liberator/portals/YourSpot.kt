@@ -9,19 +9,17 @@ import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("EDEKA free-wifi")
 object YourSpot : PortalLiberator {
-    override fun canSolve(locationUrl: HttpUrl, response: Response): Boolean {
-        return "cp1.your-spot.de" == locationUrl.host
+    override fun canSolve(response: Response): Boolean {
+        return "cp1.your-spot.de" == response.requestUrl.host
     }
     
-    override fun solve(locationUrl: HttpUrl, client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val html1 = response.parseHtml()
         val `csrf-token` = html1.getElementsByAttributeValue("name", "csrf-token").single().attr("content")
         val `csrf-param` = html1.getElementsByAttributeValue("name", "csrf-param").single().attr("content")
