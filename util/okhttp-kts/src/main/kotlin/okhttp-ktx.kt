@@ -21,6 +21,8 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
+import org.json.JSONArray
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
@@ -253,6 +255,27 @@ fun Response.parseHtml(skipStatusCheck: Boolean = false): Document {
     return Jsoup.parse(readText(skipStatusCheck = true), request.url.toString())
 }
 
+
+/**
+ * Parses the JSON response and returns a [JSONObject].
+ *
+ * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
+ * @return The parsed JSON as a [JSONObject]
+ */
+fun Response.parseJsonObject(skipStatusCheck: Boolean = false): JSONObject {
+    return JSONObject(this.readText(skipStatusCheck))
+}
+
+/**
+ * Parses the JSON response and returns a [JSONArray].
+ *
+ * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
+ * @return The parsed JSON as a [JSONArray]
+ */
+fun Response.parseJsonArray(skipStatusCheck: Boolean = false): JSONArray {
+    return JSONArray(this.readText(skipStatusCheck))
+}
+
 fun Document.getInput(name: String) = selectFirst("input[name=$name]")?.attr("value") ?: error("no $name")
 fun Document.hasInput(name: String) = selectFirst("input[name=$name]") != null
 
@@ -330,7 +353,7 @@ val HttpUrl.isIp: Boolean
 /**
  * Check whether the given [HttpUrl] has one or more query parameters named [name]
  */
-fun HttpUrl.hasQueryParameter(name:String): Boolean {
+fun HttpUrl.hasQueryParameter(name: String): Boolean {
     return this.queryParameterValues(name).isNotEmpty()
 }
 
