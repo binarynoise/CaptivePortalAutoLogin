@@ -18,7 +18,7 @@ import okhttp3.ConnectionPool
 fun main(args: Array<String>) = CaptivePortalAutoLoginLinux().main(args)
 
 class CaptivePortalAutoLoginLinux : CliktCommand() {
-    val service by option().flag("--oneshot", defaultForHelp = "oneshot").help { "Run as a service or only once" }
+    val oneshot by option().flag("--oneshot", default = false).help { "Run as a service (false) or only once (true)" }
     val force by option().flag()
         .help { "Force liberation without connectivity check by NetworkManager (implies --oneshot)" }
     val experimental by option().flag().help { "enable experimental and incomplete Portals" }
@@ -45,7 +45,7 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
         
         thread(block = ::startupCheck)
         
-        if (service) {
+        if (!oneshot) {
             thread(block = ::backgroundService)
             thread(block = ::keyboardInput)
         }
@@ -70,10 +70,10 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
      */
     private fun backgroundService() {
         val process = processBuilder.command("nmcli", "monitor").start()
+        val regex = "^Connectivity is now '(\\w+)'$".toRegex()
         process.inputReader().useLines { lines ->
             lines.forEach { line ->
                 log(line)
-                val regex = "^Connectivity is now '(\\w+)'$".toRegex()
                 val result = regex.matchEntire(line)
                 val connectivity = result?.groups?.get(1)?.value
                 if (connectivity != null) {
