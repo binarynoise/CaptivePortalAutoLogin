@@ -4,6 +4,7 @@ import kotlin.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.json.serializer
@@ -23,6 +24,13 @@ class ApiClient(private val base: HttpUrl) : Api {
             put("har/$name", har.toJsonElement())
         }
     }
+    
+    override val log = object : Api.Log {
+        override fun submitLog(name: String, log: LOG) {
+            put("log/$name", log.toJson())
+        }
+    }
+    
     override val liberator = object : Api.Liberator {
         override fun getLiberatorVersion(): String {
             TODO("Not yet implemented")
@@ -72,3 +80,4 @@ class ApiClient(private val base: HttpUrl) : Api {
 
 fun HAR.toJsonElement(): JsonElement = serializer.encodeToJsonElement(this)
 fun HAR.toJson(): String = prettyPrinter.encodeToString(this)
+fun LOG.toJson(): String = serializer.encodeToString(this)
