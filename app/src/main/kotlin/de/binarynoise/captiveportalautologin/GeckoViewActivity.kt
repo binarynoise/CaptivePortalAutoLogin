@@ -233,7 +233,7 @@ class GeckoViewActivity : ComponentActivity() {
         
         backgroundHandler.looper.quit()
         
-        ConnectivityChangeListenerService.forceReevaluation()
+        ConnectivityChangeListenerService.reportNetworkConnectivity()
         
         super.onDestroy()
     }
@@ -241,10 +241,10 @@ class GeckoViewActivity : ComponentActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gecko, menu)
         if (Xposed.getEnabled()) {
-            menu.add("Force Re-evaluation").also { menuItem ->
+            menu.add("Request Re-evaluation").also { menuItem ->
                 menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                 menuItem.setOnMenuItemClickListener {
-                    ConnectivityChangeListenerService.forceReevaluation()
+                    ConnectivityChangeListenerService.reportNetworkConnectivity()
                     true
                 }
             }

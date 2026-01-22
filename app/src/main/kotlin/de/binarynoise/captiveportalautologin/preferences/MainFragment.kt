@@ -18,7 +18,6 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
-import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
@@ -26,6 +25,37 @@ import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 class MainFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
+        
+        val serviceStateListeners: MutableList<(newState: ServiceState) -> Unit> = mutableListOf()
+        val networkStateListeners: MutableList<(newState: NetworkState?) -> Unit> = mutableListOf()
+        
+        @Suppress("UNUSED_PARAMETER")
+        fun updateServiceStatus(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
+            serviceStateListeners.forEach { it(newState) }
+        }
+        
+        @Suppress("UNUSED_PARAMETER")
+        fun updateNetworkStatus(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
+            networkStateListeners.forEach { it(newState) }
+        }
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                ConnectivityChangeListenerService.serviceListeners.add(::updateServiceStatus)
+                updateServiceStatus(
+                    null,
+                    ConnectivityChangeListenerService.serviceStateLock.read { ConnectivityChangeListenerService.serviceState })
+                ConnectivityChangeListenerService.networkListeners.add(::updateNetworkStatus)
+                updateNetworkStatus(null, ConnectivityChangeListenerService.networkStateLock.read {
+                    ConnectivityChangeListenerService.networkState
+                })
+            }
+            
+            override fun onDestroy(owner: LifecycleOwner) {
+                ConnectivityChangeListenerService.serviceListeners.remove(::updateServiceStatus)
+                ConnectivityChangeListenerService.networkListeners.remove(::updateNetworkStatus)
+            }
+        })
+        
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
             addPreference(Preference(ctx)) {
                 title = "ABI mismatch"
@@ -70,23 +100,12 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             addPreference(Preference(ctx)) {
                 title = "Network Status"
                 isSelectable = false
-                
-                @Suppress("UNUSED_PARAMETER")
-                fun updateStatusText(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
-                    summary = newState?.toString() ?: "Not connected to Network"
+                serviceStateListeners.add {
+                    isEnabled = it.running
                 }
-                lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onResume(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.networkListeners.add(::updateStatusText)
-                        updateStatusText(null, ConnectivityChangeListenerService.networkStateLock.read {
-                            ConnectivityChangeListenerService.networkState
-                        })
-                    }
-                    
-                    override fun onDestroy(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.networkListeners.remove(::updateStatusText)
-                    }
-                })
+                networkStateListeners.add {
+                    summary = it?.toString() ?: "Not connected to Network"
+                }
             }
             
             addPreference(SwitchPreference(ctx)) {
@@ -108,33 +127,23 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     true
                 }
                 
-                @Suppress("UNUSED_PARAMETER")
-                fun updateStatus(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
-                    isEnabled = newState.running
+                serviceStateListeners.add {
+                    isEnabled = it.running
                 }
-                
-                lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onResume(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.serviceListeners.add(::updateStatus)
-                        updateStatus(null, ConnectivityChangeListenerService.serviceState)
-                    }
-                    
-                    override fun onDestroy(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.serviceListeners.remove(::updateStatus)
-                    }
-                })
             }
             
             addPreference(Preference(ctx)) {
-                title = "Force Re-evaluation"
-                summary = "Send Intent to force android to re-evaluate the current Captive Portal."
+                title = "Request Re-evaluation"
+                summary = "Ask android to re-evaluate the current Captive Portal."
                 setOnPreferenceClickListener {
                     with(context) {
-                        ConnectivityChangeListenerService.forceReevaluation()
+                        ConnectivityChangeListenerService.reportNetworkConnectivity()
                     }
                     true
                 }
-                isVisible = Xposed.getEnabled()
+                serviceStateListeners.add {
+                    isEnabled = it.running
+                }
             }
             
             addPreference(Preference(ctx)) {

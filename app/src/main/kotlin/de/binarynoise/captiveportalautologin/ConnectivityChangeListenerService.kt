@@ -16,7 +16,6 @@ import android.app.PendingIntent.FLAG_CANCEL_CURRENT
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.Service
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -40,7 +39,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.SsidCompat.connectivityManager
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Error
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Success
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
@@ -48,7 +47,6 @@ import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.startService
-import de.binarynoise.captiveportalautologin.xposed.ReevaluationHook
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrNull
@@ -321,11 +319,13 @@ class ConnectivityChangeListenerService : Service() {
                     log("not caught in portal")
                     Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT)
                         .show()
+                    reportNetworkConnectivity(network, true)
                     // no report
                 }
                 is Liberator.LiberationResult.Success -> {
                     log("broke out of the portal")
                     Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
+                    reportNetworkConnectivity(network, true)
                     Stats.liberator.reportSuccess(
                         Success(
                             BuildConfig.VERSION_NAME,
@@ -342,6 +342,7 @@ class ConnectivityChangeListenerService : Service() {
                         "Failed to liberate: ${res.exception::class.simpleName} - ${res.message}",
                         Toast.LENGTH_SHORT
                     ).show()
+                    reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
                         Error(
                             BuildConfig.VERSION_NAME,
@@ -355,6 +356,7 @@ class ConnectivityChangeListenerService : Service() {
                 is Liberator.LiberationResult.Timeout -> {
                     log("failed to liberate: timeout")
                     Toast.makeText(applicationContext, "Failed to liberate: timeout", Toast.LENGTH_SHORT).show()
+                    reportNetworkConnectivity(network, false)
                     // no timeout report
                 }
                 is Liberator.LiberationResult.UnknownPortal -> {
@@ -362,6 +364,7 @@ class ConnectivityChangeListenerService : Service() {
                     Toast.makeText(
                         applicationContext, "Failed to liberate: unknown portal ${res.url}", Toast.LENGTH_SHORT
                     ).show()
+                    reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
                         Error(
                             BuildConfig.VERSION_NAME,
@@ -379,6 +382,7 @@ class ConnectivityChangeListenerService : Service() {
                         "Failed to liberate: still captured ${res.url}",
                         Toast.LENGTH_SHORT,
                     ).show()
+                    reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
                         Error(
                             BuildConfig.VERSION_NAME,
@@ -396,6 +400,7 @@ class ConnectivityChangeListenerService : Service() {
                         "Failed to liberate: Portal will not be supported ${res.url}",
                         Toast.LENGTH_SHORT,
                     ).show()
+                    reportNetworkConnectivity(network, false)
                     // no report
                     /*
                     Stats.liberator.reportError(
@@ -419,6 +424,7 @@ class ConnectivityChangeListenerService : Service() {
                 "Failed to liberate: ${e::class.simpleName} - $message",
                 Toast.LENGTH_LONG,
             ).show()
+            reportNetworkConnectivity(network, false)
             Stats.liberator.reportError(
                 Error(
                     BuildConfig.VERSION_NAME,
@@ -429,8 +435,6 @@ class ConnectivityChangeListenerService : Service() {
                 )
             )
         } finally {
-            forceReevaluation()
-            
             networkStateLock.write {
                 networkState = networkState?.copy(liberating = false, liberated = true)
             }
@@ -487,9 +491,6 @@ class ConnectivityChangeListenerService : Service() {
     
     object SsidCompat {
         val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
-        val connectivityManager by lazy {
-            ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!!
-        }
         
         const val UNKNOWN_SSID = "<unknown ssid>"
         
@@ -531,6 +532,9 @@ class ConnectivityChangeListenerService : Service() {
     }
     
     companion object {
+        val connectivityManager by lazy {
+            ContextCompat.getSystemService(applicationContext, ConnectivityManager::class.java)!!
+        }
         val serviceListeners: MutableSet<(oldState: ServiceState, newState: ServiceState) -> Unit> = SynchronizedSet()
         val serviceStateLock = ReentrantReadWriteLock(true)
         
@@ -593,10 +597,24 @@ class ConnectivityChangeListenerService : Service() {
             }
         }
         
-        context(context: Context)
-        fun forceReevaluation() {
-            context.sendBroadcast(Intent(ReevaluationHook.ACTION))
-            log("sent broadcast ${ReevaluationHook.ACTION}")
+        /**
+         * Report the connectivity state of [network] to the [ConnectivityManager].
+         *
+         * Please set both parameters if possible.
+         *
+         * @param network the network which the report is about, read from [networkState] if `null`
+         * @param hasConnectivity whether the [network] has connectivity or not, defaults to `true`
+         */
+        fun reportNetworkConnectivity(
+            network: Network? = null,
+            hasConnectivity: Boolean? = null,
+        ) {
+            val networkState = networkStateLock.read { networkState } ?: return
+            val network = network ?: networkState.network
+            val hasConnectivity = hasConnectivity ?: networkState.hasPortal
+            connectivityManager.reportNetworkConnectivity(network, hasConnectivity)
+            log("sent network report for $network hasConnectivity=$hasConnectivity")
+            Toast.makeText(applicationContext, "Requested Re-evaluation", Toast.LENGTH_SHORT).show()
         }
         
         init {
