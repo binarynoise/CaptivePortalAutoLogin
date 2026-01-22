@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.portalproxy.portal
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.html.*
 import kotlinx.html.stream.*
@@ -26,7 +26,8 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
         
         // Login route
         router.route("/login").handler { ctx ->
-            val ip = ctx.request().remoteAddress().host()
+            val ip = ctx.request().getRealRemoteIP()
+            
             database[ip] = false
             log("logged in $ip")
             ctx.response().putHeader("Location", "/").setStatusCode(302).end()
@@ -34,7 +35,8 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
         
         // Logout route
         router.route("/logout").handler { ctx ->
-            val ip = ctx.request().remoteAddress().host()
+            val ip = ctx.request().getRealRemoteIP()
+            
             database[ip] = true
             log("logged out $ip")
             redirect(ctx.request())
@@ -54,7 +56,7 @@ fun redirect(request: HttpServerRequest) {
 }
 
 fun checkCaptured(request: HttpServerRequest): Boolean {
-    val ip = request.remoteAddress().host()
+    val ip = request.getRealRemoteIP()
     return database[ip] ?: true
 }
 
@@ -89,6 +91,10 @@ private fun servePortalPage(request: HttpServerRequest) {
         body {
             h1 { +"Captive Portal" }
             p { +"You are currently ${if (captured) "captured" else "not captured"}" }
+            p {
+                +"Your IP is "
+                code { +request.getRealRemoteIP() }
+            }
             
             form("/login") {
                 p {
