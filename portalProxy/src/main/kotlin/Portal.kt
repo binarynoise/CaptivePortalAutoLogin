@@ -10,7 +10,7 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
-const val portalHost = "binarynoise.de"
+const val portalHost = "localhost"
 const val portalPort = 8000
 
 private val database = ConcurrentHashMap<String, Boolean>()
