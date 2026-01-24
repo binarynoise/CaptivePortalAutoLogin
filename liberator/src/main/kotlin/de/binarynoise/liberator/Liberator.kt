@@ -171,9 +171,9 @@ class Liberator(
                 return recurse(response, depth + 1)
             }
             
-            log("solver ${solver::class.simpleName} found for $response.requestUrl")
+            log("solver ${solver::class.simpleName} found for ${response.requestUrl}")
             solver.solve(client, response, cookies)
-            log("solver ${solver::class.simpleName} finished processing $response.requestUrl")
+            log("solver ${solver::class.simpleName} finished processing ${response.requestUrl}")
             
             return LiberationResult.Success(response.requestUrl.toString())
         } catch (e: Exception) {

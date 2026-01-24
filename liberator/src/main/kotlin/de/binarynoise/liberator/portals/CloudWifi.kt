@@ -13,6 +13,7 @@ import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -73,13 +74,13 @@ object CloudWifiRedirect : PortalLiberator {
             .getElementsByTag("script")
             .map { it.attr("src") }
             .filter { it.isNotEmpty() }
-            .map { it.toHttpUrl() }
+            .mapNotNull { it.toHttpUrlOrNull() }
             .any { url -> url.host == "start.cloudwifi.de" && url.pathSegments.any { it == "redirect" } }
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val html1 = response.parseHtml()
-        val script1 = html1.getElementsByTag("body").single().getElementsByTag("script").single().wholeText()
+        val script1 = html1.getElementsByTag("body").single().getElementsByTag("script").single().data()
         val assignments = RhinoParser().parseAssignments(script1)
         
         val deviceMac = assignments["FX_redirect.0"] ?: error("no deviceMac")

@@ -3,6 +3,7 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.cast
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.postJson
@@ -61,7 +62,7 @@ object Unwired : PortalLiberator {
         )
         val json1 = JSONObject(response1.readText())
         
-        val pages = json1.getJSONObject("data").getJSONObject("splashpage").getJSONArray("pages")
+        val pages = json1.getJSONObject("data").getJSONObject("splashpage").getJSONArray("pages").asIterable()
         
         val widgets = pages.flatMap { it.cast<JSONObject>().getJSONArray("widgets") }
         

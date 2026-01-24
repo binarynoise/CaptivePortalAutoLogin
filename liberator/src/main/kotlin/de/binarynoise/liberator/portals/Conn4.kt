@@ -202,7 +202,7 @@ object Conn4 : PortalLiberator {
     }
     
     fun getTariffPreference(session: JSONObject): List<JSONObject> {
-        val tariffs = session.getJSONArray("tariffs").filterIsInstance<JSONObject>()
+        val tariffs = session.getJSONArray("tariffs").asIterable().filterIsInstance<JSONObject>()
         if (tariffs.hasOneEntry) return tariffs
         fun JSONObject.isBooleanEqualTo(key: String, value: Boolean, default: Boolean): Boolean {
             if (!this.has(key)) return default
@@ -359,7 +359,7 @@ object Conn4 : PortalLiberator {
         cookies: Set<Cookie>,
     ) {
         val token = cookies.find { it.name == "wbs-token" }?.value ?: error("no wbs-token cookie")
-        val apiBase = response.requestUrl.resolveOrThrow("/wbs/api/v1") // TODO: properly parse wbs api base from scrips
+        val apiBase = response.requestUrl.resolveOrThrow("/wbs/api/v1/") // TODO: properly parse wbs api base from scrips
         tryPossibleTariffs(client, apiBase, token, site_id)
     }
 }

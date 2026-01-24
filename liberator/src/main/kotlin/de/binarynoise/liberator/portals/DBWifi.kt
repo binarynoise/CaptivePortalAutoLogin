@@ -39,10 +39,9 @@ object DBWifi : PortalLiberator {
                 check(JSONObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
             }
             "sp" == response1.requestUrl.firstPathSegment -> {
-                // works
                 log("sp")
                 client.postForm(
-                    response.requestUrl, "/login", mapOf(
+                    response1.requestUrl, "/login", mapOf(
                         "login" to "oneclick",
                         "oneSubscriptionForm_connect_policy_accept" to "on",
                     )

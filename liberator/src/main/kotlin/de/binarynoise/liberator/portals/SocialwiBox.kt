@@ -34,11 +34,11 @@ object SocialwiBox : PortalLiberator {
         val response3 = client.get(response.requestUrl, location2).followRedirects(client)
         val html3 = response3.parseHtml()
         
-        val script3 = html3.getElementsByTag("script").find { it.wholeText().contains("redirectPost") }
+        val script3 = html3.getElementsByTag("script").find { it.data().contains("redirectPost") }
             ?: error("no script with redirectPost")
         
         val regex = "redirectPost\\('([^']+)',\\s*(\\{.*\\})\\);".toRegex()
-        val match = regex.find(script3.wholeText()) ?: error("no match for redirectPost regex")
+        val match = regex.find(script3.data()) ?: error("no match for redirectPost regex")
         val url = match.groups[1]?.value ?: error("no url in match")
         val data = match.groups[2]?.value ?: error("no data in match")
         val json = JSONObject(data)
