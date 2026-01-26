@@ -10,6 +10,7 @@ import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.resolveOrThrow
 import okhttp3.Cookie
 import okhttp3.FormBody
+import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -153,11 +154,13 @@ class Liberator(
     }
     
     private fun recurse(responseWithRedirect: Response, depth: Int): LiberationResult {
+        var locationUrl: HttpUrl? = null
         try {
             val location = responseWithRedirect.getLocation()
             if (location.isNullOrBlank()) return LiberationResult.UnknownPortal(responseWithRedirect.requestUrl.toString())
             
-            val response = client.get(responseWithRedirect.requestUrl.resolveOrThrow(location), null)
+            locationUrl = responseWithRedirect.requestUrl.resolveOrThrow(location)
+            val response = client.get(locationUrl, null)
             
             val solver: PortalLiberator? = allPortalLiberators.firstOrNull { solver ->
                 solver.canSolve(response) && (!solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)))
@@ -177,7 +180,7 @@ class Liberator(
             
             return LiberationResult.Success(response.requestUrl.toString())
         } catch (e: Exception) {
-            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
+            return LiberationResult.Error(locationUrl?.toString() ?: responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
         }
     }
     
