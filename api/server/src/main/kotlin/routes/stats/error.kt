@@ -55,6 +55,8 @@ internal fun Route.errorRoutes() {
                                         (Tables.Errors.message like "Unable to resolve host %") or //
                                         (Tables.Errors.message like "Software caused connection abort") or //
                                         (Tables.Errors.message like "Binding socket to network % failed: %") or //
+                                        (Tables.Errors.message like "Chain validation failed") or //
+                                        (Tables.Errors.message like "java.security.cert.CertPathValidatorException: %") or //
                                         (Op.FALSE)
                                 )
                             }
