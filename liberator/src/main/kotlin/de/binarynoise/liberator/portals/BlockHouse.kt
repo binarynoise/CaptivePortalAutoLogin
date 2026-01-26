@@ -5,6 +5,7 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
@@ -26,21 +27,19 @@ object BlockHouse : PortalLiberator {
         val hs_server = response.requestUrl.queryParameter("hs_server") ?: error("no hs_server")
         val Qv = response.requestUrl.queryParameter("Qv") ?: error("no Qv")
         
-        val scriptNode = response.parseHtml()
-            .getElementsByTag("script")
+        val html = response.parseHtml()
+        
+        val scriptNode = html.getElementsByTag("script")
             .find { listOf("postToUrl", "port", "hs_server").all { str -> it.data().contains(str) } }
             ?: error("no script found")
         val assignments = RhinoParser().parseAssignments(scriptNode.data())
         val port = assignments["port"] ?: error("no port")
         val postToUrl = assignments["postToUrl"] ?: error("no postToUrl")
-        val hs_server_url = hs_server.toHttpUrlOrNull() ?: error("failed to parse hs_server")
-        val baseUrl =
-            "${hs_server_url.scheme}://${hs_server_url.host}:$port${hs_server_url.encodedPath}".toHttpUrlOrNull()
-                ?: error("failed to parse baseUrl")
+        val baseUrl = "http://$hs_server:$port".toHttpUrlOrNull() ?: error("failed to parse baseUrl")
         client.postForm(
             baseUrl, postToUrl, mapOf(
                 "f_agree" to "",
-                "submit" to "Ich stimme zu | I agree",
+                "submit" to html.getInput("submit"),
                 "f_Qv" to Qv,
                 "f_hs_server" to hs_server,
                 "f_curr_time" to Date().time.toString(),
