@@ -25,6 +25,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.FormElement
 import org.jsoup.parser.Parser
 
 /**
@@ -287,8 +289,8 @@ fun Response.parseJsonArray(skipStatusCheck: Boolean = false): JSONArray {
     return JSONArray(this.readText(skipStatusCheck))
 }
 
-fun Document.getInput(name: String) = selectFirst("input[name=$name]")?.attr("value") ?: error("no $name")
-fun Document.hasInput(name: String) = selectFirst("input[name=$name]") != null
+fun Element.getInput(name: String) = selectFirst("input[name=$name]")?.attr("value") ?: error("no $name")
+fun Element.hasInput(name: String) = selectFirst("input[name=$name]") != null
 
 private val cache = mutableMapOf<Response, String>()
 private val executor = Executors.newSingleThreadScheduledExecutor {
@@ -435,3 +437,12 @@ fun String.decodeHtml(): String = Parser.unescapeEntities(this, false)
  * @return The decoded string.
  */
 fun String.decodeUrl(): String = URLDecoder.decode(this, "UTF-8")
+
+/**
+ * Convert all of this forms inputs into a parameter map that can be used in requests.
+ */
+fun FormElement.toParameterMap() : Map<String,String> {
+    return this.getElementsByTag("input")
+        .filter { it.attr("name").isNotEmpty() }
+        .associate { it.attr("name") to it.attr("value") }
+}

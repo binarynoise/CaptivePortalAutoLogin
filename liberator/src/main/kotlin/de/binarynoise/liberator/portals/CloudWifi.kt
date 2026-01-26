@@ -5,17 +5,18 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
-import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
+import de.binarynoise.util.okhttp.toParameterMap
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.FormElement
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("-free Milaneo Stuttgart")
@@ -27,38 +28,47 @@ object CloudWifi : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val html1 = response.parseHtml()
         
+        val forms = html1.getElementsByTag("form")
+        check(forms.isNotEmpty()) { "no forms" }
+        val easyLoginForm = forms.firstOrNull { form ->
+            form.getElementsByTag("input").any { input ->
+                input.attr("name") == "FX_loginType" && input.attr("value") == "Easy Login"
+            }
+        } as FormElement?
+        check(easyLoginForm != null) { "easyLoginForm is null" }
+        
         val response2 = client.postForm(
-            response.requestUrl, null, mapOf(
-                "FX_lang" to html1.getInput("FX_lang"),
-                "FX_loginTemplate" to html1.getInput("FX_loginTemplate"),
-                "FX_loginType" to html1.getInput("FX_loginType"),
-                "FX_password" to html1.getInput("FX_password"),
-                "FX_username" to html1.getInput("FX_username"),
-                "called" to html1.getInput("called"),
-                "cbQpC" to html1.getInput("cbQpC"),
-                "challenge" to html1.getInput("challenge"),
-                "ip" to html1.getInput("ip"),
-                "mac" to html1.getInput("mac"),
-                "nasid" to html1.getInput("nasid"),
-                "sessionid" to html1.getInput("sessionid"),
-                "uamip" to html1.getInput("uamip"),
-                "uamport" to html1.getInput("uamport"),
-                "userurl" to html1.getInput("userurl"),
-            )
+            response.requestUrl,
+            easyLoginForm.attribute("action")?.value,
+            easyLoginForm.toParameterMap(),
         )
         
-        // TODO: proper javascript parsing
-        val html2 = response2.readText()
-        val start = html2.indexOf("window.location.replace('")
-        val end = html2.indexOf("')", start)
-        val url2 = html2.substring(start + "window.location.replace('".length, end)
-        check(url2.isNotBlank()) { "no url2" }
-        
-        val response3 = client.get(response.requestUrl, url2)
-        val url3 = response3.getLocation() ?: error("no url3")
-        val res = url3.toHttpUrl().queryParameter("res")
-        check(res == "success") { "res=$res" }
-        client.get(response.requestUrl, url3).checkSuccess()
+        val html2 = response2.parseHtml()
+        when {
+            html2.getElementsByTag("script").any { it.data().contains("window.location.replace('") } -> {
+                // TODO: proper javascript parsing
+                val html2 = response2.readText()
+                val start = html2.indexOf("window.location.replace('")
+                val end = html2.indexOf("')", start)
+                val url2 = html2.substring(start + "window.location.replace('".length, end)
+                check(url2.isNotBlank()) { "no url2" }
+                
+                val response3 = client.get(response.requestUrl, url2)
+                val url3 = response3.getLocation() ?: error("no url3")
+                val res = url3.toHttpUrl().queryParameter("res")
+                check(res == "success") { "res=$res" }
+                client.get(response.requestUrl, url3).checkSuccess()
+            }
+            html2.selectFirst("form[name=hotspotlogin]") != null -> {
+                val hotspotLoginForm = html2.selectFirst("form[name=hotspotlogin") as FormElement
+                client.postForm(
+                    response.requestUrl,
+                    hotspotLoginForm.attribute("action")?.value,
+                    hotspotLoginForm.toParameterMap(),
+                ).checkSuccess()
+            }
+            else -> error("no secondary route matched")
+        }
     }
 }
 
