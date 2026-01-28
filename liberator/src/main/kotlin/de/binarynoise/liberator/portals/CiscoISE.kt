@@ -16,10 +16,10 @@ import okhttp3.Response
 @SSID("SSB fuer Dich - WiFi Free")
 object CiscoISE : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.port == 8443 // Cisco ISE portal port
-            && response.isRedirect && response.requestUrl.encodedPath == "/portal/gateway" // redirect to Cisco ISE CWA service
+        return response.isRedirect && response.requestUrl.encodedPath == "/portal/gateway" // redirect to Cisco ISE CWA service
             && response.requestUrl.queryParameter("action") == "cwa" // CWA (Central Web Authentication)
             && response.requestUrl.queryParameter("type") == "drw" // DRW (Device Registration Web Authentication) is used for no-login guest WiFis
+        // Cisco ISE portal port should be 8443, but was observed to be 8448 @ gast11.ssb-ag.de
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
