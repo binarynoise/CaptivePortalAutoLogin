@@ -49,6 +49,7 @@ import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.startService
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.cast
+import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
 
@@ -242,6 +243,7 @@ class ConnectivityChangeListenerService : Service() {
     
     fun updateNetworkState(network: Network, networkCapabilities: NetworkCapabilities) {
         val hasPortal = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL)
+        val network = tryOrDefault(network) { disablePrivateDns(network) }
         
         val oldState = networkStateLock.read { networkState }
         if (oldState == null) {
@@ -268,6 +270,28 @@ class ConnectivityChangeListenerService : Service() {
         }
         
         backgroundHandler.post(::tryLiberate)
+    }
+    
+    @Throws(ReflectiveOperationException::class, IllegalArgumentException::class, NoSuchElementException::class)
+    fun disablePrivateDns(network: Network): Network {
+        when {
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.P -> {
+                network::class.java.declaredMethods.single { it.name == "setPrivateDnsBypass" }(network, true)
+                return network
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
+                val getPrivateDnsBypassingCopyMethod =
+                    network::class.java.declaredMethods.single { it.name == "getPrivateDnsBypassingCopy" }
+                return getPrivateDnsBypassingCopyMethod(network) as Network
+            }
+            else -> return network
+        }
+    }
+    
+    @Throws(ReflectiveOperationException::class, IllegalArgumentException::class, NoSuchElementException::class)
+    fun getPrivateDnsBypass(network: Network): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) throw NoSuchElementException("private dns bypass doesn't exist on ${Build.VERSION.SDK_INT}")
+        return network::class.java.declaredFields.single { it.name == "mPrivateDnsBypass" }.get(network) as Boolean
     }
     
     @WorkerThread
