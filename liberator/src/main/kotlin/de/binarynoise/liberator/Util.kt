@@ -88,3 +88,36 @@ fun JSONArray.asIterable(): Iterable<Any> = /*if (this is Iterable<Any>) this el
         override fun next(): Any = get(index++)
     }
 }
+
+class NoSuccessException(message: String) : Exception(message)
+
+fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
+    val exceptions = mutableListOf<Throwable>()
+    for (result in this) {
+        result.onSuccess { return result }
+        result.onFailure { exceptions.add(it) }
+    }
+    val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
+    for (exception in exceptions) {
+        wrapper.addSuppressed(exception)
+    }
+    return Result.failure(wrapper)
+}
+
+fun <T> List<Result<T>>.successes(): Result<List<T>> {
+    val exceptions = mutableListOf<Throwable>()
+    val successes = mutableListOf<T>()
+    for (result in this) {
+        result.onSuccess { successes.add(it) }
+        result.onFailure { exceptions.add(it) }
+    }
+    if (successes.isNotEmpty()) {
+        return Result.success(successes)
+    }
+    
+    val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
+    for (exception in exceptions) {
+        wrapper.addSuppressed(exception)
+    }
+    return Result.failure(wrapper)
+}

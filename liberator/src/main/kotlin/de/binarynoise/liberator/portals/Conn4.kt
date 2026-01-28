@@ -4,6 +4,8 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
+import de.binarynoise.liberator.firstSuccess
+import de.binarynoise.liberator.successes
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
@@ -375,34 +377,3 @@ fun Element.getScriptData(client: OkHttpClient): String {
 }
 
 val <T> List<T>.hasOneEntry: Boolean get() = this.size == 1
-
-fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
-    val exceptions = mutableListOf<Throwable>()
-    for (result in this) {
-        result.onSuccess { return result }
-        result.onFailure { exceptions.add(it) }
-    }
-    val exception = NoSuchElementException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
-    for (exception in exceptions) {
-        exception.addSuppressed(exception)
-    }
-    return Result.failure(exception)
-}
-
-fun <T> List<Result<T>>.successes(): Result<List<T>> {
-    val exceptions = mutableListOf<Throwable>()
-    val successes = mutableListOf<T>()
-    for (result in this) {
-        result.onSuccess { successes.add(it) }
-        result.onFailure { exceptions.add(it) }
-    }
-    if (successes.isNotEmpty()) {
-        return Result.success(successes)
-    }
-    
-    val exception = NoSuchElementException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
-    for (exception in exceptions) {
-        exception.addSuppressed(exception)
-    }
-    return Result.failure(exception)
-}
