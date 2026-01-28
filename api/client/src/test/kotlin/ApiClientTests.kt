@@ -104,6 +104,8 @@ class ApiClientTests {
                     "test host",
                     "test url",
                     "test error",
+                    "test solver",
+                    "test stack trace",
                 )
             )
         }
@@ -114,8 +116,9 @@ class ApiClientTests {
                 Api.Liberator.Success(
                     "test ssid",
                     System.currentTimeMillis(),
-                    "test ssid",
                     "test url",
+                    "test solver",
+                    "test ssid",
                 )
             )
         }
@@ -123,10 +126,11 @@ class ApiClientTests {
         @Test
         fun `reportSuccess - count`() {
             val success = Api.Liberator.Success(
-                "test ssid",
+                "test version",
                 System.currentTimeMillis(),
                 "test ssid",
                 "test url",
+                "test solver",
             )
             
             client.liberator.reportSuccess(success)
@@ -139,6 +143,7 @@ class ApiClientTests {
                     dateTime.month.number,
                     success.ssid,
                     success.url,
+                    success.solver.orEmpty()
                 )
             }
             assertEquals(1, count)
@@ -152,6 +157,7 @@ class ApiClientTests {
                     dateTime.month.number,
                     success.ssid,
                     success.url,
+                    success.solver.orEmpty()
                 )
             }
             assertEquals(2, count2)

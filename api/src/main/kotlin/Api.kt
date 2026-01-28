@@ -22,6 +22,9 @@ interface Api {
             val ssid: String,
             val url: String,
             val message: String,
+            // TODO: eventually remove nullable
+            val solver: String?,
+            val stackTrace: String?,
         )
         
         @Serializable
@@ -30,6 +33,8 @@ interface Api {
             val timestamp: Long,
             val ssid: String,
             val url: String,
+            // TODO: eventually remove nullable
+            val solver: String?,
         )
         
         fun reportError(error: Error)

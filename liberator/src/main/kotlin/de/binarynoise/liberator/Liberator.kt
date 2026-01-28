@@ -148,7 +148,7 @@ class Liberator(
         return if (location.isNullOrBlank()) {
             res
         } else {
-            LiberationResult.StillCaptured(location)
+            LiberationResult.StillCaptured(location, res.solvers)
         }
     }
     
@@ -159,7 +159,7 @@ class Liberator(
             
             responseWithRedirect.requestUrl.resolveOrThrow(location)
         } catch (e: Exception) {
-            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
+            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e.message.orEmpty(), "", e)
         }
         log("locationUrl: $locationUrl")
         try {
@@ -191,25 +191,36 @@ class Liberator(
                     solver.solve(client, response, cookies)
                     log("solver ${solver::class.simpleName} finished processing")
                 }
-            }.successes().getOrElse {
-                throw IllegalStateException("all PortalLiberators failed:" + it.message, it)
+            }.successes().getOrElse { throwable ->
+                val e = IllegalStateException("all PortalLiberators failed:" + throwable.message, throwable)
+                return LiberationResult.Error(
+                    locationUrl.toString(),
+                    e.message.orEmpty(),
+                    solvers.joinToString { it::class.simpleName.orEmpty() },
+                    throwable,
+                )
             }.forEach {
                 log("liberated by ${it::class.simpleName}")
             }
-            return LiberationResult.Success(response.requestUrl.toString())
+            return LiberationResult.Success(
+                response.requestUrl.toString(),
+                solvers.joinToString { it::class.simpleName.orEmpty() },
+            )
         } catch (e: Exception) {
-            return LiberationResult.Error(locationUrl.toString(), e, e.message.orEmpty())
+            return LiberationResult.Error(locationUrl.toString(), e.message.orEmpty(), "", e)
         }
     }
     
     sealed class LiberationResult {
         data object NotCaught : LiberationResult()
         
-        data class Success(val url: String) : LiberationResult()
+        data class Success(val url: String, val solvers: String) : LiberationResult()
         data class Timeout(val url: String) : LiberationResult()
-        data class Error(val url: String, val exception: Throwable, val message: String) : LiberationResult()
+        data class Error(val url: String, val message: String, val solvers: String, val exception: Throwable) :
+            LiberationResult()
+        
         data class UnknownPortal(val url: String) : LiberationResult()
-        data class StillCaptured(val url: String) : LiberationResult()
+        data class StillCaptured(val url: String, val solvers: String) : LiberationResult()
         data class UnsupportedPortal(val url: String) : LiberationResult()
     }
 }

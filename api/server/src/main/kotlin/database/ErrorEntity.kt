@@ -12,4 +12,6 @@ data class ErrorEntity(
     val ssid: String,
     val url: String,
     val message: String,
+    val solver: String,
+    val stackTrace: String,
 )

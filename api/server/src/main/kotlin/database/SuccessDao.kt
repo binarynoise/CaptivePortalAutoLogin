@@ -6,18 +6,18 @@ import androidx.room.Query
 @Dao
 interface SuccessDao {
     
-    @Query("SELECT count FROM successes WHERE version = :version AND year = :year AND month = :month AND ssid = :ssid AND url = :url")
-    suspend fun getCount(version: String, year: Int, month: Int, ssid: String, url: String): Int?
+    @Query("SELECT count FROM successes WHERE version = :version AND year = :year AND month = :month AND ssid = :ssid AND url = :url AND solver = :solver")
+    suspend fun getCount(version: String, year: Int, month: Int, ssid: String, url: String, solver: String): Int?
     
     @Query(
         """
-        INSERT INTO successes (version, year, month, ssid, url, count)
-        VALUES (:version, :year, :month, :ssid, :url, 1)
-        ON CONFLICT(version, year, month, ssid, url) 
+        INSERT INTO successes (version, year, month, ssid, url, solver, count)
+        VALUES (:version, :year, :month, :ssid, :url, :solver, 1)
+        ON CONFLICT(version, year, month, ssid, url, solver) 
         DO UPDATE SET count = count + 1
         """
     )
-    suspend fun insertOrIncrement(version: String, year: Int, month: Int, ssid: String, url: String)
+    suspend fun insertOrIncrement(version: String, year: Int, month: Int, ssid: String, url: String, solver: String)
     
     @Query("SELECT * FROM successes")
     suspend fun getAllSuccesses(): List<SuccessEntity>

@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 2,
-    "identityHash": "5e06617e3b53281179c02856b5f4a5c4",
+    "version": 3,
+    "identityHash": "849053778ccd57dbfa96fe40f8f7b547",
     "entities": [
       {
         "tableName": "errors",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `version` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `ssid` TEXT NOT NULL, `url` TEXT NOT NULL, `message` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `version` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `ssid` TEXT NOT NULL, `url` TEXT NOT NULL, `message` TEXT NOT NULL, `solver` TEXT NOT NULL, `stackTrace` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -43,6 +43,18 @@
             "columnName": "message",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "solver",
+            "columnName": "solver",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stackTrace",
+            "columnName": "stackTrace",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -54,7 +66,7 @@
       },
       {
         "tableName": "successes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`version` TEXT NOT NULL, `year` INTEGER NOT NULL, `month` INTEGER NOT NULL, `ssid` TEXT NOT NULL, `url` TEXT NOT NULL, `count` INTEGER NOT NULL, PRIMARY KEY(`version`, `year`, `month`, `ssid`, `url`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`version` TEXT NOT NULL, `year` INTEGER NOT NULL, `month` INTEGER NOT NULL, `ssid` TEXT NOT NULL, `url` TEXT NOT NULL, `solver` TEXT NOT NULL, `count` INTEGER NOT NULL, PRIMARY KEY(`version`, `year`, `month`, `ssid`, `url`, `solver`))",
         "fields": [
           {
             "fieldPath": "version",
@@ -87,6 +99,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "solver",
+            "columnName": "solver",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
             "fieldPath": "count",
             "columnName": "count",
             "affinity": "INTEGER",
@@ -100,14 +118,15 @@
             "year",
             "month",
             "ssid",
-            "url"
+            "url",
+            "solver"
           ]
         }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5e06617e3b53281179c02856b5f4a5c4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '849053778ccd57dbfa96fe40f8f7b547')"
     ]
   }
 }

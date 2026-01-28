@@ -68,6 +68,8 @@ class ApiServer(root: Path = Path(".")) : Api {
                     ssid = error.ssid,
                     url = error.url,
                     message = error.message,
+                    solver = error.solver.orEmpty(),
+                    stackTrace = error.stackTrace.orEmpty()
                 )
                 database.errorDao().insert(errorEntity)
             }
@@ -83,6 +85,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     month = d.month.number,
                     ssid = success.ssid,
                     url = success.url,
+                    solver = success.solver.orEmpty(),
                 )
             }
             log("Stored Api.Liberator.Success: $success")
