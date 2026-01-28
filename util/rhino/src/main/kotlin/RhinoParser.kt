@@ -4,21 +4,24 @@ import de.binarynoise.logger.Logger.log
 import org.mozilla.javascript.Node
 import org.mozilla.javascript.Parser
 import org.mozilla.javascript.ast.AbstractObjectProperty
+import org.mozilla.javascript.ast.ArrayLiteral
 import org.mozilla.javascript.ast.Assignment
 import org.mozilla.javascript.ast.AstNode
 import org.mozilla.javascript.ast.ElementGet
 import org.mozilla.javascript.ast.FunctionCall
+import org.mozilla.javascript.ast.KeywordLiteral
 import org.mozilla.javascript.ast.Name
 import org.mozilla.javascript.ast.NumberLiteral
 import org.mozilla.javascript.ast.ObjectLiteral
 import org.mozilla.javascript.ast.ObjectProperty
 import org.mozilla.javascript.ast.PropertyGet
+import org.mozilla.javascript.ast.SpreadObjectProperty
 import org.mozilla.javascript.ast.StringLiteral
 import org.mozilla.javascript.ast.VariableInitializer
 
 class RhinoParser(private val debug: Boolean = false) {
     
-    fun parseAssignments(js: String, onlyVariableInitializer: Boolean = false): Map<String, String> {
+    fun parseAssignments(js: String, onlyFirstOccurrence: Boolean = false): Map<String, String> {
         val parser = Parser()
         val ast = parser.parse(js, null, 0) ?: return emptyMap()
         
@@ -36,34 +39,34 @@ class RhinoParser(private val debug: Boolean = false) {
             when (node) {
                 is VariableInitializer -> {
                     val name = (node.target as? Name)?.identifier ?: return@visit true
-                    val value = getValueString(node.initializer, js)
+                    val value = getValueString(node.initializer)
                     if (debug) println("Found variable: $name = $value")
-                    assignments[name] = value
+                    if (name !in assignments || !onlyFirstOccurrence) assignments[name] = value
                     
                     // Process object literals to extract their properties
                     if (node.initializer is ObjectLiteral) {
-                        processObjectLiteral(node.initializer as ObjectLiteral, name, assignments, js)
+                        processObjectLiteral(node.initializer as ObjectLiteral, name, assignments)
                     }
                 }
                 
-                is Assignment if !onlyVariableInitializer -> {
+                is Assignment -> {
                     val pathSegments = buildPropertyPath(node.left)
                     if (pathSegments.isNotEmpty()) {
-                        val value = getValueString(node.right, js)
+                        val value = getValueString(node.right)
                         val fullPath = pathSegments.joinToString(".")
                         if (debug) println("$fullPath = $value")
-                        assignments[fullPath] = value
+                        if (fullPath !in assignments || !onlyFirstOccurrence) assignments[fullPath] = value
                         
                         // Process object literals in assignments
                         if (node.right is ObjectLiteral) {
-                            processObjectLiteral(node.right as ObjectLiteral, fullPath, assignments, js)
+                            processObjectLiteral(node.right as ObjectLiteral, fullPath, assignments)
                         }
                     }
                 }
                 
                 is FunctionCall -> {
-                    val name = getValueString(node.target, js)
-                    val args = node.arguments.map { getValueString(it, js) }
+                    val name = getValueString(node.target)
+                    val args = node.arguments.map { getValueString(it) }
                     if (debug) println("$name(${args.joinToString(", ")})")
                     args.forEachIndexed { i, arg ->
                         assignments["$name.$i"] = arg
@@ -80,20 +83,26 @@ class RhinoParser(private val debug: Boolean = false) {
         obj: ObjectLiteral,
         parentPath: String,
         assignments: MutableMap<String, String>,
-        js: String,
     ) {
         obj.elements.forEach { prop: AbstractObjectProperty ->
-            prop as ObjectProperty
-            val propName = getValueString(prop.key, js)
-            val fullPath = "$parentPath.$propName"
-            val value = getValueString(prop.value, js)
-            if (debug) println("  $fullPath = $value")
-            assignments[fullPath] = value
-            
-            // Recursively process nested object literals
-            if (prop.value is ObjectLiteral) {
-                processObjectLiteral(prop.value as ObjectLiteral, fullPath, assignments, js)
+            when (prop) {
+                is ObjectProperty -> {
+                    val propName = getValueString(prop.key)
+                    val fullPath = "$parentPath.$propName"
+                    val value = getValueString(prop.value)
+                    if (debug) println("  $fullPath = $value")
+                    assignments[fullPath] = value
+                    
+                    // Recursively process nested object literals
+                    if (prop.value is ObjectLiteral) {
+                        processObjectLiteral(prop.value as ObjectLiteral, fullPath, assignments)
+                    }
+                }
+                is SpreadObjectProperty -> {
+                    if (debug) println("Unsupported SpreadObjectProperty ${prop.toSource()}")
+                }
             }
+            
         }
     }
     
@@ -107,6 +116,8 @@ class RhinoParser(private val debug: Boolean = false) {
                     is StringLiteral -> keyNode.value
                     is Name -> keyNode.identifier
                     is NumberLiteral -> keyNode.value
+                    is KeywordLiteral -> keyNode.toSource()
+                    
                     else -> {
                         if (debug) println("Unsupported dynamic key: ${keyNode::class.simpleName}")
                         return emptyList()
@@ -119,16 +130,19 @@ class RhinoParser(private val debug: Boolean = false) {
         }
     }
     
-    private fun getValueString(node: Node?, js: String): String = when (node) {
+    private fun getValueString(node: Node?): String = when (node) {
         null -> "null"
         is StringLiteral -> node.value
         is Name -> node.identifier
         is NumberLiteral -> node.value
-        is ElementGet -> "${getValueString(node.target, js)}[${getValueString(node.element, js)}]"
+        is ElementGet -> "${getValueString(node.target)}[${getValueString(node.element)}]"
+        is PropertyGet -> "${getValueString(node.target)}.${getValueString(node.property)}"
+        is KeywordLiteral, is ObjectLiteral, is ArrayLiteral -> node.toSource()
         is AstNode -> {
             // Fallback: return the raw source code
-            log("using Fallback to return the raw source code")
-            js.substring(node.absolutePosition, node.absolutePosition + node.length).trim().trimEnd(';')
+            val source = node.toSource()
+            if (debug) log("used Fallback to return the raw source code: $source, node: ${node::class.simpleName}")
+            source
         }
         else -> "?"
     }

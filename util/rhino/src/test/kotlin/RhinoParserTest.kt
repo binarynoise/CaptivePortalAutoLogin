@@ -9,8 +9,60 @@ class RhinoParserTest {
     private val parser = RhinoParser(debug = true)
     
     @ParameterizedTest
-    @MethodSource("assignmentTestCases")
-    fun `findAssignment should find correct values`(js: String, path: String, expected: String?, count: Int) {
+    @MethodSource("singleAssignmentPerVariableTestCases")
+    fun `findAssignment should find correct variable initializers`(
+        js: String,
+        path: String,
+        expected: String?,
+        count: Int,
+    ) {
+        val assignments = parser.parseAssignments(js)
+        assertEquals(count, assignments.size, "Expected $count assignments but got ${assignments.size} in JS: $js")
+        assertEquals(expected, assignments[path], "Expected '$expected' for path '$path' in JS: $js")
+    }
+    
+    @ParameterizedTest
+    @MethodSource("singleAssignmentPerVariableTestCases")
+    fun `findAssignment should find correct assignments`(js: String, path: String, expected: String?, count: Int) {
+        val assignments = parser.parseAssignments(js.replace("var", ""))
+        assertEquals(count, assignments.size, "Expected $count assignments but got ${assignments.size} in JS: $js")
+        assertEquals(expected, assignments[path], "Expected '$expected' for path '$path' in JS: $js")
+    }
+    
+    @ParameterizedTest
+    @MethodSource("multipleAssignmentsPerVariableTestCases")
+    fun `findAssignment should find correct assignments with multiple assignments per variable`(
+        js: String,
+        path: String,
+        expected: Pair<String?, String?>,
+        count: Int,
+    ) {
+        val assignments = parser.parseAssignments(js)
+        assertEquals(count, assignments.size, "Expected $count assignments but got ${assignments.size} in JS: $js")
+        assertEquals(expected.second, assignments[path], "Expected '$expected' for path '$path' in JS: $js")
+    }
+    
+    @ParameterizedTest
+    @MethodSource("multipleAssignmentsPerVariableTestCases")
+    fun `findAssignment should find correct variable initializers with multiple assignments per variable`(
+        js: String,
+        path: String,
+        expected: Pair<String?, String?>,
+        count: Int,
+    ) {
+        val assignments = parser.parseAssignments(js, onlyFirstOccurrence = true)
+        assertEquals(count, assignments.size, "Expected $count assignments but got ${assignments.size} in JS: $js")
+        assertEquals(expected.first, assignments[path], "Expected '$expected' for path '$path' in JS: $js")
+    }
+    
+    @ParameterizedTest
+    @MethodSource("propertyPathTestCases")
+    fun `buildPropertyPath should handle different node types correctly`(
+        js: String,
+        path: String,
+        expected: String?,
+        count: Int,
+    ) {
         val assignments = parser.parseAssignments(js)
         assertEquals(count, assignments.size, "Expected $count assignments but got ${assignments.size} in JS: $js")
         assertEquals(expected, assignments[path], "Expected '$expected' for path '$path' in JS: $js")
@@ -18,7 +70,7 @@ class RhinoParserTest {
     
     companion object {
         @JvmStatic
-        fun assignmentTestCases(): List<Arguments> {
+        fun singleAssignmentPerVariableTestCases(): List<Arguments> {
             return buildList {
                 // non-existent
                 +Arguments.of("var a = 1;", "non.existent", null, 1)
@@ -109,6 +161,65 @@ class RhinoParserTest {
                 // function calls
                 +Arguments.of("""a("test");""", "a.0", "test", 1)
                 +Arguments.of("""a.b("test");""", "a.b.0", "test", 1)
+            }
+        }
+        
+        @JvmStatic
+        fun propertyPathTestCases(): List<Arguments> {
+            return buildList {
+                // Name node branch - simple variable
+                +Arguments.of("var x = 1;", "x", "1", 1)
+                
+                // PropertyGet branch - simple property access
+                +Arguments.of("obj.prop = 'value';", "obj.prop", "value", 1)
+                
+                // PropertyGet branch - nested property access
+                +Arguments.of("a.b.c = 'nested';", "a.b.c", "nested", 1)
+                
+                // PropertyGet branch - deeply nested
+                +Arguments.of("very.deep.nested.property.path = 'test';", "very.deep.nested.property.path", "test", 1)
+                
+                // ElementGet branch - string literal keys
+                +Arguments.of("obj['key'] = 'stringKey';", "obj.key", "stringKey", 1)
+                +Arguments.of("obj['key with spaces'] = 'stringKey';", "obj.key with spaces", "stringKey", 1)
+                +Arguments.of("a['b']['c'] = 'multiString';", "a.b.c", "multiString", 1)
+                
+                // ElementGet branch - name keys (variables)
+                +Arguments.of("obj[key] = 'nameKey';", "obj.key", "nameKey", 1)
+                
+                // ElementGet branch - number literal keys
+                +Arguments.of("arr[0] = 'first';", "arr.0", "first", 1)
+                +Arguments.of("matrix[1][2] = 'indexed';", "matrix.1.2", "indexed", 1)
+                
+                // ElementGet branch - keyword literal keys
+                +Arguments.of("obj[true] = 'booleanKey';", "obj.true", "booleanKey", 1)
+                +Arguments.of("obj[false] = 'booleanKey';", "obj.false", "booleanKey", 1)
+                +Arguments.of("obj[null] = 'nullKey';", "obj.null", "nullKey", 1)
+                +Arguments.of("obj[undefined] = 'undefinedKey';", "obj.undefined", "undefinedKey", 1)
+                
+                // ElementGet branch - mixed PropertyGet and ElementGet
+                +Arguments.of("obj.prop[0] = 'mixed';", "obj.prop.0", "mixed", 1)
+                +Arguments.of("a.b[0].c[1] = 'complex';", "a.b.0.c.1", "complex", 1)
+                
+                // unsupported dynamic keys
+                +Arguments.of("obj[func()] = 'functionResultKey';", "obj.func()", null, 0)
+                
+                // Complex combinations
+                +Arguments.of("config.api['v1'].users[0].name = 'John';", "config.api.v1.users.0.name", "John", 1)
+                
+                // Edge cases
+                +Arguments.of("this.prop = 'this';", "prop", "this", 1)
+                +Arguments.of("window['global'] = 'window';", "window.global", "window", 1)
+            }
+        }
+        
+        @JvmStatic
+        fun multipleAssignmentsPerVariableTestCases(): List<Arguments> {
+            return buildList {
+                +Arguments.of("var a = 1; a = 2;", "a", "1" to "2", 1)
+                +Arguments.of("var a = 1; var a = 2;", "a", "1" to "2", 1)
+                +Arguments.of("a = 1; var a = 2;", "a", "1" to "2", 1)
+                +Arguments.of("a = 1; a = 2;", "a", "1" to "2", 1)
             }
         }
         
