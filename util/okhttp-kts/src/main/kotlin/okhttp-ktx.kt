@@ -84,7 +84,7 @@ fun OkHttpClient.get(
 fun OkHttpClient.call(
     base: HttpUrl?,
     url: String?,
-    queryParameters: Map<String, String> = emptyMap(),
+    queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
     contract {
@@ -97,7 +97,7 @@ fun OkHttpClient.call(
             base?.newBuilder(url) ?: url.toHttpUrl().newBuilder()
         }
         queryParameters.forEach { (key, value) ->
-            urlBuilder.addQueryParameter(key, value)
+            if (value != null) urlBuilder.addQueryParameter(key, value)
         }
         url(urlBuilder.build())
         
@@ -122,7 +122,7 @@ fun OkHttpClient.postJson(
     base: HttpUrl?,
     url: String?,
     json: String,
-    queryParameters: Map<String, String> = emptyMap(),
+    queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
     contract {
@@ -149,7 +149,7 @@ fun OkHttpClient.putJson(
     base: HttpUrl?,
     url: String?,
     json: String,
-    queryParameters: Map<String, String> = emptyMap(),
+    queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
     contract {
@@ -175,8 +175,8 @@ fun OkHttpClient.putJson(
 fun OkHttpClient.postForm(
     base: HttpUrl?,
     url: String?,
-    form: Map<String, String>,
-    queryParameters: Map<String, String> = emptyMap(),
+    form: Map<String, String?>,
+    queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
     contract {
@@ -185,10 +185,9 @@ fun OkHttpClient.postForm(
     return call(base, url, queryParameters) {
         val formBodyBuilder = FormBody.Builder()
         form.forEach { (key, value) ->
-            formBodyBuilder.add(key, value)
+            if (value != null) formBodyBuilder.add(key, value)
         }
         post(formBodyBuilder.build())
-        
         preConnectSetup()
     }
 }

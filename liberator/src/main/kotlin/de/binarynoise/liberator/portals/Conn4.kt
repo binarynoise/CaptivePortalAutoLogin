@@ -8,6 +8,7 @@ import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.rhino.RhinoParser
+import de.binarynoise.util.okhttp.decodeUrl
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
@@ -72,8 +73,8 @@ object Conn4 : PortalLiberator {
         client: OkHttpClient,
         apiBase: HttpUrl,
         token: String,
-        site_id: String,
-        session_id: String = "",
+        site_id: String?,
+        session_id: String? = "",
         createSessionParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
         checkLoggedIn: Boolean = false,
@@ -358,7 +359,7 @@ object Conn4 : PortalLiberator {
         scripts: List<String>,
         cookies: Set<Cookie>,
     ) {
-        val token = cookies.find { it.name == "wbs-token" }?.value ?: error("no wbs-token cookie")
+        val token = cookies.find { it.name == "wbs-token" }?.value?.decodeUrl() ?: error("no wbs-token cookie")
         val apiBase = response.requestUrl.resolveOrThrow("/wbs/api/v1/") // TODO: properly parse wbs api base from scrips
         tryPossibleTariffs(client, apiBase, token, site_id)
     }
