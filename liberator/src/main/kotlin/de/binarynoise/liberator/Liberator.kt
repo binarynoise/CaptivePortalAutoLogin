@@ -10,7 +10,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.resolveOrThrow
 import okhttp3.Cookie
 import okhttp3.FormBody
-import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -154,33 +153,52 @@ class Liberator(
     }
     
     private fun recurse(responseWithRedirect: Response, depth: Int): LiberationResult {
-        var locationUrl: HttpUrl? = null
-        try {
+        val locationUrl = try {
             val location = responseWithRedirect.getLocation()
             if (location.isNullOrBlank()) return LiberationResult.UnknownPortal(responseWithRedirect.requestUrl.toString())
             
-            locationUrl = responseWithRedirect.requestUrl.resolveOrThrow(location)
+            responseWithRedirect.requestUrl.resolveOrThrow(location)
+        } catch (e: Exception) {
+            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
+        }
+        log("locationUrl: $locationUrl")
+        try {
             val response = client.get(locationUrl, null)
             
-            val solver: PortalLiberator? = allPortalLiberators.firstOrNull { solver ->
-                solver.canSolve(response) && (!solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)))
-            }
+            val solvers: List<PortalLiberator> = allPortalLiberators //
+                .filter { solver -> PortalLiberatorConfig.experimental || !solver.isExperimental() }
+                .filter { solver -> !solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)) }
+                .filter { solver ->
+                    try {
+                        solver.canSolve(response)
+                    } catch (e: Exception) {
+                        log("failed to run can solve for ${solver::class.simpleName}", e); false
+                    }
+                }
+            log("found ${solvers.size}")
             
-            if (solver == null || (!PortalLiberatorConfig.experimental && solver.isExperimental())) {
-                log("unknown captive portal: ${responseWithRedirect.getLocation()}")
+            if (solvers.isEmpty()) {
+                log("unknown captive portal: $locationUrl")
                 
                 // follow redirects and try again
                 check(depth < 10) { "too many redirects" }
                 return recurse(response, depth + 1)
             }
             
-            log("solver ${solver::class.simpleName} found for ${response.requestUrl}")
-            solver.solve(client, response, cookies)
-            log("solver ${solver::class.simpleName} finished processing ${response.requestUrl}")
-            
+            solvers.map { solver ->
+                runCatching {
+                    log("solver ${solver::class.simpleName}")
+                    solver.solve(client, response, cookies)
+                    log("solver ${solver::class.simpleName} finished processing")
+                }
+            }.successes().getOrElse {
+                throw IllegalStateException("all PortalLiberators failed:" + it.message, it)
+            }.forEach {
+                log("liberated by ${it::class.simpleName}")
+            }
             return LiberationResult.Success(response.requestUrl.toString())
         } catch (e: Exception) {
-            return LiberationResult.Error(locationUrl?.toString() ?: responseWithRedirect.requestUrl.toString(), e, e.message.orEmpty())
+            return LiberationResult.Error(locationUrl.toString(), e, e.message.orEmpty())
         }
     }
     
