@@ -60,7 +60,7 @@ object CloudWifi : PortalLiberator {
                 client.get(response.requestUrl, url3).checkSuccess()
             }
             html2.selectFirst("form[name=hotspotlogin]") != null -> {
-                val hotspotLoginForm = html2.selectFirst("form[name=hotspotlogin") as FormElement
+                val hotspotLoginForm = html2.selectFirst("form[name=hotspotlogin]") as FormElement
                 client.postForm(
                     response.requestUrl,
                     hotspotLoginForm.attribute("action")?.value,
