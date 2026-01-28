@@ -32,7 +32,7 @@ object BlockHouse : PortalLiberator {
         val scriptNode = html.getElementsByTag("script")
             .find { listOf("postToUrl", "port", "hs_server").all { str -> it.data().contains(str) } }
             ?: error("no script found")
-        val assignments = RhinoParser().parseAssignments(scriptNode.data())
+        val assignments = RhinoParser().parseAssignments(scriptNode.data(), onlyVariableInitializer = true)
         val port = assignments["port"] ?: error("no port")
         val postToUrl = assignments["postToUrl"] ?: error("no postToUrl")
         val baseUrl = "http://$hs_server:$port".toHttpUrlOrNull() ?: error("failed to parse baseUrl")

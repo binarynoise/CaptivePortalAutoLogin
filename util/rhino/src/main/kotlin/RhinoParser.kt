@@ -18,7 +18,7 @@ import org.mozilla.javascript.ast.VariableInitializer
 
 class RhinoParser(private val debug: Boolean = false) {
     
-    fun parseAssignments(js: String): Map<String, String> {
+    fun parseAssignments(js: String, onlyVariableInitializer: Boolean = false): Map<String, String> {
         val parser = Parser()
         val ast = parser.parse(js, null, 0) ?: return emptyMap()
         
@@ -46,7 +46,7 @@ class RhinoParser(private val debug: Boolean = false) {
                     }
                 }
                 
-                is Assignment -> {
+                is Assignment if !onlyVariableInitializer -> {
                     val pathSegments = buildPropertyPath(node.left)
                     if (pathSegments.isNotEmpty()) {
                         val value = getValueString(node.right, js)
