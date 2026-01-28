@@ -5,7 +5,9 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.portals.Picopoint.PICOPOINT_GATEKEEPER_DOMAIN
 import de.binarynoise.liberator.tryOrDefault
+import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.lastPathSegment
 import de.binarynoise.util.okhttp.parseHtml
@@ -19,10 +21,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Experimental
-@SSID("Shell Free WiFi")
 object Picopoint : PortalLiberator {
+    const val PICOPOINT_GATEKEEPER_DOMAIN = "gatekeeper2.picopoint.com"
+    
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "gatekeeper2.picopoint.com" //
+        return response.requestUrl.host == PICOPOINT_GATEKEEPER_DOMAIN //
             && !response.isRedirect //
             && response.requestUrl.lastPathSegment == "options" //
             && !PicopointRedirector.canSolve(response)
@@ -37,17 +40,20 @@ object Picopoint : PortalLiberator {
         val inputs = form.getElementsByTag("input")
         val postParametersMap =
             inputs.filter { it.attr("name").isNotEmpty() }.associate { it.attr("name") to it.attr("value") }
+        val fid = postParametersMap["__fid"]
         val session = client.get(response.requestUrl, "/gk/rest/session").parseJsonObject()
         val clientMac = session.getJSONObject("network").getString("client_mac")
         client.postForm(
             response.requestUrl, action, postParametersMap + mapOf(
                 "custom_data_1" to clientMac,
-                "f28989312:_c" to "continue",
+                "$fid:_c" to "continue",
             )
-        )
+        ).checkSuccess()
     }
 }
 
+@Experimental
+@SSID("Shell Free WiFi")
 object PicopointRedirector : PortalLiberator {
     fun getRedirectUrl(response: Response): HttpUrl {
         val html = response.parseHtml()
@@ -60,7 +66,7 @@ object PicopointRedirector : PortalLiberator {
     }
     
     override fun canSolve(response: Response): Boolean {
-        if (response.requestUrl.host != "gatekeeper2.picopoint.com") return false
+        if (response.requestUrl.host != PICOPOINT_GATEKEEPER_DOMAIN) return false
         if (response.isRedirect) return false
         return tryOrDefault(false) {
             getRedirectUrl(response)
