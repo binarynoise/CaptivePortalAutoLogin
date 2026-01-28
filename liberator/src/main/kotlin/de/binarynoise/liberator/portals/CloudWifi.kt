@@ -53,11 +53,7 @@ object CloudWifi : PortalLiberator {
                 val url2 = html2.substring(start + "window.location.replace('".length, end)
                 check(url2.isNotBlank()) { "no url2" }
                 
-                val response3 = client.get(response.requestUrl, url2)
-                val url3 = response3.getLocation() ?: error("no url3")
-                val res = url3.toHttpUrl().queryParameter("res")
-                check(res == "success") { "res=$res" }
-                client.get(response.requestUrl, url3).checkSuccess()
+                client.get(response.requestUrl, url2).checkSuccess()
             }
             html2.selectFirst("form[name=hotspotlogin]") != null -> {
                 val hotspotLoginForm = html2.selectFirst("form[name=hotspotlogin]") as FormElement
