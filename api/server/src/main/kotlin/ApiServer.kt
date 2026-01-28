@@ -54,6 +54,14 @@ class ApiServer(root: Path = Path(".")) : Api {
             val tables = arrayOf(Tables.Successes, Tables.Errors)
             SchemaUtils.create(tables = tables)
             
+            val missingColStatements = SchemaUtils.addMissingColumnsStatements(Tables.Successes, Tables.Errors)
+            if (missingColStatements.isNotEmpty()) {
+                missingColStatements.forEach {
+                    log(it)
+                }
+                execInBatch(missingColStatements)
+            }
+            
             val migration = MigrationUtils.statementsRequiredForDatabaseMigration(tables = tables)
             check(migration.isEmpty()) { "\nneed migration:\n" + migration.joinToString("\n") }
             
@@ -89,6 +97,8 @@ class ApiServer(root: Path = Path(".")) : Api {
                     row[ssid] = error.ssid
                     row[url] = error.url
                     row[message] = error.message
+                    row[solver] = error.solver.orEmpty()
+                    row[stackTrace] = error.stackTrace.orEmpty()
                 }
             }
             log("Stored Api.Liberator.Error: $error")
@@ -100,12 +110,13 @@ class ApiServer(root: Path = Path(".")) : Api {
                 Tables.Successes.upsert(onUpdate = { row ->
                     row[Tables.Successes.count] = Tables.Successes.count + 1
                 }) { row ->
-                    row[ssid] = success.ssid
-                    row[url] = success.url
-                    
+                    row[version] = success.version
                     row[year] = d.year
                     row[month] = d.month.number
-                    row[version] = success.version
+                    
+                    row[ssid] = success.ssid
+                    row[url] = success.url
+                    row[solver] = success.solver.orEmpty()
                     
                     row[count] = 1
                 }
@@ -116,20 +127,6 @@ class ApiServer(root: Path = Path(".")) : Api {
 }
 
 object Tables {
-    object Successes : CompositeIdTable("successes") {
-        val year = integer("year")
-        val month = integer("month")
-        
-        val ssid = varchar("ssid", 128)
-        val url = varchar("url", 1024)
-        
-        val version = varchar("version", 128)
-        val count = integer("count")
-        
-        override val primaryKey: PrimaryKey =
-            PrimaryKey(arrayOf(version, ssid, url, year, month), name = "successes_pkey")
-    }
-    
     object Errors : IntIdTable("errors") {
         val version = varchar("version", 128)
         val timestamp = timestamp("timestamp")
@@ -137,5 +134,22 @@ object Tables {
         val ssid = varchar("ssid", 128)
         val url = varchar("url", 1024)
         val message = varchar("error", 1024)
+        val solver = varchar("solver", 128)
+        val stackTrace = text("stack_trace")
+    }
+    
+    object Successes : CompositeIdTable("successes") {
+        val version = varchar("version", 128)
+        val year = integer("year")
+        val month = integer("month")
+        
+        val ssid = varchar("ssid", 128)
+        val url = varchar("url", 1024)
+        val solver = varchar("solver", 128)
+        
+        val count = integer("count")
+        
+        override val primaryKey: PrimaryKey =
+            PrimaryKey(arrayOf(version, year, month, ssid, url, solver), name = "successes_pkey")
     }
 }

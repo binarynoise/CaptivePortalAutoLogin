@@ -356,6 +356,7 @@ class ConnectivityChangeListenerService : Service() {
                             System.currentTimeMillis(),
                             networkStateLock.read { networkState?.ssid.toString() },
                             res.url,
+                            res.solvers,
                         )
                     )
                 }
@@ -374,6 +375,8 @@ class ConnectivityChangeListenerService : Service() {
                             networkState?.ssid.toString(),
                             res.url,
                             res.message,
+                            res.solvers,
+                            res.exception.stackTraceToString(),
                         )
                     )
                 }
@@ -396,6 +399,8 @@ class ConnectivityChangeListenerService : Service() {
                             networkState?.ssid.toString(),
                             res.url,
                             "unknown portal",
+                            "",
+                            "",
                         )
                     )
                 }
@@ -414,6 +419,8 @@ class ConnectivityChangeListenerService : Service() {
                             networkState?.ssid.toString(),
                             res.url,
                             "still captured",
+                            res.solvers,
+                            "",
                         )
                     )
                 }
@@ -426,17 +433,6 @@ class ConnectivityChangeListenerService : Service() {
                     ).show()
                     reportNetworkConnectivity(network, false)
                     // no report
-                    /*
-                    Stats.liberator.reportError(
-                        Error(
-                            BuildConfig.VERSION_NAME,
-                            System.currentTimeMillis(),
-                            networkState?.ssid.toString(),
-                            res.url,
-                            "Portal will not be supported",
-                        )
-                    )
-                    */
                 }
             }
         } catch (e: Exception) {
@@ -456,6 +452,8 @@ class ConnectivityChangeListenerService : Service() {
                     networkState?.ssid.toString(),
                     "",
                     message,
+                    "",
+                    e.stackTraceToString(),
                 )
             )
         } finally {

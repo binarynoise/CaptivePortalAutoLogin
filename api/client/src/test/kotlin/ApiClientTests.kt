@@ -104,6 +104,8 @@ class ApiClientTests {
                     "test host",
                     "test url",
                     "test error",
+                    "test solver",
+                    "test stack trace",
                 )
             )
         }
@@ -114,8 +116,9 @@ class ApiClientTests {
                 Api.Liberator.Success(
                     "test ssid",
                     System.currentTimeMillis(),
-                    "test ssid",
                     "test url",
+                    "test solver",
+                    "test ssid",
                 )
             )
         }
@@ -124,10 +127,11 @@ class ApiClientTests {
         fun `reportSuccess - count`() {
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
-                    "test ssid",
+                    "test version",
                     System.currentTimeMillis(),
                     "test ssid",
                     "test url",
+                    "test solver",
                 )
             )
             val before = transaction {
@@ -142,10 +146,11 @@ class ApiClientTests {
             log("before: $before")
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
-                    "test ssid",
+                    "test version",
                     System.currentTimeMillis(),
                     "test ssid",
                     "test url",
+                    "test solver",
                 )
             )
             val after = transaction {
