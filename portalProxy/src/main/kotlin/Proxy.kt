@@ -17,6 +17,7 @@ import io.vertx.kotlin.coroutines.coAwait
 
 private val allowlistDomain = listOf("am-i-captured.binarynoise.de", "www.google.com")
 private val allowlistPort = listOf("80", "443")
+val proxyPort = 8000
 
 fun forward(request: HttpServerRequest) {
     if (checkCaptured(request)) {

@@ -10,8 +10,9 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
-const val portalHost = "localhost"
-const val portalPort = 8000
+const val portalPort = 8001
+// TODO: use [System.getenv("PORTAL_HOST")] here
+const val friendlyHost = "portal.binarynoise.de"
 
 private val database = ConcurrentHashMap<String, Boolean>()
 
@@ -51,8 +52,13 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
     return router
 }
 
+fun getPortalHost(request: HttpServerRequest?) : String {
+    return request?.getHeader("Host") ?: friendlyHost
+}
+
 fun redirect(request: HttpServerRequest) {
-    request.response().putHeader("Location", "http://$portalHost:$portalPort/").setStatusCode(303).end()
+    val host = getPortalHost(request)
+    request.response().putHeader("Location", "http://$host:$portalPort/").setStatusCode(303).end()
 }
 
 fun checkCaptured(request: HttpServerRequest): Boolean {
@@ -111,7 +117,7 @@ private fun servePortalPage(request: HttpServerRequest) {
             p {
                 +"This page can be opened again at"
                 br()
-                val href = "http://$portalHost:$portalPort/"
+                val href = "http://${getPortalHost(request)}:$portalPort/"
                 a(href = href) { +href }
             }
         }
