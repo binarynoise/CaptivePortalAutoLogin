@@ -20,7 +20,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 object Picopoint : PortalLiberator {
     const val PICOPOINT_GATEKEEPER_DOMAIN = "gatekeeper2.picopoint.com"
     
@@ -52,7 +51,6 @@ object Picopoint : PortalLiberator {
     }
 }
 
-@Experimental
 @SSID("Shell Free WiFi")
 object PicopointRedirector : PortalLiberator {
     fun getRedirectUrl(response: Response): HttpUrl {
