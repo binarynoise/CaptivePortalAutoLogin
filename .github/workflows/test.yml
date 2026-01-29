@@ -9,34 +9,34 @@ jobs:
     runs-on: self-hosted
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-      
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Run unit tests
-      run: ./gradlew test
-      
-    - name: Run lint checks
-      run: ./gradlew lint
-      
-    - name: Run all verification checks
-      run: ./gradlew check
-      
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: |
-          **/build/reports/tests/**
-          **/build/reports/lint-results*.html
-          **/*.sarif
-        retention-days: 30
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run unit tests
+        run: ./gradlew test
+
+      - name: Run lint checks
+        run: ./gradlew lint
+
+      - name: Run all verification checks
+        run: ./gradlew check
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/build/reports/tests/**
+            **/build/reports/lint-results*.html
+            **/*.sarif
+          retention-days: 30

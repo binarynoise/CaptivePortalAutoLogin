@@ -9,24 +9,24 @@ jobs:
     runs-on: self-hosted
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Build ARM64 Debug APK
-      run: ./gradlew :app:assembleArm64Debug
-      
-    - name: Upload ARM64 Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: arm64-debug-apk
-        path: app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
-        retention-days: 30
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build ARM64 Debug APK
+        run: ./gradlew :app:assembleArm64Debug
+
+      - name: Upload ARM64 Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-debug-apk
+          path: app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+          retention-days: 30

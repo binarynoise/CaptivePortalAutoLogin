@@ -9,24 +9,24 @@ jobs:
     runs-on: self-hosted
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Build Linux Shadow Jar
-      run: ./gradlew :linux:shadowJar
-      
-    - name: Upload ARM64 Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-shadow-jar
-        path: linux/build/libs/linux-shadow.jar
-        retention-days: 30
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Linux Shadow Jar
+        run: ./gradlew :linux:shadowJar
+
+      - name: Upload ARM64 Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-shadow-jar
+          path: linux/build/libs/linux-shadow.jar
+          retention-days: 30
