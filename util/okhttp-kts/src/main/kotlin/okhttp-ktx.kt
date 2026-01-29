@@ -445,3 +445,10 @@ fun FormElement.toParameterMap() : Map<String,String> {
         .filter { it.attr("name").isNotEmpty() }
         .associate { it.attr("name") to it.attr("value") }
 }
+
+/**
+ * return the action string of this form
+ */
+fun FormElement.getAction() : String? {
+    return this.attribute("action")?.value
+}
