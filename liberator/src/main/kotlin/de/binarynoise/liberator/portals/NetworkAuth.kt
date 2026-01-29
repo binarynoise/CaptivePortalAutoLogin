@@ -23,6 +23,8 @@ import okhttp3.Response
     "CLIENTES.LME",
     "Free Wifi Ris8tto",
     "JD-Gast-WiFi",
+    "DrMartens",
+    "P&C Hotspot",
 )
 object NetworkAuth : PortalLiberator {
     
@@ -48,17 +50,15 @@ object NetworkAuth : PortalLiberator {
  * where the embedded subportal does not do any authorization on its own.
  * In this case [NetworkAuthSubPortal] will force [NetworkAuth] to solve the portal anyways.
  */
-@SSID("dm Kunden WLAN")
+@SSID(
+    "dm Kunden WLAN",
+    "EDEKA free-wifi",
+)
 object NetworkAuthSubPortal : PortalLiberator {
-    val knownDomains = listOf(
-        "de-freewifiaccess.dm-drogeriemarkt.org",
-    )
-    
     override fun canSolve(response: Response): Boolean {
         if (!response.requestUrl.isNetworkAuthDomain()) return false
         if (!response.isRedirect) return false
         val locationUrl = response.getLocationUrl() ?: return false
-        if (knownDomains.contains(locationUrl.host)) return false
         val base_grant_url = locationUrl.queryParameter("base_grant_url")?.toHttpUrl() ?: return false
         return base_grant_url.isNetworkAuthDomain() && base_grant_url.isNetworkAuthGrantUrl()
     }
