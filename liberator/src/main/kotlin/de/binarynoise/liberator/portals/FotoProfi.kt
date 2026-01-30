@@ -8,7 +8,7 @@ import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.isIp
 import de.binarynoise.util.okhttp.parseHtml
-import de.binarynoise.util.okhttp.postForm
+import de.binarynoise.util.okhttp.postMultipartForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
 import okhttp3.OkHttpClient
@@ -27,7 +27,8 @@ object FotoProfi : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val redirect = response.requestUrl.queryParameter("redirect") ?: error("no redirect")
         val html = response.parseHtml()
-        client.postForm(
+        
+        client.postMultipartForm(
             response.requestUrl, "/wgcgi.cgi", mapOf(
                 "action" to html.getInput("action"),
                 "hsContinueBtnName" to html.getInput("hsContinueBtnName"),

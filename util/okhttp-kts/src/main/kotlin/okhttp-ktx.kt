@@ -13,6 +13,7 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request
@@ -141,7 +142,7 @@ fun OkHttpClient.postJson(
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
  * @param json The JSON string to include in the request body.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
- * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
+ * @param preConnectSetup A function to customize the [Request.Builder] before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
  * @throws Error if both url and context are null.
  */
@@ -168,7 +169,7 @@ fun OkHttpClient.putJson(
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
  * @param form The key-value pairs to include in the request body for form-encoded data.
  * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
- * @param preConnectSetup A function to customize the Request.Builder before building the request. Defaults to noop.
+ * @param preConnectSetup A function to customize the [Request.Builder] before building the request. Defaults to noop.
  * @return The Response object representing the server's response to the request.
  * @throws Error if both url and context are null.
  */
@@ -187,6 +188,41 @@ fun OkHttpClient.postForm(
         form.forEach { (key, value) ->
             if (value != null) formBodyBuilder.add(key, value)
         }
+        post(formBodyBuilder.build())
+        preConnectSetup()
+    }
+}
+
+/**
+ * Sends a POST request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param form The key-value pairs to include in the request body for form-encoded data.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the [Request.Builder] before building the request. Defaults to noop.
+ * @param multipartBody A function to customize the [MultipartBody.Builder] before sending the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.postMultipartForm(
+    base: HttpUrl?,
+    url: String?,
+    form: Map<String, String?>,
+    queryParameters: Map<String, String?> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+    multipartBody: MultipartBody.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+        callsInPlace(multipartBody, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
+        val formBodyBuilder = MultipartBody.Builder()
+        form.forEach { (key, value) ->
+            if (value != null) formBodyBuilder.addFormDataPart(key, value)
+        }
+        multipartBody(formBodyBuilder)
         post(formBodyBuilder.build())
         preConnectSetup()
     }
@@ -440,7 +476,7 @@ fun String.decodeUrl(): String = URLDecoder.decode(this, "UTF-8")
 /**
  * Convert all of this forms inputs into a parameter map that can be used in requests.
  */
-fun FormElement.toParameterMap() : Map<String,String> {
+fun FormElement.toParameterMap(): Map<String, String> {
     return this.getElementsByTag("input")
         .filter { it.attr("name").isNotEmpty() }
         .associate { it.attr("name") to it.attr("value") }
@@ -449,6 +485,6 @@ fun FormElement.toParameterMap() : Map<String,String> {
 /**
  * return the action string of this form
  */
-fun FormElement.getAction() : String? {
+fun FormElement.getAction(): String? {
     return this.attribute("action")?.value
 }
