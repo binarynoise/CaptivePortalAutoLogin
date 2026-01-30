@@ -39,7 +39,7 @@ object VodafoneHotspot : PortalLiberator {
         val result = client.postJson(
             response.requestUrl, "/api/v4/login", JSONObject(
                 mapOf(
-                    "loginProfile" to landingPageLoginProfileId,
+                    "loginProfile" to landingPageLoginProfileId.toInt(),
                     "session" to sessionToken,
                     "accessType" to accessType,
                 )
