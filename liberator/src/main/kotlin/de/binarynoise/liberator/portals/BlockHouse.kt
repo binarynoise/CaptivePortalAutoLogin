@@ -36,13 +36,14 @@ object BlockHouse : PortalLiberator {
         val port = assignments["port"] ?: error("no port")
         val postToUrl = assignments["postToUrl"] ?: error("no postToUrl")
         val baseUrl = "http://$hs_server:$port".toHttpUrlOrNull() ?: error("failed to parse baseUrl")
+        val currTime = Date().time / 1000
         client.postForm(
             baseUrl, postToUrl, mapOf(
                 "f_agree" to "",
                 "submit" to html.getInput("submit"),
                 "f_Qv" to Qv,
                 "f_hs_server" to hs_server,
-                "f_curr_time" to Date().time.toString(),
+                "f_curr_time" to currTime.toString(),
             )
         ).checkSuccess()
     }
