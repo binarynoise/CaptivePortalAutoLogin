@@ -138,7 +138,7 @@ object Conn4 : PortalLiberator {
             mapOf("tariff" to tariff.toString()) + registerFreeParams,
             checkOk,
         )
-        if (checkTariffMatch) check(json.getInt("tariff") == tariff) { "registerFreeTariff tariff doesn't match" }
+        if (checkTariffMatch) check(json.getInt("tariffId") == tariff) { "registerFreeTariff tariff doesn't match" }
         return json
     }
     
@@ -245,7 +245,6 @@ object Conn4 : PortalLiberator {
                 "is_smp",
                 "is_eap",
                 "is_paid_subscription",
-                "social_media_providers",
             ).all { tariff.unwanted(it) }
         }.sortedWith(
             compareBy(
