@@ -8,9 +8,11 @@ import de.binarynoise.util.okhttp.hasInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
+import de.binarynoise.util.okhttp.toParameterMap
 import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.FormElement
 
 @SSID("WIFI@DB")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -55,10 +57,10 @@ object HotsplotsAuth : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val html1 = response.parseHtml()
         
-        val login_status_form = html1.getElementById("login_status_form") ?: error("no login_status_form")
-        val inputs = login_status_form.children()
-            .associate { element -> element.attr("name") to element.attr("value") }
-            .filter { (name, _) -> name.isNotBlank() }
+        val login_status_form = html1.getElementsByAttributeValue("name", "login_status_form").singleOrNull()
+            ?: error("no login_status_form")
+        login_status_form as? FormElement ?: error("login_status_form is not a form")
+        val inputs = login_status_form.toParameterMap()
         check(inputs.isNotEmpty()) { "no inputs" }
         
         client.postForm(
