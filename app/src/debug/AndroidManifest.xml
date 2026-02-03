@@ -9,6 +9,10 @@
         >
         
         <activity
+            android:name=".QueuedWorkActivity"
+            android:exported="true"
+            />
+        <activity
             android:name=".ExperimentActivity"
             android:exported="true"
             />
