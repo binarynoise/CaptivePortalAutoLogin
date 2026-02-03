@@ -252,7 +252,7 @@ object Conn4 : PortalLiberator {
                 { it.getTariffBandwidth() },
                 // TODO: include "limitationAfterLimitExploited" into decision
             )
-        )
+        ).reversed()
         if (availableTariffs.isEmpty()) error("no tariffs available")
         return availableTariffs
     }
