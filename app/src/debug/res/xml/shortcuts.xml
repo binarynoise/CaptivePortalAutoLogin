@@ -4,12 +4,25 @@
         android:enabled="true"
         android:icon="@drawable/stat_sys_vitals"
         android:shortcutId="experiment"
-        android:shortcutLongLabel="@string/shortcut_long"
-        android:shortcutShortLabel="@string/shortcut_short"
+        android:shortcutLongLabel="@string/experiment_shortcut_long"
+        android:shortcutShortLabel="@string/experiment_shortcut_short"
         >
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="de.binarynoise.captiveportalautologin.ExperimentActivity"
+            android:targetPackage="de.binarynoise.captiveportalautologin"
+            />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/cloud_upload"
+        android:shortcutId="work"
+        android:shortcutLongLabel="@string/work_shortcut_long"
+        android:shortcutShortLabel="@string/work_shortcut_short"
+        >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="de.binarynoise.captiveportalautologin.QueuedWorkActivity"
             android:targetPackage="de.binarynoise.captiveportalautologin"
             />
     </shortcut>

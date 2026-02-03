@@ -10,10 +10,12 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import de.binarynoise.captiveportalautologin.api.Api
@@ -157,5 +159,9 @@ object Stats : Api {
         
         WorkManager.getInstance(applicationContext).enqueue(uploadRequest)
         log("Scheduled upload for $type: $key")
+    }
+    
+    fun getScheduledWork(): LiveData<List<WorkInfo>> {
+        return WorkManager.getInstance(applicationContext).getWorkInfosByTagLiveData(StatsWorker::class.java.name)
     }
 }
