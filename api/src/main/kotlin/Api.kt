@@ -1,14 +1,20 @@
 package de.binarynoise.captiveportalautologin.api
 
 import kotlinx.serialization.Serializable
+import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 
 interface Api {
     val har: Har
+    val log: Log
     val liberator: Liberator
     
     interface Har {
         fun submitHar(name: String, har: HAR)
+    }
+    
+    interface Log {
+        fun submitLog(name: String, log: LOG)
     }
     
     interface Liberator {
