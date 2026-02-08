@@ -1,15 +1,17 @@
 package de.binarynoise.captiveportalautologin
 
+import kotlinx.coroutines.launch
 import android.os.Bundle
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.WorkInfo
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityWorkBinding
 
-class QueuedWorkActivity : AppCompatActivity() {
+class QueuedWorkActivity : ComponentActivity() {
     val binding by viewBinding { ActivityWorkBinding.inflate(layoutInflater) }
-    val textView: TextView = binding.text
     
     fun WorkInfo.toFriendlyString(): String {
         return this.toString()
@@ -18,7 +20,17 @@ class QueuedWorkActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        val work = Stats.getScheduledWork()
-        textView.text = work.value?.joinToString("\n") { it.toFriendlyString() }
+        
+        binding.scheduleButton.setOnClickListener {
+            Stats.scheduleEverythingForUpload()
+        }
+        
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Stats.getScheduledWork().collect { workInfos ->
+                    binding.text.text = workInfos.joinToString("\n\n\n") { it.toFriendlyString() }
+                }
+            }
+        }
     }
 }
