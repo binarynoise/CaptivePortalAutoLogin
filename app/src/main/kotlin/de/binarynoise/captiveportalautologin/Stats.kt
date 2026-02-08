@@ -9,6 +9,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.work.Constraints
@@ -161,7 +162,30 @@ object Stats : Api {
         log("Scheduled upload for $type: $key")
     }
     
-    fun getScheduledWork(): LiveData<List<WorkInfo>> {
-        return WorkManager.getInstance(applicationContext).getWorkInfosByTagLiveData(StatsWorker::class.java.name)
+    fun getScheduledWork(): Flow<List<WorkInfo>> {
+        return WorkManager.getInstance(applicationContext).getWorkInfosByTagFlow(StatsWorker::class.java.name)
+    }
+    
+    fun scheduleEverythingForUpload() {
+        try {
+            val harKeys = jsonDB.listAll<HAR>("har")
+            harKeys.forEach { key ->
+                scheduleUpload("har", key)
+            }
+            
+            val errorKeys = jsonDB.listAll<Api.Liberator.Error>()
+            errorKeys.forEach { key ->
+                scheduleUpload("error", key)
+            }
+            
+            val successKeys = jsonDB.listAll<Api.Liberator.Success>()
+            successKeys.forEach { key ->
+                scheduleUpload("success", key)
+            }
+            
+            log("Scheduled upload for ${harKeys.size} HAR files, ${errorKeys.size} error reports, ${successKeys.size} success reports")
+        } catch (e: Exception) {
+            log("Failed to schedule everything for upload", e)
+        }
     }
 }
