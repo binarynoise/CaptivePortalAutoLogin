@@ -31,7 +31,12 @@ class MainVerticle : CoroutineVerticle() {
         val proxyRouter = Router.router(vertx)
         proxyRouter.route().handler { ctx ->
             log("route /http")
-            forward(ctx.request())
+            val request = ctx.request()
+            if (request.authority().port() == portalPort) {
+                portalRouter.handle(request)
+            } else {
+                forward(request)
+            }
         }
         
         val proxyRequestHandler: (HttpServerRequest) -> Unit = { request ->
