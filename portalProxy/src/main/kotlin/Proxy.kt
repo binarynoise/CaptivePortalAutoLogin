@@ -6,6 +6,7 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CancellationException
 import de.binarynoise.captiveportalautologin.portalproxy.portal.checkCaptured
+import de.binarynoise.captiveportalautologin.portalproxy.portal.friendlyHost
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
 import io.netty.handler.codec.http.HttpResponseStatus
@@ -15,12 +16,12 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.net.NetSocket
 import io.vertx.kotlin.coroutines.coAwait
 
-private val allowlistDomain = listOf("am-i-captured.binarynoise.de", "www.google.com")
-private val allowlistPort = listOf("80", "443")
-val proxyPort = 8000
+private val allowlistDomain = System.getenv("PROXY_ALLOWLIST_DOMAIN")?.split(",")?.map { it.trim() }
+private val allowlistPort = System.getenv("PROXY_ALLOWLIST_PORT")?.split(",")?.map { it.trim() }
+val proxyPort = System.getenv("PROXY_PORT")?.toInt() ?: 8000
 
 fun forward(request: HttpServerRequest) {
-    if (checkCaptured(request)) {
+    if ((friendlyHost != null && request.authority()?.host() == friendlyHost) || checkCaptured(request)) {
         redirect(request)
         return
     }
@@ -53,7 +54,7 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
         
         val (host, port) = hostPort
         
-        if (host !in allowlistDomain || port !in allowlistPort) {
+        if ((allowlistDomain != null && host !in allowlistDomain) || (allowlistPort != null && port !in allowlistPort)) {
             request.response()
                 .setStatusCode(HttpResponseStatus.FORBIDDEN.code())
                 .end("Access to $host:$port is not allowed")
