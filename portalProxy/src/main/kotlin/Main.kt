@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.portalproxy
 
-import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalPort
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalRouter
@@ -15,7 +15,6 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
-import io.vertx.kotlin.coroutines.dispatcher
 
 class MainVerticle : CoroutineVerticle() {
     override suspend fun start() {
@@ -40,61 +39,55 @@ class MainVerticle : CoroutineVerticle() {
         }
         
         val proxyRequestHandler: (HttpServerRequest) -> Unit = { request ->
-            launch(vertx.dispatcher() + EmptyCoroutineContext) {
-                log(buildString {
-                    append("< ")
-                    append(request.method())
-                    append(" ")
-                    append(request.uri())
-                    append(" -> ")
-                    append(request.scheme())
-                    append(" ")
-                    append(request.authority()?.host())
-                    append(" : ")
-                    append(request.authority()?.port())
-                    append(" ")
-                    append(request.path())
-                    append(" from ")
-                    append(request.remoteAddress().host().replace("0:0:0:0:0:0:0:1", "::1"))
-                    append(":")
-                    append(request.remoteAddress().port())
-                })
-                
-                if (request.method() == HttpMethod.CONNECT) {
+            log(buildString {
+                append("< ")
+                append(request.method())
+                append(" ")
+                append(request.uri())
+                append(" -> ")
+                append(request.scheme())
+                append(" ")
+                append(request.authority()?.host())
+                append(" : ")
+                append(request.authority()?.port())
+                append(" ")
+                append(request.path())
+                append(" from ")
+                append(request.remoteAddress().host().replace("0:0:0:0:0:0:0:1", "::1"))
+                append(":")
+                append(request.remoteAddress().port())
+            })
+            
+            if (request.method() == HttpMethod.CONNECT) {
+                launch(Dispatchers.IO) {
                     forwardConnect(request, vertx)
-                } else {
-                    proxyRouter.handle(request)
                 }
-                
-                log(buildString {
-                    append("> ")
-                    append(request.response()?.statusCode)
-                    append(" ")
-                    append(request.response()?.statusMessage)
-                    append(" [")
-                    append(request.response()?.headers()?.joinToString { "${it.key}: ${it.value}" })
-                    append("] ")
-                })
+            } else {
+                proxyRouter.handle(request)
             }
+            
+            log(buildString {
+                append("> ")
+                append(request.response()?.statusCode)
+                append(" ")
+                append(request.response()?.statusMessage)
+                append(" [")
+                append(request.response()?.headers()?.joinToString { "${it.key}: ${it.value}" })
+                append("] ")
+            })
         }
         
         val portalRequestHandler: (HttpServerRequest) -> Unit = { request ->
-            launch(vertx.dispatcher() + EmptyCoroutineContext) {
-                portalRouter.handle(request)
-            }
+            portalRouter.handle(request)
         }
         
         val exceptionHandler = { t: Throwable ->
             log("Unhandled exception during connection", t)
         }
-        val invalidRequestHandler = { r: HttpServerRequest ->
-            log("Invalid request: $r")
-        }
         
         val proxyServer = vertx.createHttpServer()
             .requestHandler(proxyRequestHandler)
             .exceptionHandler(exceptionHandler)
-            .invalidRequestHandler(invalidRequestHandler)
             .listen(proxyPort, "::")
             .coAwait()
         log("Started proxy server on port " + proxyServer.actualPort())
@@ -102,7 +95,6 @@ class MainVerticle : CoroutineVerticle() {
         val portalServer = vertx.createHttpServer()
             .requestHandler(portalRequestHandler)
             .exceptionHandler(exceptionHandler)
-            .invalidRequestHandler(invalidRequestHandler)
             .listen(portalPort, "::")
             .coAwait()
         log("Started portal server on port " + portalServer.actualPort())
