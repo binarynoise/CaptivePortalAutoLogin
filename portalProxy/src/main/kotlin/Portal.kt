@@ -10,9 +10,8 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
-const val portalPort = 8001
-// TODO: use [System.getenv("PORTAL_HOST")] here
-const val friendlyHost = "portal.binarynoise.de"
+val portalPort = System.getenv("PORTAL_PORT")?.toInt() ?: 8001
+val friendlyHost: String? = System.getenv("PORTAL_HOST")
 
 private val database = ConcurrentHashMap<String, Boolean>()
 
@@ -52,8 +51,8 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
     return router
 }
 
-fun getPortalHost(request: HttpServerRequest?) : String {
-    return request?.getHeader("Host")?.substringBefore(":") ?: friendlyHost
+fun getPortalHost(request: HttpServerRequest): String {
+    return friendlyHost ?: request.getHeader("Host")!!.substringBefore(":")
 }
 
 fun redirect(request: HttpServerRequest) {
