@@ -53,7 +53,7 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
 }
 
 fun getPortalHost(request: HttpServerRequest?) : String {
-    return friendlyHost
+    return request?.getHeader("Host")?.substringBefore(":") ?: friendlyHost
 }
 
 fun redirect(request: HttpServerRequest) {
