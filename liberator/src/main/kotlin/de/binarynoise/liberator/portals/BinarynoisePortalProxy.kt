@@ -14,7 +14,7 @@ import okhttp3.Response
 @Experimental
 object BinarynoisePortalProxy : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "binarynoise.de" && response.requestUrl.port == 8000
+        return response.requestUrl.host == "portal.binarynoise.de" && response.requestUrl.port == 8001
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {

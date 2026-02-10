@@ -8,6 +8,9 @@ User=root
 StateDirectory=captive-portal-proxy
 WorkingDirectory=/var/lib/captive-portal-proxy
 ExecStart=/usr/bin/java -jar /opt/CaptivePortalAutoLogin/portalProxy/build/libs/portalProxy-shadow.jar
+Environment=PROXY_ALLOWLIST_DOMAIN=am-i-captured.binarynoise.de,www.google.com
+Environment=PROXY_ALLOWLIST_PORT=80,443
+Environment=PORTAL_HOST=portal.binarynoise.de
 Restart=on-failure
 RestartSec=10
 
