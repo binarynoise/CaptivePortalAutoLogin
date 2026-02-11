@@ -1,7 +1,7 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
-import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.cast
@@ -24,6 +24,7 @@ import kotlin.random.Random as random
     "WestfalenBahn",
     "/WLAN@RB\\s[0-9]+/",
 )
+@Experimental
 object Unwired : PortalLiberator {
     
     // fyi graphql playground: https://wasabi-splashpage.wifi.unwired.at/api/graphql
@@ -35,7 +36,7 @@ object Unwired : PortalLiberator {
     )
     
     override fun canSolve(response: Response): Boolean {
-        return PortalLiberatorConfig.experimental && response.requestUrl.host in supportedDomains
+        return response.requestUrl.host in supportedDomains
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
@@ -51,7 +52,7 @@ object Unwired : PortalLiberator {
                     "operationName" to "splashpage",
                     "variables" to JSONObject(
                         mapOf(
-                            "userSessionId" to user_session_id,
+                            "user_session_id" to user_session_id,
                             "initial" to true,
                             "language" to "de",
                         ),
