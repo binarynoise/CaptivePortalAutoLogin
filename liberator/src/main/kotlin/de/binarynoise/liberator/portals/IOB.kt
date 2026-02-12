@@ -1,8 +1,7 @@
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
-import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
@@ -10,13 +9,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @SSID("RRX Hotspot")
-object IOB : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
-        return "portal.iob.de" == response.requestUrl.host
+object IOB : PortalRedirector {
+    override fun canRedirect(response: Response): Boolean {
+        return response.requestUrl.host == "portal.iob.de"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val response1 = client.get(null, "http://192.168.44.1/prelogin").followRedirects(client)
-        Hotsplots.solve(client, response1, cookies)
+    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
+        return client.get(null, "http://192.168.44.1/prelogin")
     }
 }

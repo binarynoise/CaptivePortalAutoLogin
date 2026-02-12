@@ -2,12 +2,12 @@ package de.binarynoise.liberator
 
 import java.util.concurrent.TimeUnit.*
 import de.binarynoise.liberator.portals.allPortalLiberators
+import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.resolveOrThrow
 import okhttp3.Cookie
 import okhttp3.FormBody
 import okhttp3.Interceptor
@@ -152,19 +152,8 @@ class Liberator(
         }
     }
     
-    private fun recurse(responseWithRedirect: Response, depth: Int): LiberationResult {
-        val locationUrl = try {
-            val location = responseWithRedirect.getLocation()
-            if (location.isNullOrBlank()) return LiberationResult.UnknownPortal(responseWithRedirect.requestUrl.toString())
-            
-            responseWithRedirect.requestUrl.resolveOrThrow(location)
-        } catch (e: Exception) {
-            return LiberationResult.Error(responseWithRedirect.requestUrl.toString(), e.message.orEmpty(), "", e)
-        }
-        log("locationUrl: $locationUrl")
+    private fun recurse(response: Response, depth: Int): LiberationResult {
         try {
-            val response = client.get(locationUrl, null)
-            
             val solvers: List<PortalLiberator> = allPortalLiberators //
                 .filter { solver -> PortalLiberatorConfig.experimental || !solver.isExperimental() }
                 .filter { solver -> !solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)) }
@@ -172,17 +161,22 @@ class Liberator(
                     try {
                         solver.canSolve(response)
                     } catch (e: Exception) {
-                        log("failed to run can solve for ${solver::class.simpleName}", e); false
+                        log("failed to run canSolve for ${solver::class.simpleName}", e)
+                        false
                     }
                 }
-            log("found ${solvers.size}")
+            log("found ${solvers.size} solvers")
             
             if (solvers.isEmpty()) {
-                log("unknown captive portal: $locationUrl")
+                log("unknown captive portal: ${response.requestUrl}")
+                
+                val redirectedResponse = getRedirectedResponse(client, response, cookies)
+                log("locationUrl: ${redirectedResponse?.requestUrl}")
+                if (redirectedResponse == null) return LiberationResult.UnknownPortal(response.requestUrl.toString())
                 
                 // follow redirects and try again
                 check(depth < 10) { "too many redirects" }
-                return recurse(response, depth + 1)
+                return recurse(redirectedResponse, depth + 1)
             }
             
             solvers.map { solver ->
@@ -190,11 +184,12 @@ class Liberator(
                     log("solver ${solver::class.simpleName}")
                     solver.solve(client, response, cookies)
                     log("solver ${solver::class.simpleName} finished processing")
+                    return@runCatching solver
                 }
             }.successes().getOrElse { throwable ->
                 val e = IllegalStateException("all PortalLiberators failed:" + throwable.message, throwable)
                 return LiberationResult.Error(
-                    locationUrl.toString(),
+                    response.requestUrl.toString(),
                     e.message.orEmpty(),
                     solvers.joinToString { it::class.simpleName.orEmpty() },
                     throwable,
@@ -207,7 +202,42 @@ class Liberator(
                 solvers.joinToString { it::class.simpleName.orEmpty() },
             )
         } catch (e: Exception) {
-            return LiberationResult.Error(locationUrl.toString(), e.message.orEmpty(), "", e)
+            return LiberationResult.Error(response.requestUrl.toString(), e.message.orEmpty(), "", e)
+        }
+    }
+    
+    private fun getRedirectedResponse(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response? {
+        val redirectors = (allPortalRedirectors + LocationRedirector) //
+            .filter { redirector -> PortalLiberatorConfig.experimental || !redirector.isExperimental() }
+            .filter { redirector -> !redirector.ssidMustMatch() || (ssid != null && redirector.ssidMatches(ssid)) }
+            .filter { redirector ->
+                try {
+                    redirector.canRedirect(response)
+                } catch (e: Exception) {
+                    log("failed to run canRedirect for ${redirector::class.simpleName}", e)
+                    false
+                }
+            }
+        log("found ${redirectors.size} redirectors")
+        return redirectors.asSequence().map { redirector ->
+            runCatching {
+                redirector.redirect(client, response, cookies)
+            }
+        }.firstSuccess().getOrNull()
+    }
+    
+    private object LocationRedirector : PortalRedirector {
+        override fun canRedirect(response: Response): Boolean {
+            val location = response.getLocation()
+            return !location.isNullOrBlank()
+        }
+        
+        override fun redirect(
+            client: OkHttpClient,
+            response: Response,
+            cookies: Set<Cookie>,
+        ): Response {
+            return client.get(response.requestUrl, response.getLocation()!!)
         }
     }
     
