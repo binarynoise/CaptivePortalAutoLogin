@@ -76,7 +76,7 @@ class Liberator(
                 is MultipartBody -> {
                     log("> Content-Type: ${body.contentType()}")
                     body.parts.forEach {
-                        log("> ${it.body.contentType()} (${body.contentLength()} bytes)")
+                        log("> ${it.body.contentType() ?: it.headers?.get("Content-Disposition")} (${it.body.contentLength()} bytes)")
                         log(it.body.readText())
                     }
                 }
