@@ -4,12 +4,9 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
-import de.binarynoise.liberator.PortalLiberatorConfig
+import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
-import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.FortiAuthenticator.isFortiAuthenticatorUrl
-import de.binarynoise.liberator.tryOrIgnore
-import de.binarynoise.logger.Logger.log
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
@@ -60,35 +57,21 @@ object FortiAuthenticator : PortalLiberator {
 }
 
 @Experimental
-object FortiAuthenticatorRedirect : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+object FortiAuthenticatorRedirect : PortalRedirector {
+    override fun canRedirect(response: Response): Boolean {
         if (response.isRedirect) return false
         val html = response.parseHtml()
         val script = html.getElementsByTag("script").first()?.data() ?: return false
         val assignments = RhinoParser().parseAssignments(script)
         val redirectUrl = assignments["window.location"]?.toHttpUrl() ?: return false
-        if (!redirectUrl.isFortiAuthenticatorUrl()) return false
-        return true
+        return redirectUrl.isFortiAuthenticatorUrl()
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
         val html = response.parseHtml()
         val script = html.getElementsByTag("script").first()?.data() ?: error("no script")
         val assignments = RhinoParser().parseAssignments(script)
-        val redirectUrl = assignments["window.location"]?.toHttpUrl() ?: error("no window.location")
-        val response = client.get(redirectUrl, null)
-        if (canSolve(response)) return solve(client, response, cookies)
-        val viableSubPortals = allPortalLiberators //
-            .filter { solver -> PortalLiberatorConfig.experimental || !solver.isExperimental() }
-            .filter { solver -> solver::class.java.annotations.any { it is FortiAuthenticatorSubPortal } }
-            .filter { liberator -> liberator.canSolve(response) }
-        if (viableSubPortals.isEmpty()) error("${this::class.java.name} couldn't find redirect successor")
-        log("found ${viableSubPortals.size} viable ${FortiAuthenticatorSubPortal::class.java.name}s")
-        for (solver in viableSubPortals) {
-            log("executing solver ${solver::class.java.name}")
-            tryOrIgnore {
-                solver.solve(client, response, cookies)
-            }
-        }
+        val redirectUrl = assignments["window.location"] ?: error("no window.location")
+        return client.get(response.requestUrl, redirectUrl)
     }
 }
