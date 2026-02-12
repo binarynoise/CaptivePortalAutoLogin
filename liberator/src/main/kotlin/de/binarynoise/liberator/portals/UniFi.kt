@@ -23,7 +23,7 @@ import org.json.JSONObject
 )
 object UniFi : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.port == 8843 && response.requestUrl.encodedPath.startsWith("/guest/s/")
+        return response.requestUrl.encodedPath.startsWith("/guest/s/")
     }
     
     fun Response.parseUniFiBrokenJsonObject(skipStatusCheck: Boolean = false): JSONObject {
@@ -56,11 +56,12 @@ object UniFi : PortalLiberator {
         check(config.getString("auth") == "none") { "auth is not none" }
         check(
             listOf(
+                "facebook_enabled",
+                "password_enabled",
                 "payment_enabled",
                 "radius_enabled",
-                "password_enabled",
                 "voucher_enabled",
-                "facebook_enabled",
+                "wechat_enabled",
             ).all { config.checkBooleanSafe(it, true) }) { "unsupported auth method" }
         val hotspotpackages = client.get(response.requestUrl, "hotspotpackages")
         val loginResponse = client.postForm(response.requestUrl, "login", mapOf())
