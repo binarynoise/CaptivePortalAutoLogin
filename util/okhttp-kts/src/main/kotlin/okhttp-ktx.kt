@@ -12,6 +12,7 @@ import de.binarynoise.logger.Logger.log
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -212,6 +213,7 @@ fun OkHttpClient.postMultipartForm(
     queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
     multipartBody: MultipartBody.Builder.() -> Unit = {},
+    multipartType: MediaType = MultipartBody.FORM,
 ): Response {
     contract {
         callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
@@ -219,6 +221,7 @@ fun OkHttpClient.postMultipartForm(
     }
     return call(base, url, queryParameters) {
         val formBodyBuilder = MultipartBody.Builder()
+        formBodyBuilder.setType(multipartType)
         form.forEach { (key, value) ->
             if (value != null) formBodyBuilder.addFormDataPart(key, value)
         }
