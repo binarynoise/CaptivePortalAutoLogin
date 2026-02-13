@@ -1,10 +1,10 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
-import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.firstSuccess
+import de.binarynoise.liberator.portals.Conn4.createSession
 import de.binarynoise.liberator.successes
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
@@ -180,15 +180,7 @@ object Conn4 : PortalLiberator {
         createSessionParams: Map<String, String> = mapOf(),
         registerFreeParams: Map<String, String> = mapOf(),
     ) {
-        if (!PortalLiberatorConfig.experimental) return doRegisterTermsOnlyAuthFlow(
-            client,
-            apiBase,
-            token,
-            site_id,
-            createSessionParams,
-            registerFreeParams,
-        )
-        val session = createSession(client, apiBase, token, site_id)
+        val session = createSession(client, apiBase, token, site_id, createSessionParams = createSessionParams)
         val tariffs = getTariffPreference(session)
         for (tariff in tariffs) {
             val res = tryTariff(
@@ -198,12 +190,18 @@ object Conn4 : PortalLiberator {
                 token,
                 session.session_id,
                 tariff,
+                createSessionParams = createSessionParams,
+                registerFreeParams = registerFreeParams,
             )
             if (res.isSuccess) return
         }
         error("no tariff matched")
     }
     
+    /**
+     * @return all viable tariffs ordered from best to worst
+     * @param session the session information obtained from [createSession]
+     */
     fun getTariffPreference(session: JSONObject): List<JSONObject> {
         val tariffs = session.getJSONArray("tariffs").asIterable().filterIsInstance<JSONObject>()
         if (tariffs.hasOneEntry) return tariffs
@@ -220,7 +218,7 @@ object Conn4 : PortalLiberator {
             return this.isBooleanEqualTo(key, false, true)
         }
         
-        // get tariff timeout in minutes
+        /** get tariff timeout in minutes */
         fun JSONObject.getTariffTimeout(): Int {
             return tryOrNull { this.getInt("validity") } ?: tryOrNull { this.getInt("duration") / 60 } ?: 0
         }
@@ -255,52 +253,6 @@ object Conn4 : PortalLiberator {
         ).reversed()
         if (availableTariffs.isEmpty()) error("no tariffs available")
         return availableTariffs
-    }
-    
-    fun doRegisterTermsOnlyAuthFlow(
-        client: OkHttpClient,
-        apiBase: HttpUrl,
-        token: String,
-        site_id: String,
-        createSessionParams: Map<String, String> = mapOf(),
-        registerFreeParams: Map<String, String> = mapOf(),
-    ) {
-        val session = createSession(client, apiBase, token, site_id, createSessionParams = createSessionParams)
-        return doRegisterTermsOnlyAuthFlow(
-            client,
-            apiBase,
-            token,
-            site_id,
-            createSessionParams,
-            registerFreeParams,
-            session,
-        )
-    }
-    
-    fun doRegisterTermsOnlyAuthFlow(
-        client: OkHttpClient,
-        apiBase: HttpUrl,
-        token: String,
-        site_id: String,
-        createSessionParams: Map<String, String> = mapOf(),
-        registerFreeParams: Map<String, String> = mapOf(),
-        session: JSONObject,
-    ) {
-        registerFree(
-            client,
-            apiBase,
-            session.session_id,
-            registerFreeParams = registerFreeParams,
-        )
-        createSession(
-            client,
-            apiBase,
-            token,
-            site_id,
-            session.session_id,
-            createSessionParams,
-            checkLoggedIn = true,
-        )
     }
     
     fun solveScene(
