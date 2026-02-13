@@ -210,6 +210,7 @@ class Liberator(
         val redirectors = (allPortalRedirectors + LocationRedirector) //
             .filter { redirector -> PortalLiberatorConfig.experimental || !redirector.isExperimental() }
             .filter { redirector -> !redirector.ssidMustMatch() || (ssid != null && redirector.ssidMatches(ssid)) }
+            .filter { redirector -> !redirector.requiresSuccess || response.code !in 200..399 }
             .filter { redirector ->
                 try {
                     redirector.canRedirect(response)
