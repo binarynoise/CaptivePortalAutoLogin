@@ -27,8 +27,9 @@ object UniFi : PortalLiberator {
     }
     
     fun Response.parseUniFiBrokenJsonObject(skipStatusCheck: Boolean = false): JSONObject {
-        val text = this.readText(skipStatusCheck).substringAfter('{')
-        return JSONObject(text)
+        val text = this.readText(skipStatusCheck).substringAfter('{', "")
+        if (text.isEmpty()) throw IllegalArgumentException("empty JSON")
+        return JSONObject("{$text")
     }
     
     fun JSONObject.getUniFiDataObject(): JSONObject {
