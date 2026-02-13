@@ -62,6 +62,13 @@ interface PortalLiberator : PortalHandler {
  */
 interface PortalRedirector : PortalHandler {
     /**
+     * whether this redirector requires the response to have a "success" status code
+     * if not, this redirector will be skipped completely
+     */
+    val requiresSuccess: Boolean
+        get() = true
+    
+    /**
      * Determines if this redirector can handle the given response.
      *
      * This method is called during portal detection to determine if this redirector
