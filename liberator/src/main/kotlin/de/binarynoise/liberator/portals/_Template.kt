@@ -1,3 +1,4 @@
+@file:Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
@@ -7,7 +8,6 @@ import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @Experimental
 object _Template : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
