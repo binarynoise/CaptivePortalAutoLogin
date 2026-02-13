@@ -18,7 +18,7 @@ import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.resolveOrThrow
+import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -361,7 +361,8 @@ object Conn4 : PortalLiberator {
         cookies: Set<Cookie>,
     ) {
         val token = cookies.find { it.name == "wbs-token" }?.value?.decodeUrl() ?: error("no wbs-token cookie")
-        val apiBase = response.requestUrl.resolveOrThrow("/wbs/api/v1/") // TODO: properly parse wbs api base from scrips
+        // TODO: properly parse wbs api base from scrips
+        val apiBase = "/wbs/api/v1/".toHttpUrl(response.requestUrl)
         tryPossibleTariffs(client, apiBase, token, site_id)
     }
 }

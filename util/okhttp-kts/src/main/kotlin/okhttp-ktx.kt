@@ -246,7 +246,7 @@ fun Response.checkSuccess() {
     }
     val location = getLocationUnchecked()
     if (location != null) {
-        val path = request.url.resolveOrThrow(location).decodedPath
+        val path = location.toHttpUrl(request.url).decodedPath
         val pathContains40x = arrayOf("401", "403").any { path.contains(it) }
         check(!pathContains40x) {
             "Redirect to 401 or 403: $path"
@@ -416,14 +416,27 @@ fun HttpUrl.hasQueryParameter(name: String): Boolean {
 }
 
 /**
- * Resolves a new path relative to the given HttpUrl and throws an IllegalArgumentException if the resulting URL is not well-formed.
+ * Returns a new [HttpUrl] representing this.
  *
- * @param newPath the new path to resolve
- * @return the resolved HttpUrl
- * @throws IllegalArgumentException if the resulting URL is not well-formed
+ * @throws IllegalArgumentException If this is not a well-formed HTTP or HTTPS URL.
+ * @param base [HttpUrl] base to resolve relative paths to
  */
-fun HttpUrl.resolveOrThrow(newPath: String): HttpUrl =
-    newBuilder(newPath)?.build() ?: throw IllegalArgumentException("constructed not well-formed url: $this -> $newPath")
+fun String.toHttpUrl(base: HttpUrl?): HttpUrl {
+    return base?.newBuilder(this)?.build() ?: this.toHttpUrl()
+}
+
+/**
+ * Returns a new `HttpUrl` representing `url` if it is a well-formed HTTP or HTTPS URL, or null
+ * if it isn't.
+ * @param base [HttpUrl] base to resolve relative paths to
+ */
+fun String.toHttpUrlOrNull(base: HttpUrl?): HttpUrl? {
+    return try {
+        this.toHttpUrl(base)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+}
 
 /**
  * Follows redirects until the final non-redirect response is received.
@@ -437,7 +450,7 @@ tailrec fun Response.followRedirects(client: OkHttpClient): Response {
     log("following redirect: $requestUrl -> $location")
     
     val newRequest = request.newBuilder()
-    newRequest.url(request.url.resolveOrThrow(location))
+    newRequest.url(location.toHttpUrl(request.url))
     
     if (code != 307 && code != 308) {
         // unless requested to keep the http method, change it to GET
