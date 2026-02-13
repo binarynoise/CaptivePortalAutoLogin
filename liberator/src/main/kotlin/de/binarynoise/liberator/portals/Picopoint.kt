@@ -2,8 +2,8 @@
 
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.Picopoint.PICOPOINT_GATEKEEPER_DOMAIN
 import de.binarynoise.liberator.tryOrDefault
@@ -27,7 +27,7 @@ object Picopoint : PortalLiberator {
         return response.requestUrl.host == PICOPOINT_GATEKEEPER_DOMAIN //
             && !response.isRedirect //
             && response.requestUrl.lastPathSegment == "options" //
-            && !PicopointRedirector.canSolve(response)
+            && !PicopointRedirector.canRedirect(response)
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
@@ -52,7 +52,7 @@ object Picopoint : PortalLiberator {
 }
 
 @SSID("Shell Free WiFi")
-object PicopointRedirector : PortalLiberator {
+object PicopointRedirector : PortalRedirector {
     fun getRedirectUrl(response: Response): HttpUrl {
         val html = response.parseHtml()
         val script = html.getElementsByTag("script").first()?.data() ?: error("no script")
@@ -63,7 +63,7 @@ object PicopointRedirector : PortalLiberator {
         return locationUrl
     }
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canRedirect(response: Response): Boolean {
         if (response.requestUrl.host != PICOPOINT_GATEKEEPER_DOMAIN) return false
         if (response.isRedirect) return false
         return tryOrDefault(false) {
@@ -72,11 +72,8 @@ object PicopointRedirector : PortalLiberator {
         }
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
         val locationUrl = getRedirectUrl(response)
-        val nextResponse = client.get(locationUrl, null)
-        if (canSolve(nextResponse)) return solve(client, nextResponse, cookies)
-        if (Picopoint.canSolve(nextResponse)) return Picopoint.solve(client, nextResponse, cookies)
-        error("no ${Picopoint::class.java.name} could handle $nextResponse")
+        return client.get(locationUrl, null)
     }
 }
