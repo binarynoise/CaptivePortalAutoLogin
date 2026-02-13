@@ -439,6 +439,13 @@ fun String.toHttpUrlOrNull(base: HttpUrl?): HttpUrl? {
 }
 
 /**
+ * Returns a new [HttpUrl] object with the [scheme] set to `https`.
+ */
+fun HttpUrl.enforceHttps() : HttpUrl {
+    return this.newBuilder().scheme("https").build()
+}
+
+/**
  * Follows redirects until the final non-redirect response is received.
  *
  * @param client the OkHttpClient to use for the redirects
