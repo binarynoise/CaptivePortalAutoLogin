@@ -14,17 +14,22 @@ import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID(
+    "HUGO-BOSS-WIFI",
+    "WiFi Darmstadt",
     "mycloud",
     "o2 free Wifi",
-    "WiFi Darmstadt",
 )
 object TheCloud : PortalLiberator {
+    const val THECLOUD_DOMAIN = "service.thecloud.eu"
+    
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "service.thecloud.eu"
+        return response.requestUrl.host == THECLOUD_DOMAIN
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val loginUrl = "macauthlogin/v1/registration".toHttpUrl(response.requestUrl).enforceHttps()
-        client.postForm(loginUrl, null, mapOf("terms" to "true")).followRedirects(client).checkSuccess()
+        val loginUrl = "macauthlogin/v2/registration".toHttpUrl(response.requestUrl).enforceHttps()
+        client.postForm(loginUrl, null, mapOf("terms" to "true"))
+            .followRedirects(client) { it.host == THECLOUD_DOMAIN }
+            .checkSuccess()
     }
 }
