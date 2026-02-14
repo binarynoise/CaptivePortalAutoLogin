@@ -1,5 +1,8 @@
 package de.binarynoise.liberator
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import de.binarynoise.logger.Logger.log
 import org.json.JSONArray
 
@@ -55,7 +58,9 @@ inline fun <T> tryOrDefault(default: T, block: () -> T): T {
  *
  * @param block The block to execute.
  */
+@OptIn(ExperimentalContracts::class)
 inline fun <T> tryOrIgnore(block: () -> T) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
     try {
         block()
     } catch (_: Exception) {
