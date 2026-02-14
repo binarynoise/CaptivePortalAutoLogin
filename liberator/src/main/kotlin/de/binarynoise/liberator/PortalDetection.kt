@@ -1,19 +1,32 @@
 package de.binarynoise.liberator
 
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
+
+data class PortalTestURL(
+    val httpUrl: HttpUrl,
+    val httpsUrl: HttpUrl,
+) {
+    constructor(httpUrl: String, httpsUrl: String): this(httpUrl.toHttpUrl(), httpsUrl.toHttpUrl())
+    constructor(unifiedUrl: HttpUrl) : this(unifiedUrl, unifiedUrl)
+    constructor(unifiedUrl: String): this(unifiedUrl.toHttpUrl())
+}
+
 @Suppress("SpellCheckingInspection")
 object PortalDetection {
     val backends = mapOf(
-        "Binarynoise" to "http://am-i-captured.binarynoise.de",
-        "Google" to "http://connectivitycheck.gstatic.com/generate_204",
-        "Apple" to "http://captive.apple.com/hotspot-detect.html",
-        "Microsoft" to "http://www.msftconnecttest.com/connecttest.txt",
-        "Gnome NetworkManager" to "http://nmcheck.gnome.org/check_network_status.txt",
-        "KDE" to "http://networkcheck.kde.org/",
-        "Fedora" to "http://fedoraproject.org/static/hotspot.txt",
-        "Arch Linux" to "http://ping.archlinux.org/",
+        "Binarynoise" to PortalTestURL("http://am-i-captured.binarynoise.de"),
+        "Google" to PortalTestURL("http://connectivitycheck.gstatic.com/generate_204", "https://www.google.com/generate_204"),
+        "Apple" to PortalTestURL("http://captive.apple.com/hotspot-detect.html"),
+        "Microsoft" to PortalTestURL("http://www.msftconnecttest.com/connecttest.txt"),
+        "Gnome NetworkManager" to PortalTestURL("http://nmcheck.gnome.org/check_network_status.txt"),
+        "KDE" to PortalTestURL("http://networkcheck.kde.org/"),
+        "Fedora" to PortalTestURL("http://fedoraproject.org/static/hotspot.txt"),
+        "Arch Linux" to PortalTestURL("http://ping.archlinux.org/"),
     )
     
-    val defaultBackend: String = backends.entries.first().value
+    val defaultBackend: PortalTestURL = backends.entries.first().value
+    val defaultBackendKey: String = backends.entries.first().key
     
     val userAgents = mapOf(
         "Chrome/Android" to "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36",

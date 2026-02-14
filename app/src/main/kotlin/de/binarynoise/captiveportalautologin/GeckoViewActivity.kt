@@ -137,7 +137,7 @@ class GeckoViewActivity : ComponentActivity() {
                 
                 if (newState.hasPortal) {
                     if (session.isOpen && (navigationDelegate.location == null || navigationDelegate.location == "about:blank")) {
-                        session.loadUri(portalTestUrl)
+                        session.loadUri(portalTestUrl.httpUrl.toString())
                     }
                 } else {
                     if (session.isOpen) {
@@ -364,7 +364,7 @@ class GeckoViewActivity : ComponentActivity() {
     
     private fun getHarName(): String {
         val ssid = networkState?.ssid
-        val portalTestHost = portalTestUrl.toHttpUrl().host
+        val portalTestHost = portalTestUrl.httpUrl.host
         val host =
             har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost }
                 ?: portalTestHost
