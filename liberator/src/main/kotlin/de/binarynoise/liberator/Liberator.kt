@@ -4,12 +4,15 @@ import java.util.concurrent.TimeUnit.*
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
 import okhttp3.FormBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -19,7 +22,7 @@ import org.jsoup.Jsoup
 
 class Liberator(
     private val clientInit: (OkHttpClient.Builder) -> Unit,
-    val portalTestUrl: String,
+    val portalTestUrl: HttpUrl,
     private val userAgent: String,
     private val ssid: String?,
 ) {
@@ -125,10 +128,7 @@ class Liberator(
      * Attempts to liberate the user by making a series of HTTP requests to the portal.
      */
     fun liberate(): LiberationResult {
-        val response = client.get(null, portalTestUrl)
-        if (response.getLocation().isNullOrBlank()) {
-            return LiberationResult.NotCaught
-        }
+        val response = client.get(portalTestUrl, null)
         
         val res = recurse(response, 0)
         
@@ -136,20 +136,32 @@ class Liberator(
             return res
         }
         
-        var location: String? = ""
+        var portalResponse: Response? = null
         var count = 0
-        while (location != null && count++ < 3) {
+        while (count++ < 3) {
             Thread.sleep(1000)
             
-            // check if the user is still in the portal, try both http and https to avoid false positives
-            location = client.get(null, portalTestUrl).getLocation() //
-                ?: client.get(null, portalTestUrl.replace("http:", "https:")).getLocation()
+            // check if the user is still in the portal
+            val (httpIsInPortal, redirectedResponse) = isInPortal(portalTestUrl)
+            portalResponse = redirectedResponse
+            if (httpIsInPortal) continue
+            
+            tryOrIgnore {
+                val (httpsIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.enforceHttps())
+                portalResponse = redirectedResponse
+                if (httpsIsInPortal) continue
+            }
+            
+            return res
         }
-        return if (location.isNullOrBlank()) {
-            res
-        } else {
-            LiberationResult.StillCaptured(location, res.solvers)
-        }
+        return LiberationResult.StillCaptured(portalResponse?.requestUrl.toString(), res.solvers)
+    }
+    
+    private fun isInPortal(portalTestUrl: HttpUrl): Pair<Boolean, Response?> {
+        val response = client.get(portalTestUrl, null)
+        if (!response.isSuccessful) return Pair(true, null)
+        val redirectedResponse = getRedirectedResponse(client, response, cookies)
+        return Pair(redirectedResponse != null, redirectedResponse)
     }
     
     private fun recurse(response: Response, depth: Int): LiberationResult {
@@ -168,11 +180,16 @@ class Liberator(
             log("found ${solvers.size} solvers")
             
             if (solvers.isEmpty()) {
-                log("unknown captive portal: ${response.requestUrl}")
                 
                 val redirectedResponse = getRedirectedResponse(client, response, cookies)
                 log("locationUrl: ${redirectedResponse?.requestUrl}")
-                if (redirectedResponse == null) return LiberationResult.UnknownPortal(response.requestUrl.toString())
+                if (redirectedResponse == null) {
+                    if (isCaptivePortalTestUrl(response.requestUrl) && response.isSuccessful) {
+                        return LiberationResult.NotCaught
+                    }
+                    log("unknown captive portal: ${response.requestUrl}")
+                    return LiberationResult.UnknownPortal(response.requestUrl.toString())
+                }
                 
                 // follow redirects and try again
                 check(depth < 10) { "too many redirects" }
@@ -204,6 +221,10 @@ class Liberator(
         } catch (e: Exception) {
             return LiberationResult.Error(response.requestUrl.toString(), e.message.orEmpty(), "", e)
         }
+    }
+    
+    private fun isCaptivePortalTestUrl(url: HttpUrl): Boolean {
+        return portalTestUrl == url
     }
     
     private fun getRedirectedResponse(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response? {

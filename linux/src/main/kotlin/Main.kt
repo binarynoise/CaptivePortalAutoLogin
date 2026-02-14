@@ -14,6 +14,7 @@ import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.logger.Logger.log
 import okhttp3.ConnectionPool
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 fun main(args: Array<String>) = CaptivePortalAutoLoginLinux().main(args)
 
@@ -166,7 +167,7 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
                 
                 val result = Liberator(
                     { okhttpClient -> if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS)) },
-                    PortalDetection.defaultBackend,
+                    PortalDetection.defaultBackend.toHttpUrl(),
                     PortalDetection.defaultUserAgent,
                     ssid,
                 ).liberate()

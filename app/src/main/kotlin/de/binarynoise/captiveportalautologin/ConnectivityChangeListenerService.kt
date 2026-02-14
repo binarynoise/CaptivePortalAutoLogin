@@ -52,6 +52,7 @@ import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class ConnectivityChangeListenerService : Service() {
     
@@ -331,7 +332,7 @@ class ConnectivityChangeListenerService : Service() {
             
             val res = Liberator(
                 { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
-                portalTestUrl,
+                portalTestUrl.toHttpUrl(),
                 userAgent,
                 ssid,
             ).liberate()
