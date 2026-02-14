@@ -22,7 +22,7 @@ import org.jsoup.Jsoup
 
 class Liberator(
     private val clientInit: (OkHttpClient.Builder) -> Unit,
-    val portalTestUrl: HttpUrl,
+    val portalTestUrl: PortalTestURL,
     private val userAgent: String,
     private val ssid: String?,
 ) {
@@ -128,7 +128,7 @@ class Liberator(
      * Attempts to liberate the user by making a series of HTTP requests to the portal.
      */
     fun liberate(): LiberationResult {
-        val response = client.get(portalTestUrl, null)
+        val response = client.get(portalTestUrl.httpUrl, null)
         
         val res = recurse(response, 0)
         
@@ -142,12 +142,12 @@ class Liberator(
             Thread.sleep(1000)
             
             // check if the user is still in the portal
-            val (httpIsInPortal, redirectedResponse) = isInPortal(portalTestUrl)
+            val (httpIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.httpUrl)
             portalResponse = redirectedResponse
             if (httpIsInPortal) continue
             
             tryOrIgnore {
-                val (httpsIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.enforceHttps())
+                val (httpsIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.httpsUrl)
                 portalResponse = redirectedResponse
                 if (httpsIsInPortal) continue
             }

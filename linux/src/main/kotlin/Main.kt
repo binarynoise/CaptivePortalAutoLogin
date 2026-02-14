@@ -167,7 +167,7 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
                 
                 val result = Liberator(
                     { okhttpClient -> if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS)) },
-                    PortalDetection.defaultBackend.toHttpUrl(),
+                    PortalDetection.defaultBackend,
                     PortalDetection.defaultUserAgent,
                     ssid,
                 ).liberate()

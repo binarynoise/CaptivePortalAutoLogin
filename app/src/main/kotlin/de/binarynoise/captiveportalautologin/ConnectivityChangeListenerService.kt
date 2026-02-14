@@ -48,6 +48,7 @@ import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.startService
 import de.binarynoise.liberator.Liberator
+import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
@@ -328,11 +329,11 @@ class ConnectivityChangeListenerService : Service() {
         
         try {
             val userAgent: String by SharedPreferences.liberator_user_agent
-            val portalTestUrl: String by SharedPreferences.liberator_captive_test_url
+            val portalTestUrl: PortalTestURL by SharedPreferences.liberator_captive_test_url
             
             val res = Liberator(
                 { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
-                portalTestUrl.toHttpUrl(),
+                portalTestUrl,
                 userAgent,
                 ssid,
             ).liberate()
