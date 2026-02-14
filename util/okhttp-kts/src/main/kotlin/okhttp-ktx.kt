@@ -441,7 +441,7 @@ fun String.toHttpUrlOrNull(base: HttpUrl?): HttpUrl? {
 /**
  * Returns a new [HttpUrl] object with the [scheme] set to `https`.
  */
-fun HttpUrl.enforceHttps() : HttpUrl {
+fun HttpUrl.enforceHttps(): HttpUrl {
     return this.newBuilder().scheme("https").build()
 }
 
@@ -449,15 +449,21 @@ fun HttpUrl.enforceHttps() : HttpUrl {
  * Follows redirects until the final non-redirect response is received.
  *
  * @param client the OkHttpClient to use for the redirects
+ * @param followRedirect a predicate which takes in a [HttpUrl] and determines whether to follow the redirect or not
  * @return the final non-redirect response
  */
-tailrec fun Response.followRedirects(client: OkHttpClient): Response {
-    val location = getLocation() ?: return this
+tailrec fun Response.followRedirects(
+    client: OkHttpClient,
+    followRedirect: (url: HttpUrl) -> Boolean = { _ -> true },
+): Response {
+    val location = getLocation()?.toHttpUrl(request.url) ?: return this
+    
+    if (!followRedirect(location)) return this
     
     log("following redirect: $requestUrl -> $location")
     
     val newRequest = request.newBuilder()
-    newRequest.url(location.toHttpUrl(request.url))
+    newRequest.url(location)
     
     if (code != 307 && code != 308) {
         // unless requested to keep the http method, change it to GET
