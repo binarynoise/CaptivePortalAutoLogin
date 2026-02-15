@@ -28,10 +28,19 @@
     
     <Button
         android:id="@+id/copyToSdButton"
-        style="@style/CaptivePortalAutoLogin.Button.Accent"
+        style="@style/CaptivePortalAutoLogin.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="copy to SD"
+        android:textAllCaps="false"
+        />
+    
+    <Button
+        android:id="@+id/uploadButton"
+        style="@style/CaptivePortalAutoLogin.Button.Accent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="upload"
         android:textAllCaps="false"
         />
 
