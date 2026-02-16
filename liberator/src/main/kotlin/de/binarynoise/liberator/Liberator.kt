@@ -167,7 +167,7 @@ class Liberator(
     private fun recurse(response: Response, depth: Int): LiberationResult {
         try {
             val solvers: List<PortalLiberator> = allPortalLiberators //
-                .filter { solver -> PortalLiberatorConfig.experimental || !solver.isExperimental() }
+                .filter { solver -> !solver.isExperimental() || PortalLiberatorConfig.experimental }
                 .filter { solver -> !solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)) }
                 .filter { solver ->
                     try {
@@ -182,7 +182,7 @@ class Liberator(
             if (solvers.isEmpty()) {
                 
                 val redirectedResponse = getRedirectedResponse(client, response, cookies)
-                log("locationUrl: ${redirectedResponse?.requestUrl}")
+                log("redirectedResponse.requestUrl: ${redirectedResponse?.requestUrl}")
                 if (redirectedResponse == null) {
                     if (isCaptivePortalTestUrl(response.requestUrl) && response.isSuccessful) {
                         return LiberationResult.NotCaught
@@ -229,9 +229,9 @@ class Liberator(
     
     private fun getRedirectedResponse(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response? {
         val redirectors = (allPortalRedirectors + LocationRedirector) //
-            .filter { redirector -> PortalLiberatorConfig.experimental || !redirector.isExperimental() }
+            .filter { redirector -> !redirector.isExperimental() || PortalLiberatorConfig.experimental }
             .filter { redirector -> !redirector.ssidMustMatch() || (ssid != null && redirector.ssidMatches(ssid)) }
-            .filter { redirector -> !redirector.requiresSuccess || response.code !in 200..399 }
+            .filter { redirector -> !redirector.requiresSuccess || response.code in 200..399 }
             .filter { redirector ->
                 try {
                     redirector.canRedirect(response)
