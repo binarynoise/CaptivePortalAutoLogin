@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.portalproxy.portal
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.html.*
 import kotlinx.html.stream.*
@@ -10,8 +10,8 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
-const val portalHost = "binarynoise.de"
-const val portalPort = 8000
+val portalPort = System.getenv("PORTAL_PORT")?.toInt() ?: 8001
+val friendlyHost: String? = System.getenv("PORTAL_HOST")
 
 private val database = ConcurrentHashMap<String, Boolean>()
 
@@ -26,7 +26,8 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
         
         // Login route
         router.route("/login").handler { ctx ->
-            val ip = ctx.request().remoteAddress().host()
+            val ip = ctx.request().getRealRemoteIP()
+            
             database[ip] = false
             log("logged in $ip")
             ctx.response().putHeader("Location", "/").setStatusCode(302).end()
@@ -34,7 +35,8 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
         
         // Logout route
         router.route("/logout").handler { ctx ->
-            val ip = ctx.request().remoteAddress().host()
+            val ip = ctx.request().getRealRemoteIP()
+            
             database[ip] = true
             log("logged out $ip")
             redirect(ctx.request())
@@ -49,12 +51,17 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
     return router
 }
 
+fun getPortalHost(request: HttpServerRequest): String {
+    return friendlyHost ?: request.getHeader("Host")!!.substringBefore(":")
+}
+
 fun redirect(request: HttpServerRequest) {
-    request.response().putHeader("Location", "http://$portalHost:$portalPort/").setStatusCode(303).end()
+    val host = getPortalHost(request)
+    request.response().putHeader("Location", "http://$host:$portalPort/").setStatusCode(303).end()
 }
 
 fun checkCaptured(request: HttpServerRequest): Boolean {
-    val ip = request.remoteAddress().host()
+    val ip = request.getRealRemoteIP()
     return database[ip] ?: true
 }
 
@@ -89,6 +96,10 @@ private fun servePortalPage(request: HttpServerRequest) {
         body {
             h1 { +"Captive Portal" }
             p { +"You are currently ${if (captured) "captured" else "not captured"}" }
+            p {
+                +"Your IP is "
+                code { +request.getRealRemoteIP() }
+            }
             
             form("/login") {
                 p {
@@ -105,7 +116,7 @@ private fun servePortalPage(request: HttpServerRequest) {
             p {
                 +"This page can be opened again at"
                 br()
-                val href = "http://$portalHost:$portalPort/"
+                val href = "http://${getPortalHost(request)}:$portalPort/"
                 a(href = href) { +href }
             }
         }
