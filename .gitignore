@@ -61,4 +61,5 @@ google-services.json
 /har
 
 # application files
-db.sqlite
+db.sqlite*
+!**/test/resources/**/db.sqlite*

@@ -28,10 +28,17 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.kotlinx.datetime)
     implementation(libs.sqlite.jdbc)
+    
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.test {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
 }
 
 val mainClass = "de.binarynoise.captiveportalautologin.server.MainKt"
