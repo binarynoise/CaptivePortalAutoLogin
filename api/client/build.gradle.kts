@@ -19,8 +19,8 @@ dependencies {
     testImplementation(libs.ktor.server.core.jvm)
     testImplementation(libs.ktor.server.netty.jvm)
     testImplementation(libs.ktor.server.status.pages)
-    testImplementation(libs.exposed.core)
-    testImplementation(libs.exposed.jdbc)
+    testImplementation(libs.kotlinx.datetime)
+    testImplementation(libs.androidx.room.runtime)
 }
 
 tasks.test {

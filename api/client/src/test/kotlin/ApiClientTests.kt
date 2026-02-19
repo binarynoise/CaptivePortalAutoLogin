@@ -8,23 +8,23 @@ import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Clock
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
-import de.binarynoise.captiveportalautologin.server.Tables
 import de.binarynoise.captiveportalautologin.server.createServer
-import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.engine.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
@@ -122,43 +122,39 @@ class ApiClientTests {
         
         @Test
         fun `reportSuccess - count`() {
-            client.liberator.reportSuccess(
-                Api.Liberator.Success(
-                    "test ssid",
-                    System.currentTimeMillis(),
-                    "test ssid",
-                    "test url",
-                )
+            val success = Api.Liberator.Success(
+                "test ssid",
+                System.currentTimeMillis(),
+                "test ssid",
+                "test url",
             )
-            val before = transaction {
-                Tables.Successes.selectAll().where {
-                    Tables.Successes.ssid eq "test ssid"
-                    Tables.Successes.url eq "test url"
-                }.let { result ->
-                    assertEquals(1, result.count())
-                    result.first()[Tables.Successes.count]
-                }
-            }
-            log("before: $before")
-            client.liberator.reportSuccess(
-                Api.Liberator.Success(
-                    "test ssid",
-                    System.currentTimeMillis(),
-                    "test ssid",
-                    "test url",
+            
+            client.liberator.reportSuccess(success)
+            
+            val dateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+            val count = runBlocking {
+                server.database.successDao().getCount(
+                    success.version,
+                    dateTime.year,
+                    dateTime.month.number,
+                    success.ssid,
+                    success.url,
                 )
-            )
-            val after = transaction {
-                Tables.Successes.selectAll().where {
-                    Tables.Successes.ssid eq "test ssid"
-                    Tables.Successes.url eq "test url"
-                }.let { result ->
-                    assertEquals(1, result.count())
-                    result.first()[Tables.Successes.count]
-                }
             }
-            log("after: $after")
-            assertEquals(before + 1, after)
+            assertEquals(1, count)
+            
+            client.liberator.reportSuccess(success)
+            
+            val count2 = runBlocking {
+                server.database.successDao().getCount(
+                    success.version,
+                    dateTime.year,
+                    dateTime.month.number,
+                    success.ssid,
+                    success.url,
+                )
+            }
+            assertEquals(2, count2)
         }
     }
 }

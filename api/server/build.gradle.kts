@@ -3,6 +3,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.androidx.room)
     alias(libs.plugins.shadow)
 }
 
@@ -21,17 +23,19 @@ dependencies {
     implementation(libs.ktor.server.mustache)
     implementation(libs.slf4j.simple)
     
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.migration.core)
-    implementation(libs.exposed.migration.jdbc)
-    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.sqlite.jdbc)
+    implementation(libs.androidx.sqlite.bundled)
     
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 tasks.test {
@@ -53,7 +57,6 @@ tasks.withType<ShadowJar> {
     archiveClassifier.set("shadow")
     mergeServiceFiles()
     minimize {
-        exclude(dependency(libs.exposed.jdbc.get()))
         exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
         exclude(dependency(libs.slf4j.simple.get()))
     }

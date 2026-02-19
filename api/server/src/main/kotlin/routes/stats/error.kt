@@ -7,23 +7,13 @@ import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import de.binarynoise.captiveportalautologin.server.Tables
+import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.toInstant
 import io.ktor.http.*
 import io.ktor.server.mustache.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.between
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.like
-import org.jetbrains.exposed.v1.core.not
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 
 internal enum class ErrorType {
@@ -40,44 +30,26 @@ internal fun Route.errorRoutes() {
         get {
             val type = ErrorType.valueOf(call.parameters["type"] ?: ErrorType.All.name)
             val unlimited = call.parameters["unlimited"] == "true"
+            val limit = if (unlimited) Int.MAX_VALUE else 1000
             
-            val errors = transaction {
-                Tables.Errors.selectAll().orderBy(Tables.Errors.timestamp to SortOrder.DESC).let { query ->
-                    when (type) {
-                        ErrorType.All -> query
-                        ErrorType.Unknown -> query.where { Tables.Errors.message like "unknown portal" }
-                        ErrorType.NoNoise -> {
-                            query.where {
-                                not(
-                                    (Tables.Errors.message like "unknown portal") or //
-                                        (Tables.Errors.message like "connection closed") or //
-                                        (Tables.Errors.message like "Failed to connect to %") or //
-                                        (Tables.Errors.message like "Unable to resolve host %") or //
-                                        (Tables.Errors.message like "Software caused connection abort") or //
-                                        (Tables.Errors.message like "Binding socket to network % failed: %") or //
-                                        (Tables.Errors.message like "Chain validation failed") or //
-                                        (Tables.Errors.message like "java.security.cert.CertPathValidatorException: %") or //
-                                        (Op.FALSE)
-                                )
-                            }
-                        }
-                    }.let { query ->
-                        if (unlimited) query else query.limit(1000)
-                    }
-                }.map {
-                    val dateTime = it[Tables.Errors.timestamp].toLocalDateTime(UTC)
-                    val url = it[Tables.Errors.url]
-                    
-                    mutableMapOf<String, Comparable<*>>(
-                        "version" to it[Tables.Errors.version],
-                        "year" to dateTime.year,
-                        "month" to dateTime.month.number,
-                        "ssid" to it[Tables.Errors.ssid],
-                        "message" to it[Tables.Errors.message],
-                        "domain" to if (url.isNotEmpty()) URLBuilder(urlString = url).host else "",
-                    )
-                }
-            }.groupingBy { it }
+            val errors = when (type) {
+                ErrorType.All -> ApiServer.api.database.errorDao().getAllErrors(limit)
+                ErrorType.Unknown -> ApiServer.api.database.errorDao().getUnknownPortalErrors(limit)
+                ErrorType.NoNoise -> ApiServer.api.database.errorDao().getNoNoiseErrors(limit)
+            }.map { error ->
+                val dateTime = error.timestamp.toLocalDateTime(UTC)
+                val url = error.url
+                
+                mutableMapOf<String, Comparable<*>>(
+                    "version" to error.version,
+                    "year" to dateTime.year,
+                    "month" to dateTime.month.number,
+                    "ssid" to error.ssid,
+                    "message" to error.message,
+                    "domain" to if (url.isNotEmpty()) URLBuilder(urlString = url).host else "",
+                )
+            }
+                .groupingBy { it }
                 .eachCount()
                 .map { (key, count) ->
                     key.apply {
@@ -116,22 +88,16 @@ internal fun Route.errorRoutes() {
             val monthStart = LocalDate.of(year, month, 1)
             val monthEnd = monthStart.plusMonths(1)
             
-            val errors = transaction {
-                Tables.Errors.selectAll().where {
-                    (Tables.Errors.timestamp.between(monthStart.toInstant(), monthEnd.toInstant()) //
-                        and (Tables.Errors.version eq version) // 
-                        and (Tables.Errors.message eq message)  // 
-                        and (Tables.Errors.url like "%$domain%"))
-                }.orderBy(
-                    Tables.Errors.timestamp to SortOrder.DESC,
-                ).map {
+            val errors = ApiServer.api.database.errorDao()
+                .getErrorDetails(monthStart.toInstant(), monthEnd.toInstant(), version, message, domain)
+                .map {
                     mapOf(
-                        "url" to it[Tables.Errors.url],
-                        "ssid" to it[Tables.Errors.ssid],
-                        "timestamp" to it[Tables.Errors.timestamp].toLocalDateTime(UTC),
+                        "url" to it.url,
+                        "ssid" to it.ssid,
+                        "timestamp" to it.timestamp.toLocalDateTime(UTC),
                     )
                 }
-            }
+            
             
             call.respond(
                 MustacheContent(
