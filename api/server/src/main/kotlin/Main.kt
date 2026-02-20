@@ -31,11 +31,11 @@ val isDevelopment = hostname != "captiveportalautologin"
 fun main() {
     api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
     
-    val server = createServer()
+    val server = createServer("::", 8080)
     server.start(wait = true)
 }
 
-fun createServer(): EmbeddedServer<*, *> {
+fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
     val factory = Netty
     val rootConfig: ServerConfig = serverConfig {
         developmentMode = isDevelopment
@@ -45,8 +45,8 @@ fun createServer(): EmbeddedServer<*, *> {
     
     val server = embeddedServer(factory = factory, rootConfig = rootConfig) {
         connector {
-            port = 8080
-            host = "::"
+            this.port = port
+            this.host = host
         }
         shutdownTimeout = 1000
         enableHttp2 = false

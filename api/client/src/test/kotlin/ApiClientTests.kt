@@ -20,9 +20,11 @@ import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.createServer
+import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.engine.*
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.AfterAll
@@ -34,9 +36,6 @@ class ApiClientTests {
     private lateinit var server: ApiServer
     private lateinit var client: ApiClient
     
-    private val base = "http://localhost:8080/".toHttpUrl()
-    private val apiBase = base.resolve("api/")!!
-    
     @BeforeTest
     fun setup() {
         server = ApiServer(tempDirectory)
@@ -47,19 +46,26 @@ class ApiClientTests {
     companion object {
         private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
         
-        private val httpServer: EmbeddedServer<*, *> = createServer()
+        private val httpServer: EmbeddedServer<*, *> = createServer("::", 0)
+        
+        lateinit var base: HttpUrl
+        lateinit var apiBase: HttpUrl
+        
+        @BeforeAll
+        @JvmStatic
+        fun start() {
+            httpServer.start(wait = false)
+            val port = runBlocking { httpServer.engine.resolvedConnectors().first().port }
+            log("port: $port")
+            base = "http://localhost:$port/".toHttpUrl()
+            apiBase = base.resolve("api/")!!
+        }
         
         @AfterAll
         @JvmStatic
         fun cleanup() {
             httpServer.stop()
             tempDirectory.deleteRecursively()
-        }
-        
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            httpServer.start(wait = false)
         }
     }
     
