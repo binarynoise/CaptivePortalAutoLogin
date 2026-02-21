@@ -17,6 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
@@ -67,6 +68,12 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
                     jsonDB.delete<HAR>(key, "har")
                     log("Uploaded HAR $key")
                 }
+                "log" -> {
+                    val log = jsonDB.load<LOG>(key, "log")
+                    apiClient.log.submitLog(key, log)
+                    jsonDB.delete<LOG>(key, "log")
+                    log("Uploaded log $key")
+                }
                 "error" -> {
                     val error = jsonDB.load<Api.Liberator.Error>(key)
                     apiClient.liberator.reportError(error)
@@ -116,14 +123,22 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
 
 object Stats : Api {
     override val har: Har = Har()
+    override val log: Log = Log()
     override val liberator: Liberator = Liberator()
-    
     
     class Har : Api.Har {
         override fun submitHar(name: String, har: HAR) {
             val key = name
             jsonDB.store(key, har, "har")
             scheduleUpload("har", key)
+        }
+    }
+    
+    class Log : Api.Log {
+        override fun submitLog(name: String, log: LOG) {
+            val key = name
+            jsonDB.store(key, log, "log")
+            scheduleUpload("log", key)
         }
     }
     
