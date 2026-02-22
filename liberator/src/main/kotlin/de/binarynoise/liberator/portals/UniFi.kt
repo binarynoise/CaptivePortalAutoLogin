@@ -37,7 +37,7 @@ object UniFi : PortalLiberator {
     }
     
     fun JSONObject.isUniFiMetaOk(): Boolean {
-        return this.getJSONObject("meta").getBoolean("rc")
+        return this.getJSONObject("meta").getString("rc") == "ok"
     }
     
     /**
