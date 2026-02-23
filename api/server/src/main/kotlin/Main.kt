@@ -29,32 +29,30 @@ val hostname = Path("/proc/sys/kernel/hostname").takeIf { it.exists() }?.readTex
 val isDevelopment = hostname != "captiveportalautologin"
 
 fun main() {
-    api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
-    
     val server = createServer("::", 8080)
     server.start(wait = true)
 }
 
 fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
-    val factory = Netty
-    val rootConfig: ServerConfig = serverConfig {
-        developmentMode = isDevelopment
-        watchPaths = listOf("classes", "resources")
-        module(Application::module)
-    }
-    
-    val server = embeddedServer(factory = factory, rootConfig = rootConfig) {
-        connector {
-            this.port = port
-            this.host = host
-        }
+    System.setProperty("io.ktor.development", isDevelopment.toString())
+    val server = embeddedServer(
+        factory = Netty,
+        port = port,
+        host = host,
+        watchPaths = listOf("classes", "resources"),
+        module = Application::module,
+    )
+    with(server.engineConfig) {
         shutdownTimeout = 1000
         enableHttp2 = false
+        enableH2c = false
     }
     return server
 }
 
-fun Application.module() {
+suspend fun Application.module() {
+    api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
+    
     check(developmentMode == isDevelopment) { "developmentMode != isDevelopment" }
     log("launching in ${if (isDevelopment) "development" else "production"} mode")
     
