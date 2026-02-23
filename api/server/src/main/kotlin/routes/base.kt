@@ -17,9 +17,11 @@ fun Application.configureRouting() {
         api()
         stats()
         
-        get("/") {
-            call.response.header("Location", "https://github.com/binarynoise/CaptivePortalAutoLogin")
-            call.respond(HttpStatusCode.TemporaryRedirect)
+        if (!developmentMode) {
+            get("/") {
+                call.response.header("Location", "https://github.com/binarynoise/CaptivePortalAutoLogin")
+                call.respond(HttpStatusCode.TemporaryRedirect)
+            }
         }
     }
     
