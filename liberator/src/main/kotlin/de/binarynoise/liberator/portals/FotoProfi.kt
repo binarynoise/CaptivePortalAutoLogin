@@ -1,6 +1,5 @@
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -15,7 +14,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@Experimental
 @SSID("Fotoprofi-Gast", mustMatch = true)
 object FotoProfi : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
@@ -29,14 +27,19 @@ object FotoProfi : PortalLiberator {
         val html = response.parseHtml()
         
         client.postMultipartForm(
-            response.requestUrl, "/wgcgi.cgi", mapOf(
+            response.requestUrl,
+            "/wgcgi.cgi",
+            mapOf(
                 "action" to html.getInput("action"),
                 "hsContinueBtnName" to html.getInput("hsContinueBtnName"),
                 "redirect" to redirect,
                 "hsAcceptCkbName" to "on",
                 "lang" to "en-US",
                 "style" to html.getInput("style"),
-            )
+            ),
+            preConnectSetup = {
+                header("Referer", response.requestUrl.toString())
+            },
         ).checkSuccess()
     }
 }
