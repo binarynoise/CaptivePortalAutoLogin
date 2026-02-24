@@ -5,7 +5,6 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.util.okhttp.checkSuccess
-import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
@@ -64,15 +63,19 @@ object UniFi : PortalLiberator {
                 "voucher_enabled",
                 "wechat_enabled",
             ).all { config.checkBooleanSafe(it, true) }) { "unsupported auth method" }
-        val hotspotpackages = client.get(response.requestUrl, "hotspotpackages")
-        val loginResponse = client.postForm(response.requestUrl, "login", mapOf())
+        val loginResponse = client.postForm(
+            response.requestUrl,
+            "login",
+            mapOf(),
+            preConnectSetup = {
+                header("Referer", response.requestUrl.toString())
+            },
+        )
         check(!loginResponse.isRedirect) { "login redirected" }
         loginResponse.checkSuccess()
         val loginJson = loginResponse.parseUniFiBrokenJsonObject()
         check(loginJson.isUniFiMetaOk()) { "UniFi loginResponse responded not ok" }
         val loginDataJson = loginJson.getUniFiDataObject()
         check(loginDataJson.getBoolean("authorized")) { "UniFi loginResponse responded not authorized" }
-        val redirect_url = loginDataJson.getString("redirect_url")
-        client.get(null, redirect_url).followRedirects(client).checkSuccess()
     }
 }
