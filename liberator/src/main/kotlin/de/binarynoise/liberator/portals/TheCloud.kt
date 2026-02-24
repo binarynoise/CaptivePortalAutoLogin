@@ -23,7 +23,7 @@ object TheCloud : PortalLiberator {
     const val THECLOUD_DOMAIN = "service.thecloud.eu"
     
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == THECLOUD_DOMAIN
+        return response.requestUrl.host == THECLOUD_DOMAIN && response.requestUrl.isHttps
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
