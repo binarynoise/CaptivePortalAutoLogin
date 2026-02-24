@@ -41,7 +41,7 @@ object FortiAuthenticator : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (!response.requestUrl.isFortiAuthenticatorUrl()) return false
         if (response.isRedirect) return false
-        return false
+        return true
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
