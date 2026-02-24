@@ -19,20 +19,28 @@ object IMasterNCE : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         return response.requestUrl.host == "device.imaster-nce.de" //
             && response.requestUrl.port == 19008 //
-            && response.requestUrl.pathSegments.firstOrNull() == "portal"
+            && with(response.requestUrl.pathSegments) {
+            firstOrNull() == "portal" || (firstOrNull() == "portalpage" && lastOrNull() == "auth.html")
+        }
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val ssid = Base64.encode(response.requestUrl.queryParameter("ssid")?.encodeToByteArray() ?: error("no ssid"))
+        var ssid = response.requestUrl.queryParameter("ssid") ?: error("no ssid")
+        if (response.requestUrl.encodedPath == "/portal") ssid = Base64.encode(ssid.encodeToByteArray())
+        val umac = response.requestUrl.queryParameter("umac") ?: error("no umac")
+        val apmac = with(response.requestUrl) {
+            queryParameter("ap-mac") ?: queryParameter("apmac")
+        } ?: error("no apmac")
+        val uaddress = response.requestUrl.queryParameter("uaddress") ?: error("no uaddress")
         val response = client.postForm(
             response.requestUrl, "/portalauth/login", mapOf(
                 "agreed" to "1",
                 "userName" to "~anonymous",
                 "userPass" to "~anonymous",
                 "ssid" to ssid,
-                "umac" to response.requestUrl.queryParameter("umac"),
-                "apmac" to response.requestUrl.queryParameter("apmac"),
-                "uaddress" to response.requestUrl.queryParameter("uaddress"),
+                "umac" to umac,
+                "apmac" to apmac,
+                "uaddress" to uaddress,
                 "authType" to "2",
             )
         ).parseJsonObject()
