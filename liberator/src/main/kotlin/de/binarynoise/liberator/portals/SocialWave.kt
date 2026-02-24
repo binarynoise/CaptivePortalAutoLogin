@@ -28,7 +28,7 @@ import org.json.JSONObject
 )
 object SocialWave : PortalLiberator {
     val SOCIALWAVE_DOMAINS = listOf(
-        "go.socialwave.com",
+        "go.social-wave.com",
         "go.meinwlan.com",
     )
     val SOCIALWAVE_SPLASH_API_BASE = "https://splash-api.daisy.meinwlan.com/api/".toHttpUrl()
