@@ -143,6 +143,7 @@ object Permissions : Set<Permission> by allPermissions {
         },
     )
     
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     @Deprecated("Deprecated in Java for some reason")
     override fun <T : Any> toArray(generator: IntFunction<Array<out T>>): Array<out T> {
         return this.cast<java.util.Set<*>>().toArray(generator.apply(0))

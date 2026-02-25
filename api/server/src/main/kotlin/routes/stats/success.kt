@@ -16,6 +16,7 @@ internal fun Route.successRoutes() {
     get("successes/") {
         val successes = ApiServer.api.database.successDao()
             .getAllSuccesses()
+            .asSequence()
             .map {
                 val domain = if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else ""
                 val key = mutableMapOf<String, Comparable<*>>(

@@ -4,7 +4,6 @@ import java.util.concurrent.TimeUnit.*
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
-import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.readText
@@ -12,7 +11,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
 import okhttp3.FormBody
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient

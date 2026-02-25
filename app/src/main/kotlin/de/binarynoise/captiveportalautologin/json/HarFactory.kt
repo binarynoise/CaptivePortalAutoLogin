@@ -80,7 +80,7 @@ fun Request.fillInCookies(requestHeaders: Array<HttpHeader>) {
     if (modified) log("Filled in cookies: ${newCookies.size} new, ${cookies.size} total")
 }
 
-fun Request.fillInPostData(body: RequestBody?) = with(body) {
+fun Request.fillInPostData(body: RequestBody?): Unit = with(body) {
     if (this == null) return
     
     if (formData != null) {

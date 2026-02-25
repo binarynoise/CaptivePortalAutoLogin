@@ -5,14 +5,12 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
-import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.toParameterMap
 import okhttp3.Cookie
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response

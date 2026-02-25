@@ -136,9 +136,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 title = "Request Re-evaluation"
                 summary = "Ask android to re-evaluate the current Captive Portal."
                 setOnPreferenceClickListener {
-                    with(context) {
-                        ConnectivityChangeListenerService.reportNetworkConnectivity()
-                    }
+                    ConnectivityChangeListenerService.reportNetworkConnectivity()
                     true
                 }
                 serviceStateListeners.add {

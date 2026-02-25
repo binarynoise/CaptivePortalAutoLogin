@@ -4,7 +4,6 @@ import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
-import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl

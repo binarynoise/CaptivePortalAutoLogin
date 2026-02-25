@@ -7,9 +7,9 @@ data class PortalTestURL(
     val httpUrl: HttpUrl,
     val httpsUrl: HttpUrl,
 ) {
-    constructor(httpUrl: String, httpsUrl: String): this(httpUrl.toHttpUrl(), httpsUrl.toHttpUrl())
+    constructor(httpUrl: String, httpsUrl: String) : this(httpUrl.toHttpUrl(), httpsUrl.toHttpUrl())
     constructor(unifiedUrl: HttpUrl) : this(unifiedUrl, unifiedUrl)
-    constructor(unifiedUrl: String): this(unifiedUrl.toHttpUrl())
+    constructor(unifiedUrl: String) : this(unifiedUrl.toHttpUrl())
 }
 
 @Suppress("SpellCheckingInspection")

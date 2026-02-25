@@ -14,7 +14,6 @@ import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.logger.Logger.log
 import okhttp3.ConnectionPool
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 fun main(args: Array<String>) = CaptivePortalAutoLoginLinux().main(args)
 

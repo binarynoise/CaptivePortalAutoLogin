@@ -53,7 +53,6 @@ import de.binarynoise.liberator.cast
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
-import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class ConnectivityChangeListenerService : Service() {
     
@@ -584,7 +583,7 @@ class ConnectivityChangeListenerService : Service() {
             }
         }
         
-        fun start(silent: Boolean = false) = serviceStateLock.read {
+        fun start(silent: Boolean = false): Unit = serviceStateLock.read {
             if (serviceState.running || serviceState.restart) return
             val missingPermissions = Permissions.filterNot { it.granted(applicationContext) }
                 .map { permission -> permission.name ?: applicationContext.getString(permission.nameRes ?: 0) }
