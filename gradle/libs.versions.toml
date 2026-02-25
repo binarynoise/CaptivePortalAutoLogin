@@ -1,8 +1,8 @@
 [versions]
 androidDesugarJdkLibs = "2.1.5"
 androidGradlePlugin = "8.12.3"
-androidTools = "32.0.0"
-androidxActivityKtx = "1.12.2"
+androidTools = "32.0.1"
+androidxActivityKtx = "1.12.4"
 androidxAnnotation = "1.9.1"
 androidxAppCompat = "1.7.1"
 androidXCollectionKtx = "1.5.0"
@@ -12,19 +12,19 @@ androidxLifecycleRuntimeKtx = "2.10.0"
 androidxPreferenceKtx = "1.2.1"
 androidxRoom = "2.8.4"
 androidxRoomSqlite = "2.6.2"
-androidxWorkRuntimeKtx = "2.11.0"
+androidxWorkRuntimeKtx = "2.11.1"
 blockhound = "1.0.16.RELEASE"
 clikt = "5.1.0"
 decourinator = "2.6.1"
-geckoview = "147.0.20260116091309"
+geckoview = "148.0.20260216153405"
 githubApi = "1.330"
 hiddenapibypass = "6.1"
-jebrainsAnnotations = "26.0.2-1"
+jebrainsAnnotations = "26.1.0"
 json = "20251224"
 jsoup = "1.22.1"
-junitJupiterParams = "6.0.2"
-kotlin = "2.3.0"
-kotlin-ksp = "2.3.4"
+junitJupiterParams = "6.0.3"
+kotlin = "2.3.10"
+kotlinKsp = "2.3.6"
 kotlinxCoroutines = "1.10.2"
 kotlinxDatetime = "0.7.1"
 kotlinxHtml = "0.12.0"
@@ -32,11 +32,11 @@ kotlinxSerializationJson = "1.10.0"
 ktor = "3.4.0"
 leakcanary = "2.14"
 okhttp = "5.3.2"
-rhino = "1.9.0"
+rhino = "1.9.1"
 r8 = "9.0.32"
 shadow = "9.3.1"
 slf4jSimple = "2.0.17"
-vertx = "5.0.7"
+vertx = "5.0.8"
 viewbindingpropertydelegate = "1.5.9"
 xposed = "82"
 
@@ -65,7 +65,7 @@ junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", vers
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
-kotlin-ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "kotlin-ksp" }
+kotlin-ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "kotlinKsp" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
@@ -102,7 +102,7 @@ androidx-room = { id = "androidx.room", version.ref = "androidxRoom" }
 decourinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decourinator" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlin-ksp" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlinKsp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

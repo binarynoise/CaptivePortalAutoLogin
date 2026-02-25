@@ -131,3 +131,13 @@ dependencies {
     
     debugImplementation(libs.leakcanary.android)
 }
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            when (requested.module.toString()) {
+                "androidx.appcompat:appcompat" -> useVersion(libs.versions.androidxAppCompat.get())
+            }
+        }
+    }
+}
