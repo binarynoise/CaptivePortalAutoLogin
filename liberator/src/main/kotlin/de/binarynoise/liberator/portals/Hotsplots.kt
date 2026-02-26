@@ -1,71 +1,61 @@
+@file:Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.followRedirects
-import de.binarynoise.util.okhttp.getInput
-import de.binarynoise.util.okhttp.hasInput
-import de.binarynoise.util.okhttp.parseHtml
-import de.binarynoise.util.okhttp.postForm
+import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.toParameterMap
+import de.binarynoise.util.okhttp.submitOnlyForm
+import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.Cookie
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.jsoup.nodes.FormElement
 
-@SSID("WIFI@DB")
-@Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+// https://docs.cradlepoint.com/r/NCOS-How-to-Setup-Hotspot-Services-Captive-Portal/Details-on-Using-UAM-Authentication-for-Your-Hotspot
+
+fun HttpUrl.isEricssonCaptured(): Boolean {
+    return this.queryParameter("res") in listOf("notyet", "failed", "other", "timeout", "rejected", "logoff")
+}
+
+fun HttpUrl.isEricssonSuccess(): Boolean {
+    return this.queryParameter("res") in listOf("success", "already")
+}
+
+@SSID(
+    "Bogestra",
+    "KampsHotspot",
+    "WIFI@DB",
+    "WLAN@MainzerMobilität",
+    "WLAN@RMV S-BAHN",
+)
 object Hotsplots : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return "www.hotsplots.de" == response.requestUrl.host && "/auth/login.php" == response.requestUrl.encodedPath
+        if (!response.requestUrl.isEricssonCaptured()) return false
+        with(response.requestUrl) {
+            if (host == "www.hotsplots.de" && encodedPath == "/auth/login.php") return true
+            if (host == "auth.hotsplots.de" && encodedPath == "/login") return true
+        }
+        return false
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val html1 = response.parseHtml()
-        
-        client.postForm(
-            null, "https://www.hotsplots.de/auth/login.php",
-            buildMap {
-                if (html1.hasInput("hotsplots-colibri-terms")) {
-                    set("hotsplots-colibri-terms", "on")
-                } else {
-                    set("termsOK", "on")
-                    set("termsChkbx", "on")
-                    set("haveTerms", html1.getInput("haveTerms"))
-                }
-                
-                set("challenge", html1.getInput("challenge"))
-                set("uamip", html1.getInput("uamip"))
-                set("uamport", html1.getInput("uamport"))
-                set("userurl", html1.getInput("userurl"))
-                set("myLogin", html1.getInput("myLogin"))
-                set("ll", html1.getInput("ll"))
-                set("nasid", html1.getInput("nasid"))
-                set("custom", html1.getInput("custom"))
-            },
-        ).followRedirects(client)
+        response.submitOnlyForm(client).followRedirects(client) { !it.isEricssonSuccess() }
     }
 }
 
-@Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-object HotsplotsAuth : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
-        return "auth.hotsplots.de" == response.requestUrl.host && "/login" == response.requestUrl.encodedPath
+@SSID("RRX Hotspot")
+object IOB : PortalRedirector {
+    override fun canRedirect(response: Response): Boolean {
+        return response.requestUrl.host == "portal.iob.de" && response.requestUrl.hasQueryParameter("loginurl")
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val html1 = response.parseHtml()
-        
-        val login_status_form = html1.getElementsByAttributeValue("name", "login_status_form").singleOrNull()
-            ?: error("no login_status_form")
-        login_status_form as? FormElement ?: error("login_status_form is not a form")
-        val inputs = login_status_form.toParameterMap()
-        check(inputs.isNotEmpty()) { "no inputs" }
-        
-        client.postForm(
-            response.requestUrl, null,
-            inputs,
-        ).followRedirects(client)
+    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
+        val loginUrl = response.requestUrl.queryParameter("loginurl")?.toHttpUrl(response.requestUrl)
+        return client.get(loginUrl, null)
     }
 }
