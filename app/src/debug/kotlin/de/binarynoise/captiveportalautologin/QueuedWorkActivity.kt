@@ -28,7 +28,22 @@ class QueuedWorkActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 Stats.getScheduledWork().collect { workInfos ->
-                    binding.text.text = workInfos.joinToString("\n\n\n") { it.toFriendlyString() }
+                    binding.counters.text = buildString {
+                        append("Total: ")
+                        append(workInfos.size)
+                        
+                        WorkInfo.State.entries.forEach { state ->
+                            val filtered = workInfos.filter { it.state == state }
+                            if (filtered.isNotEmpty()) {
+                                appendLine()
+                                append("${state.name}: ")
+                                append(filtered.size)
+                            }
+                        }
+                    }
+                    binding.text.text = workInfos.filter { it.state != WorkInfo.State.SUCCEEDED }
+                        .joinToString("\n\n\n") { it.toFriendlyString() }
+                    
                 }
             }
         }

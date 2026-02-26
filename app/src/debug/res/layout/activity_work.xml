@@ -17,6 +17,21 @@
         android:text="Schedule everything for upload"
         />
     
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/counters"
+        tools:text="Queued: 0\nFailed: 0\nSuccess: 0"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView"
+        />
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="?android:attr/colorAccent"
+        android:layout_marginVertical="@dimen/padding"
+        />
+    
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
