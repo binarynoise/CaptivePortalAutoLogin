@@ -8,6 +8,7 @@ import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
@@ -98,6 +99,7 @@ object Inditex : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        if (response.requestUrl.decodedPath.endsWith("Employees.php")) throw UnsupportedPortalException("employee portal page")
         val response2 = response.submitOnlyForm(
             client, queryParameters = mapOf(
                 "_browser" to "1",
