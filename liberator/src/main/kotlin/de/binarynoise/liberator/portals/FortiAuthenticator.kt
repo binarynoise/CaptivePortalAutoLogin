@@ -11,15 +11,13 @@ import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
-import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.toParameterMap
+import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.jsoup.nodes.FormElement
 
 /**
  * Identifies this [PortalLiberator] as a sub portal of [FortiAuthenticator],
@@ -45,14 +43,7 @@ object FortiAuthenticator : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val html = response.parseHtml()
-        val form = html.getElementsByTag("form").single() as FormElement
-        val parameters = form.toParameterMap()
-        client.postForm(
-            response.requestUrl, "/", parameters + mapOf(
-                "answer" to "1",
-            )
-        )
+        response.submitOnlyForm(client, mapOf("answer" to "1"))
     }
 }
 

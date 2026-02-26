@@ -192,3 +192,19 @@ fun createDummyResponse(): Response.Builder = Response.Builder().apply {
 }
 
 fun Response.Builder.setLocation(location: String) = header("Location", location)
+
+/**
+ * Submit the only form present within this [Response]
+ * @throws IllegalArgumentException if more than one form is present
+ * @throws NoSuchElementException if no form is present
+ */
+fun Response.submitOnlyForm(
+    client: OkHttpClient,
+    parameters: Map<String, String> = emptyMap(),
+    queryParameters: Map<String, String> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    val html = this.parseHtml()
+    val baseUrl = this.requestUrl
+    return html.submitOnlyForm(client, baseUrl, parameters, queryParameters, preConnectSetup)
+}
