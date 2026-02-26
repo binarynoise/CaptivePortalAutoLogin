@@ -42,7 +42,7 @@ fun FormElement.submit(
 ): Response {
     val method = this.attr("method").lowercase()
     check(method != "dialog") {}
-    val action = this.attr("action").takeIf { it.isNotEmpty() }?.toHttpUrl(baseUrl) ?: error("no action")
+    val action = this.attr("action").takeIf { it.isNotEmpty() }?.toHttpUrl(baseUrl) ?: baseUrl
     val formParameters = this.toParameterMap()
     return when (method) {
         "", "get" -> {
