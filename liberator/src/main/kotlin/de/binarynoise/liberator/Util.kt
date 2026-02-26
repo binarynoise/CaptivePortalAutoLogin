@@ -105,6 +105,10 @@ fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
     if (exceptions.size == 1) {
         return Result.failure(exceptions.single())
     }
+    val filteredExceptions = exceptions.filter { it !is UnsupportedPortalException }
+    if (filteredExceptions.size == 1) {
+        return Result.failure(filteredExceptions.single())
+    }
     val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
     for (exception in exceptions) {
         wrapper.addSuppressed(exception)
@@ -125,9 +129,20 @@ fun <T> List<Result<T>>.successes(): Result<List<T>> {
     if (exceptions.size == 1) {
         return Result.failure(exceptions.single())
     }
+    val filteredExceptions = exceptions.filter { it !is UnsupportedPortalException }
+    if (filteredExceptions.size == 1) {
+        return Result.failure(filteredExceptions.single())
+    }
     val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
     for (exception in exceptions) {
         wrapper.addSuppressed(exception)
     }
     return Result.failure(wrapper)
 }
+
+/**
+ * Throw this exception inside a [PortalLiberator] to signal to the [Liberator]
+ * that this portal is not liberatable due to incompatible portal configuration.
+ * E.g. a password is required, a social media login is required, ...
+ */
+class UnsupportedPortalException(message: String? = null) : Exception(message)

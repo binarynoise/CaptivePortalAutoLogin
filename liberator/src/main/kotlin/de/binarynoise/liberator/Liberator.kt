@@ -205,6 +205,7 @@ class Liberator(
                 val e = if (throwable is NoSuccessException) IllegalStateException(
                     "all PortalLiberators failed: " + throwable.message, throwable
                 ) else throwable
+                if (throwable is NoSuccessException) return LiberationResult.UnsupportedPortal(response.requestUrl.toString())
                 return LiberationResult.Error(
                     response.requestUrl.toString(),
                     e.message.orEmpty(),

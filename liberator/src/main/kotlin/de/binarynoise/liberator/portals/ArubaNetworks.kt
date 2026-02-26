@@ -3,6 +3,7 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
@@ -58,7 +59,7 @@ object ArubaNetworks : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
         val pageConfig = portal_login_page_config1.getJSONObject("page")
-        if (!pageConfig.getBoolean("require_accept_terms") || pageConfig.getBoolean("require_sponsor_approval")) error("incompatible configuration")
+        if (!pageConfig.getBoolean("require_accept_terms") || pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
         
         val capture = response.requestUrl.queryParameter("capture") ?: tryOrNull {
             val loginConfig = portal_login_page_config1.getJSONObject("capture")

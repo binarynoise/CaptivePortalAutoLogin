@@ -2,6 +2,7 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.firstSuccess
 import de.binarynoise.liberator.portals.Conn4.createSession
@@ -251,7 +252,7 @@ object Conn4 : PortalLiberator {
                 // TODO: include "limitationAfterLimitExploited" into decision
             )
         ).reversed()
-        if (availableTariffs.isEmpty()) error("no tariffs available")
+        if (availableTariffs.isEmpty()) throw UnsupportedPortalException("no tariffs available")
         return availableTariffs
     }
     

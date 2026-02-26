@@ -3,6 +3,7 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
@@ -39,30 +40,20 @@ object UniFi : PortalLiberator {
         return this.getJSONObject("meta").getString("rc") == "ok"
     }
     
-    /**
-     * check if boolean [key] exists and isn't equal to [unwantedValue]
-     * @return false if [key] is [unwantedValue], true otherwise
-     */
-    fun JSONObject.checkBooleanSafe(key: String, unwantedValue: Boolean): Boolean {
-        return tryOrDefault(true) {
-            this.getBoolean(key) != unwantedValue
-        }
-    }
-    
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val hotspotconfig = client.get(response.requestUrl, "hotspotconfig").parseUniFiBrokenJsonObject()
         check(hotspotconfig.isUniFiMetaOk()) { "UniFi hotspotconfig responded not ok" }
         val config = hotspotconfig.getUniFiDataObject()
-        check(config.getString("auth") == "none") { "auth is not none" }
-        check(
-            listOf(
+        if (config.getString("auth") != "none") throw UnsupportedPortalException("auth is not none")
+        if (listOf(
                 "facebook_enabled",
                 "password_enabled",
                 "payment_enabled",
                 "radius_enabled",
                 "voucher_enabled",
                 "wechat_enabled",
-            ).all { config.checkBooleanSafe(it, true) }) { "unsupported auth method" }
+            ).any { tryOrDefault(false) { config.getBoolean(it) } }
+        ) throw UnsupportedPortalException("unsupported auth method")
         val loginResponse = client.postForm(
             response.requestUrl,
             "login",
