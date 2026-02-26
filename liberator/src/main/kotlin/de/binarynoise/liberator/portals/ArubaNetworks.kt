@@ -3,15 +3,20 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
+import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
+import de.binarynoise.util.okhttp.submitOnlyForm
+import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.Cookie
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -40,6 +45,16 @@ object ArubaNetworks : PortalLiberator {
         return JSONObject(assignments["portal_login_page_config"])
     }
     
+    fun performArubaLogin(client: OkHttpClient, base: HttpUrl, username: String, password: String) {
+        client.postForm(
+            base, "/cgi-bin/login", mapOf(
+                "cmd" to "authenticate",
+                "user" to username,
+                "password" to password,
+            )
+        ).checkSuccess()
+    }
+    
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
         val pageConfig = portal_login_page_config1.getJSONObject("page")
@@ -60,14 +75,41 @@ object ArubaNetworks : PortalLiberator {
         val portal_login_page_config2 = getPortalLoginPageConfig(response2)
         val network_login_config = portal_login_page_config2.getJSONObject("network_login")
         
-        client.postForm(
-            response2.requestUrl, network_login_config.getString("action"), mapOf(
-                "cmd" to "authenticate",
-                "url" to network_login_config.getString("continue_url"),
-                "user" to network_login_config.getString("username"),
-                "password" to network_login_config.getString("password"),
-                "Login" to "Log In",
+        performArubaLogin(
+            client,
+            network_login_config.getString("action").toHttpUrl(response2.requestUrl),
+            network_login_config.getString("username"),
+            network_login_config.getString("password"),
+        )
+    }
+}
+
+@Experimental
+@SSID(
+    "Bershka-WiFi",
+    "PULL&BEAR-FreeWiFi",
+    "Stradivarius-WiFi",
+    "Zara-WiFi",
+)
+object Inditex : PortalLiberator {
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.host == "wifi.inditex.com"
+    }
+    
+    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+        val response2 = response.submitOnlyForm(
+            client, queryParameters = mapOf(
+                "_browser" to "1",
             )
-        ).checkSuccess()
+        ).followRedirects(client)
+        val response3 = response2.submitOnlyForm(client)
+        val html = response3.parseHtml()
+        val form = html.forms().single()
+        performArubaLogin(
+            client,
+            form.attr("action").toHttpUrl(response3.requestUrl),
+            form.getInput("user"),
+            form.getInput("password"),
+        )
     }
 }

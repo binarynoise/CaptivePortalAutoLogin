@@ -5,9 +5,11 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -43,16 +45,11 @@ object Segmueller : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        client.postForm(
-            null,
-            "https://captiveportal-login.segmueller.de/cgi-bin/login",
-            mapOf(
-                "cmd" to "authenticate",
-                "url" to "http://www.segmueller.de",
-                "user" to "SEG_Anonymous",
-                "Login" to "Log In",
-                "password" to "069424",
-            ),
+        performArubaLogin(
+            client,
+            "https://captiveportal-login.segmueller.de/cgi-bin/login".toHttpUrl(),
+            "SEG_Anonymous",
+            "069424",
         )
     }
 }
