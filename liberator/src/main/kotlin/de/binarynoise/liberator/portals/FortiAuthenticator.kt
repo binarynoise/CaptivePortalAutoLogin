@@ -64,7 +64,8 @@ object FortiAuthenticatorRedirect : PortalRedirector {
         val script = html.getElementsByTag("script").first()?.data() ?: return false
         val assignments = RhinoParser().parseAssignments(script)
         val redirectUrl = assignments["window.location"]?.toHttpUrl() ?: return false
-        return redirectUrl.isFortiAuthenticatorUrl()
+        // only allow redirects from and to FortiAuthenticator
+        return response.requestUrl.isFortiAuthenticatorUrl() || redirectUrl.isFortiAuthenticatorUrl()
     }
     
     override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
