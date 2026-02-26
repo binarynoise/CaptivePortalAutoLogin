@@ -202,7 +202,9 @@ class Liberator(
                     return@runCatching solver
                 }
             }.successes().getOrElse { throwable ->
-                val e = IllegalStateException("all PortalLiberators failed:" + throwable.message, throwable)
+                val e = if (throwable is NoSuccessException) IllegalStateException(
+                    "all PortalLiberators failed: " + throwable.message, throwable
+                ) else throwable
                 return LiberationResult.Error(
                     response.requestUrl.toString(),
                     e.message.orEmpty(),

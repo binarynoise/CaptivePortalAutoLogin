@@ -102,6 +102,9 @@ fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
         result.onSuccess { return result }
         result.onFailure { exceptions.add(it) }
     }
+    if (exceptions.size == 1) {
+        return Result.failure(exceptions.single())
+    }
     val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
     for (exception in exceptions) {
         wrapper.addSuppressed(exception)
@@ -119,7 +122,9 @@ fun <T> List<Result<T>>.successes(): Result<List<T>> {
     if (successes.isNotEmpty()) {
         return Result.success(successes)
     }
-    
+    if (exceptions.size == 1) {
+        return Result.failure(exceptions.single())
+    }
     val wrapper = NoSuccessException("no success: " + exceptions.joinToString(", ") { it.message.toString() })
     for (exception in exceptions) {
         wrapper.addSuppressed(exception)
