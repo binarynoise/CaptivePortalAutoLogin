@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LocationRedirector
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
@@ -95,7 +96,7 @@ object ArubaNetworks : PortalLiberator {
 )
 object Inditex : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "wifi.inditex.com"
+        return response.requestUrl.host == "wifi.inditex.com" && !LocationRedirector.canRedirect(response)
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {

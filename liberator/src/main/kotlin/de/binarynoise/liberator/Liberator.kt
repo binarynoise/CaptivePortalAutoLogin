@@ -249,21 +249,6 @@ class Liberator(
         }.firstSuccess().getOrNull()
     }
     
-    private object LocationRedirector : PortalRedirector {
-        override fun canRedirect(response: Response): Boolean {
-            val location = response.getLocation()
-            return !location.isNullOrBlank()
-        }
-        
-        override fun redirect(
-            client: OkHttpClient,
-            response: Response,
-            cookies: Set<Cookie>,
-        ): Response {
-            return client.get(response.requestUrl, response.getLocation()!!)
-        }
-    }
-    
     sealed class LiberationResult {
         data object NotCaught : LiberationResult()
         
@@ -275,5 +260,20 @@ class Liberator(
         data class UnknownPortal(val url: String) : LiberationResult()
         data class StillCaptured(val url: String, val solvers: String) : LiberationResult()
         data class UnsupportedPortal(val url: String) : LiberationResult()
+    }
+}
+
+object LocationRedirector : PortalRedirector {
+    override fun canRedirect(response: Response): Boolean {
+        val location = response.getLocation()
+        return !location.isNullOrBlank()
+    }
+    
+    override fun redirect(
+        client: OkHttpClient,
+        response: Response,
+        cookies: Set<Cookie>,
+    ): Response {
+        return client.get(response.requestUrl, response.getLocation()!!)
     }
 }
