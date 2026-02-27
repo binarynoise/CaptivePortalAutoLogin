@@ -6,6 +6,7 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
@@ -68,5 +69,8 @@ object UniFi : PortalLiberator {
         check(loginJson.isUniFiMetaOk()) { "UniFi loginResponse responded not ok" }
         val loginDataJson = loginJson.getUniFiDataObject()
         check(loginDataJson.getBoolean("authorized")) { "UniFi loginResponse responded not authorized" }
+        
+        val redirect_url = loginDataJson.getString("redirect_url") ?: error("no redirect_url")
+        client.get(response.requestUrl, redirect_url).followRedirects(client)
     }
 }
