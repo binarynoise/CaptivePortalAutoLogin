@@ -5,9 +5,9 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.followRedirects
+import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -27,9 +27,9 @@ object TheCloud : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        val loginUrl = "macauthlogin/v2/registration".toHttpUrl(response.requestUrl).enforceHttps()
-        client.postForm(loginUrl, null, mapOf("terms" to "true"))
-            .followRedirects(client) { it.host == THECLOUD_DOMAIN }
-            .checkSuccess()
+        val baseUrl = response.requestUrl.enforceHttps()
+        val getOnlineResponse = client.get(baseUrl, "getonline").followRedirects(client)
+        client.postForm(baseUrl, "macauthlogin/v2/registration", mapOf("terms" to "true")) //
+            .followRedirects(client) { it.host == THECLOUD_DOMAIN }.checkSuccess()
     }
 }
