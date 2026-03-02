@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.liberator.SSID
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
@@ -15,6 +16,10 @@ import okhttp3.Response
 import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+@SSID(
+    "WIFIonICE",
+    "dbs4public",
+)
 object DBWifi : PortalLiberator {
     val domains = setOf(
         "login.wifionice.de",
@@ -33,9 +38,7 @@ object DBWifi : PortalLiberator {
         when {
             "cna" == response1.requestUrl.firstPathSegment -> {
                 log("cna")
-                val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}") {
-                    header("X-Csrf-Token", "csrf")
-                }
+                val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}")
                 check(JSONObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
             }
             "sp" == response1.requestUrl.firstPathSegment -> {
