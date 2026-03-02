@@ -18,7 +18,7 @@ import okhttp3.ConnectionPool
 fun main(args: Array<String>) = CaptivePortalAutoLoginLinux().main(args)
 
 class CaptivePortalAutoLoginLinux : CliktCommand() {
-    val oneshot by option().flag("--oneshot", default = false).help { "Run as a service (false) or only once (true)" }
+    val oneshot by option().flag().help { "Run as a service (false) or only once (true)" }
     val force by option().flag()
         .help { "Force liberation without connectivity check by NetworkManager (implies --oneshot)" }
     val experimental by option().flag().help { "enable experimental and incomplete Portals" }
