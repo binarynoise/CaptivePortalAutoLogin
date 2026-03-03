@@ -96,6 +96,7 @@ interface PortalRedirector : PortalHandler {
 
 data class LiberatorExtras(
     val cookies: Set<Cookie>,
+    val portalTestUrl: PortalTestURL,
 )
 
 
