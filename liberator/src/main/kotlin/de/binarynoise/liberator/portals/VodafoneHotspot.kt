@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
@@ -9,7 +10,6 @@ import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -26,7 +26,7 @@ object VodafoneHotspot : PortalLiberator {
         return response.requestUrl.host == "hotspot.vodafone.de"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val session = client.get(response.requestUrl, "/api/v4/session").parseJsonObject()
         val sessionToken = session.getString("session")
         val landingPageElements = session.getJSONArray("landingPageElements").asIterable()

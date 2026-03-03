@@ -2,6 +2,7 @@
 
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
@@ -14,7 +15,6 @@ import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -30,7 +30,7 @@ object Picopoint : PortalLiberator {
             && !PicopointRedirector.canRedirect(response)
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html = response.parseHtml()
         val form = html.getElementsByTag("form").find { it.attr("name") == "pseudo_auth_form" }
             ?: error("pseudo_auth_form not found")
@@ -72,7 +72,7 @@ object PicopointRedirector : PortalRedirector {
         }
     }
     
-    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
+    override fun redirect(client: OkHttpClient, response: Response, extras: LiberatorExtras): Response {
         val locationUrl = getRedirectUrl(response)
         return client.get(locationUrl, null)
     }

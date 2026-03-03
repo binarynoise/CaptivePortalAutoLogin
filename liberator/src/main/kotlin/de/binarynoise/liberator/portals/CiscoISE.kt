@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -8,7 +9,6 @@ import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -22,12 +22,12 @@ object CiscoISE : PortalLiberator {
         // Cisco ISE portal port should be 8443, but was observed to be 8448 @ gast11.ssb-ag.de
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val response = client.get(response.requestUrl, response.getLocation()).followRedirects(client)
         response.checkSuccess()
         
         fun getCookie(name: String): String? {
-            return cookies.singleOrNull { it.name == name }?.value
+            return extras.cookies.singleOrNull { it.name == name }?.value
         }
         
         val token = response.headers("token").firstOrNull() ?: getCookie("token") ?: error("no token")

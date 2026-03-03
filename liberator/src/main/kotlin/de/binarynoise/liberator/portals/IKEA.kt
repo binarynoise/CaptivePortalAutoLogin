@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -10,7 +11,6 @@ import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -22,7 +22,7 @@ object IKEA : PortalLiberator {
         return "yo-wifi.net" == response.requestUrl.host && "authen" == response.requestUrl.firstPathSegment
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val location1 = response.getLocation() ?: error("no location 1")
         val mac = response.requestUrl.queryParameter("user_mac") ?: error("no mac")
         val deviceName = response.requestUrl.queryParameter("device_name") ?: error("no deviceName")

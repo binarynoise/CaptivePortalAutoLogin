@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
@@ -9,7 +10,6 @@ import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -39,7 +39,7 @@ object Unwired : PortalLiberator {
         return response.requestUrl.host in supportedDomains
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         // f'ing graphql?
         // bro at least the websocket isn't relevant to the login flow...
         val user_session_id = response.requestUrl.queryParameter("user_session_id")

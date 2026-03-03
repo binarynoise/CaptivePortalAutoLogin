@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -9,7 +10,6 @@ import de.binarynoise.util.okhttp.isIp
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postMultipartForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -22,7 +22,7 @@ object FotoProfi : PortalLiberator {
             && response.requestUrl.hasQueryParameter("redirect")
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val redirect = response.requestUrl.queryParameter("redirect") ?: error("no redirect")
         val html = response.parseHtml()
         

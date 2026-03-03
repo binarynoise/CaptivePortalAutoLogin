@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.logger.Logger.log
@@ -10,7 +11,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -32,7 +32,7 @@ object DBWifi : PortalLiberator {
         return response.requestUrl.host in domains
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val response1 = response.followRedirects(client)
         
         when {
@@ -52,7 +52,7 @@ object DBWifi : PortalLiberator {
             }
             else -> {
                 log("else")
-                val csrfToken = cookies.find { it.name == "csrf" }?.value ?: error("no csrf")
+                val csrfToken = extras.cookies.find { it.name == "csrf" }?.value ?: error("no csrf")
                 client.postForm(
                     response1.requestUrl, null, mapOf(
                         "login" to "true",

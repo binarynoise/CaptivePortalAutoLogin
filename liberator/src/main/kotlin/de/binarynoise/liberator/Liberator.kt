@@ -197,7 +197,7 @@ class Liberator(
             solvers.map { solver ->
                 runCatching {
                     log("solver ${solver::class.simpleName}")
-                    solver.solve(client, response, cookies)
+                    solver.solve(client, response, LiberatorExtras(cookies = cookies))
                     log("solver ${solver::class.simpleName} finished processing")
                     return@runCatching solver
                 }
@@ -244,7 +244,7 @@ class Liberator(
         log("found ${redirectors.size} redirectors")
         return redirectors.asSequence().map { redirector ->
             runCatching {
-                redirector.redirect(client, response, cookies)
+                redirector.redirect(client, response, LiberatorExtras(cookies = cookies))
             }
         }.firstSuccess().getOrNull()
     }
@@ -272,7 +272,7 @@ object LocationRedirector : PortalRedirector {
     override fun redirect(
         client: OkHttpClient,
         response: Response,
-        cookies: Set<Cookie>,
+        extras: LiberatorExtras,
     ): Response {
         return client.get(response.requestUrl, response.getLocation()!!)
     }

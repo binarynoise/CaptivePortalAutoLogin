@@ -1,12 +1,12 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -24,7 +24,7 @@ object TMobileHotspot : PortalLiberator {
         return "hotspot.t-mobile.net" == response.requestUrl.host && response.requestUrl.decodedPath == "/wlan/redirect.do"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val response1 = client.postJson(response.requestUrl, "/wlan/rest/freeLogin", """{"rememberMe":false}""")
         val wlanLoginStatus = JSONObject(response1.readText()).getJSONObject("user").getString("wlanLoginStatus")
         check(wlanLoginStatus == "online") { """wlanLoginStatus: "$wlanLoginStatus" != "online"""" }

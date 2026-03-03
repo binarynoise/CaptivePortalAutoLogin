@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -10,7 +11,6 @@ import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.isIp
 import de.binarynoise.util.okhttp.lastPathSegment
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -25,7 +25,7 @@ object StadtwerkeStuttgart : PortalLiberator {
             && listOf("uamport", "uamip", "userurl").all { response.requestUrl.hasQueryParameter(it) }
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val uamip = response.requestUrl.queryParameter("uamip") ?: error("no uamip")
         val uamport = response.requestUrl.queryParameter("uamport")?.toInt() ?: error("no uamport")
         val uamaddr = HttpUrl.Builder().scheme("http").host(uamip).port(uamport).encodedPath("/logon").build()

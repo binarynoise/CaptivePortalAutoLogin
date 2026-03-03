@@ -1,12 +1,12 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -16,7 +16,7 @@ object MyPowerspotDE : PortalLiberator {
         return "login.mypowerspot.de" == response.requestUrl.host
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val response1 = client.get(response.requestUrl, "/landingpage/")
         val response2 = client.get(response1.requestUrl, null, mapOf("acceptTOC" to "1"))
         val location2 = response2.getLocation() ?: error("no location2")

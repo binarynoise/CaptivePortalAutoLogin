@@ -3,6 +3,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -14,7 +15,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.toHttpUrl
 import de.binarynoise.util.okhttp.toHttpUrlOrNull
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -36,7 +36,7 @@ object RubyHotels : PortalLiberator {
         return isRubyHotelsLoginUrl(response.requestUrl)
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html = response.parseHtml()
         val loginUrl = html.getElementsByTag("a") //
             .filter { it.hasAttr("href") }
@@ -86,7 +86,7 @@ object RubyWorkspaces : PortalLiberator {
         return response.requestUrl.host == "hotspot.ruby-workspaces.com" && isRubyLoginUrl(response.requestUrl)
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html = response.parseHtml()
         val form = html.getElementsByTag("form").single { it.attr("name") == "login" }
         val action = form.attr("action").takeIf { it.isNotEmpty() }?.toHttpUrl(response.requestUrl)

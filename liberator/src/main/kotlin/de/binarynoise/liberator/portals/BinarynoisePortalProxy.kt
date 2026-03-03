@@ -1,12 +1,12 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -17,7 +17,7 @@ object BinarynoisePortalProxy : PortalLiberator {
         return response.requestUrl.host == "portal.binarynoise.de" && response.requestUrl.port == 8001
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         client.postForm(response.requestUrl, "/login", emptyMap()).followRedirects(client).checkSuccess()
     }
 }

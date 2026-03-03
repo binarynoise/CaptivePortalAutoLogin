@@ -3,6 +3,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.randomEmail
@@ -12,7 +13,6 @@ import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -67,7 +67,7 @@ object SocialWave : PortalLiberator {
             .build()
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val res = response.requestUrl.queryParameter("res") ?: error("no res query parameter")
         val helloJson = client.get(
             SOCIALWAVE_SPLASH_API_BASE, "hello.json", mapOf(
@@ -76,7 +76,7 @@ object SocialWave : PortalLiberator {
         ).parseJsonObject()
         val registerEmailJson = client.postForm(
             SOCIALWAVE_SPLASH_API_BASE, "email/register.json", mapOf(
-                "assigned_mac" to (cookies.find { it.name == "assigned_mac" }?.value ?: ""),
+                "assigned_mac" to (extras.cookies.find { it.name == "assigned_mac" }?.value ?: ""),
                 "language" to "de",
                 "email" to randomEmail(),
                 "query" to res,

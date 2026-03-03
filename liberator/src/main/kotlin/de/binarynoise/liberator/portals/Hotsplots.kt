@@ -2,6 +2,7 @@
 
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
@@ -11,7 +12,6 @@ import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
 import de.binarynoise.util.okhttp.toHttpUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -43,7 +43,7 @@ object Hotsplots : PortalLiberator {
         return false
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         response.submitOnlyForm(client).followRedirects(client) { !it.isEricssonSuccess() }
     }
 }
@@ -54,7 +54,7 @@ object IOB : PortalRedirector {
         return response.requestUrl.host == "portal.iob.de" && response.requestUrl.hasQueryParameter("loginurl")
     }
     
-    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
+    override fun redirect(client: OkHttpClient, response: Response, extras: LiberatorExtras): Response {
         val loginUrl = response.requestUrl.queryParameter("loginurl")?.toHttpUrl(response.requestUrl)
         return client.get(loginUrl, null)
     }

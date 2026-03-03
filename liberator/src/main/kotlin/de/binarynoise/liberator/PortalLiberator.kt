@@ -49,9 +49,9 @@ interface PortalLiberator : PortalHandler {
      *
      * The [client] is the OkHttpClient instance to use for making HTTP requests to the portal.
      * The [response] is the HTTP response that contains the portal this [PortalLiberator] wants to solve.
-     * The [cookies] is a read-only view of the current set of cookies.
+     * The [extras] contain additional information like cookies.
      */
-    fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>)
+    fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras)
 }
 
 /**
@@ -89,10 +89,15 @@ interface PortalRedirector : PortalHandler {
      *
      * The [client] is the OkHttpClient instance to use for making HTTP requests to the portal.
      * The [response] is the HTTP response that contains the portal this [PortalRedirector] wants to solve.
-     * The [cookies] is a read-only view of the current set of cookies.
+     * The [extras] contain additional information like cookies.
      */
-    fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response
+    fun redirect(client: OkHttpClient, response: Response, extras: LiberatorExtras): Response
 }
+
+data class LiberatorExtras(
+    val cookies: Set<Cookie>,
+)
+
 
 fun PortalHandler.isExperimental(): Boolean = this::class.java.annotations.any { it is Experimental }
 fun PortalHandler.ssidMustMatch(): Boolean = this::class.java.annotations.filterIsInstance<SSID>().any { it.mustMatch }

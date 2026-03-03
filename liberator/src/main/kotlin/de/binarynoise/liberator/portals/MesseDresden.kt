@@ -2,13 +2,13 @@
 
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -19,7 +19,7 @@ object MesseDresden : PortalLiberator {
             && response.requestUrl.firstPathSegment == "messe"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html = response.parseHtml()
         val loginButton = html.getElementsByTag("a").single { it.attr("href").contains("login.html") }
         val loginUrl = loginButton.attr("href")

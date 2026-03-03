@@ -7,6 +7,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.tryOrDefault
@@ -17,7 +18,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.toHttpUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -120,7 +120,7 @@ object MistCom : PortalLiberator {
         return isMistPortalUrl(response.requestUrl)
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val ap_mac = response.requestUrl.queryParameter("ap_mac") ?: error("no ap_mac")
         val url = response.requestUrl.queryParameter("url") ?: error("no url")
         val client_mac = response.requestUrl.queryParameter("client_mac") ?: error("no client_mac")
@@ -139,11 +139,11 @@ object MistCom : PortalLiberator {
     }
 }
 
-/* 
+/*
  * following liberators are intended for liberating mist.com networks,
  * where the captive portal site is hosted externally
- * 
- * since data from that site is necessary, 
+ *
+ * since data from that site is necessary,
  * they need to have their own portal liberators
  */
 
@@ -160,7 +160,7 @@ object Abercrombie : PortalLiberator {
         }
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val authorizeUrl = getAuthorizeUrl(response.requestUrl)
         val secret = response.requestUrl.queryParameter("s") ?: "f6xFwD8mggTUIkJnqxHXKWU5W53okorJsLFrP3kl"
         authorizeMistPortal(

@@ -2,6 +2,7 @@
 
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.NetworkAuth.isNetworkAuthDomain
@@ -11,7 +12,6 @@ import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocationUrl
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -40,7 +40,7 @@ object NetworkAuth : PortalLiberator {
         return response.requestUrl.isNetworkAuthDomain() && !response.isRedirect
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         client.get(response.requestUrl, "grant").followRedirects(client).checkSuccess()
     }
 }
@@ -63,7 +63,7 @@ object NetworkAuthSubPortal : PortalLiberator {
         return base_grant_url.isNetworkAuthDomain() && base_grant_url.isNetworkAuthGrantUrl()
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
-        return NetworkAuth.solve(client, response, cookies)
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
+        return NetworkAuth.solve(client, response, extras)
     }
 }

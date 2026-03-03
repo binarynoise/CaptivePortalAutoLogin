@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import java.util.*
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
@@ -9,7 +10,6 @@ import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -21,7 +21,7 @@ object BlockHouse : PortalLiberator {
         return response.requestUrl.host == "wlan.block-house.de"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         response.checkSuccess()
         
         val hs_server = response.requestUrl.queryParameter("hs_server") ?: error("no hs_server")

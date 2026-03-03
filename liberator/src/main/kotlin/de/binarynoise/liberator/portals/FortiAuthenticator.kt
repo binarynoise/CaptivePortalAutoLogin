@@ -3,6 +3,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
@@ -13,7 +14,6 @@ import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -42,7 +42,7 @@ object FortiAuthenticator : PortalLiberator {
         return true
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         response.submitOnlyForm(client, mapOf("answer" to "1"))
     }
 }
@@ -59,7 +59,7 @@ object FortiAuthenticatorRedirect : PortalRedirector {
         return response.requestUrl.isFortiAuthenticatorUrl() || redirectUrl.isFortiAuthenticatorUrl()
     }
     
-    override fun redirect(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response {
+    override fun redirect(client: OkHttpClient, response: Response, extras: LiberatorExtras): Response {
         val html = response.parseHtml()
         val script = html.getElementsByTag("script").first()?.data() ?: error("no script")
         val assignments = RhinoParser().parseAssignments(script)

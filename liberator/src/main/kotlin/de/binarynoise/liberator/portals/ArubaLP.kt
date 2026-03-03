@@ -3,12 +3,12 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -25,7 +25,7 @@ object Primark : PortalLiberator {
         return response.requestUrl.host == "www.primark.com"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         client.postForm(
             null,
             "https://portal.wifi.primark.net/auth/index.html/u",
@@ -44,7 +44,7 @@ object Segmueller : PortalLiberator {
         return response.requestUrl.host == "hotspot.segmueller.de"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         performArubaLogin(
             client,
             "https://captiveportal-login.segmueller.de/cgi-bin/login".toHttpUrl(),

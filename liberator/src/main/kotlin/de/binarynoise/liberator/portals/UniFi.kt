@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
@@ -11,7 +12,6 @@ import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -41,7 +41,7 @@ object UniFi : PortalLiberator {
         return this.getJSONObject("meta").getString("rc") == "ok"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val hotspotconfig = client.get(response.requestUrl, "hotspotconfig").parseUniFiBrokenJsonObject()
         check(hotspotconfig.isUniFiMetaOk()) { "UniFi hotspotconfig responded not ok" }
         val config = hotspotconfig.getUniFiDataObject()

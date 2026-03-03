@@ -1,6 +1,7 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.LocationRedirector
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -18,7 +19,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
 import de.binarynoise.util.okhttp.toHttpUrl
-import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -58,7 +58,7 @@ object ArubaNetworks : PortalLiberator {
         ).checkSuccess()
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
         val pageConfig = portal_login_page_config1.getJSONObject("page")
         if (!pageConfig.getBoolean("require_accept_terms") || pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
@@ -99,7 +99,7 @@ object Inditex : PortalLiberator {
         return response.requestUrl.host == "wifi.inditex.com" && !LocationRedirector.canRedirect(response)
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         if (response.requestUrl.decodedPath.endsWith("Employees.php")) throw UnsupportedPortalException("employee portal page")
         val response2 = response.submitOnlyForm(
             client, queryParameters = mapOf(

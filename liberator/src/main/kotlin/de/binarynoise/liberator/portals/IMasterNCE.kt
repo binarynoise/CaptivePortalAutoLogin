@@ -4,12 +4,12 @@ package de.binarynoise.liberator.portals
 
 import kotlin.io.encoding.Base64
 import de.binarynoise.liberator.Experimental
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -24,7 +24,7 @@ object IMasterNCE : PortalLiberator {
         }
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         var ssid = response.requestUrl.queryParameter("ssid") ?: error("no ssid")
         if (response.requestUrl.encodedPath == "/portal") ssid = Base64.encode(ssid.encodeToByteArray())
         val umac = response.requestUrl.queryParameter("umac") ?: error("no umac")

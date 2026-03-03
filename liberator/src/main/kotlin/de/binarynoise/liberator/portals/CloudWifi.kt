@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.rhino.RhinoParser
@@ -10,7 +11,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.toParameterMap
-import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -23,7 +23,7 @@ object CloudWifi : PortalLiberator {
         return "start.cloudwifi.de" == response.requestUrl.host
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html1 = response.parseHtml()
         
         val forms = html1.getElementsByTag("form")
@@ -82,7 +82,7 @@ object CloudWifiRedirect : PortalLiberator {
             .any { url -> url.host == "start.cloudwifi.de" && url.pathSegments.any { it == "redirect" } }
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html1 = response.parseHtml()
         val script1 = html1.getElementsByTag("body").single().getElementsByTag("script").single().data()
         val assignments = RhinoParser().parseAssignments(script1)
@@ -101,6 +101,6 @@ object CloudWifiRedirect : PortalLiberator {
                 "ros_login_url" to loginUrl,
             )
         )
-        CloudWifi.solve(client, response2, cookies)
+        CloudWifi.solve(client, response2, extras)
     }
 }

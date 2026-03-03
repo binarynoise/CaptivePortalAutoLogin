@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
@@ -8,7 +9,6 @@ import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -19,7 +19,7 @@ object RheinRuhr : PortalLiberator {
         return "10.10.10.1" == response.requestUrl.host && 2050 == response.requestUrl.port && "splash.html" == response.requestUrl.firstPathSegment
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html1 = response.parseHtml()
         client.get(
             response.requestUrl, "/nodogsplash_auth/", queryParameters = mapOf(

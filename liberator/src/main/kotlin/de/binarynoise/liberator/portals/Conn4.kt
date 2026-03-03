@@ -1,5 +1,6 @@
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
@@ -40,7 +41,7 @@ object Conn4 : PortalLiberator {
         return response.requestUrl.host.endsWith(".conn4.com") && response.requestUrl.firstPathSegment == "ident"
     }
     
-    override fun solve(client: OkHttpClient, response: Response, cookies: Set<Cookie>) {
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         
         val site_id = response.requestUrl.queryParameter("site_id") ?: error("no site_id")
         
@@ -66,7 +67,7 @@ object Conn4 : PortalLiberator {
                 client,
                 site_id,
                 scripts,
-                cookies,
+                extras.cookies,
             )
             else -> error("no conn4 type matched")
         }
