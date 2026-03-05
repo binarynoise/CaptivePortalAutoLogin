@@ -16,7 +16,7 @@ import okhttp3.Response
 @FortiAuthenticatorSubPortal
 object DseTech : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "disclaimer.dse-tech.net"
+        return response.requestUrl.host == "disclaimer.dse-tech.net" && !response.isRedirect
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {

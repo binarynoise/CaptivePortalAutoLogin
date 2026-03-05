@@ -39,6 +39,7 @@ object FortiAuthenticator : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (!response.requestUrl.isFortiAuthenticatorUrl()) return false
         if (response.isRedirect) return false
+        if (FortiAuthenticatorRedirect.canRedirect(response)) return false
         return true
     }
     
