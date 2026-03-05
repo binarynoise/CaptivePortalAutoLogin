@@ -223,6 +223,12 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 fragment = LogsFragment::class.qualifiedName
             }
             
+            if (BuildConfig.DEBUG) {
+                addPreference(Preference(ctx)) {
+                    title = "Debug Activities"
+                    fragment = DebugShortcutsFragment::class.qualifiedName
+                }
+            }
             setIconSpaceReservedRecursively(false)
         }
     }
