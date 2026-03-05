@@ -7,6 +7,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.InaccessibleObjectException
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.net.SocketException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -76,7 +77,7 @@ object Logger {
     
     fun log(message: CharSequence, t: Throwable) {
         val callingClassTag = callingClassTag
-        val stackTraceString = t.stackTraceToString()
+        val stackTraceString = if (t is SocketException) t.toString() else t.stackTraceToString()
         
         logErr(callingClassTag, message.toString())
         logErr(callingClassTag, stackTraceString)
