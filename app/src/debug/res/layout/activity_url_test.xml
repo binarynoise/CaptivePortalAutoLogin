@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".UrlTestActivity"
+    >
+    
+    <Button
+        android:id="@+id/refresh_button"
+        style="@style/CaptivePortalAutoLogin.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Test now!"
+        android:textAppearance="@style/CaptivePortalAutoLogin.Text"
+        />
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginVertical="@dimen/padding"
+        android:background="#8888"
+        />
+    
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+        
+        <TableLayout
+            android:id="@+id/table"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:theme="@style/CaptivePortalAutoLogin.Table"
+            />
+    
+    </HorizontalScrollView>
+    
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        />
+
+</LinearLayout>

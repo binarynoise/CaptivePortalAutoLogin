@@ -3,4 +3,6 @@
     <string name="experiment_shortcut_short">Experiment</string>
     <string name="work_shortcut_long">Enqueued Work</string>
     <string name="work_shortcut_short">Work</string>
+    <string name="urltest_shortcut_long">Url Test Activity</string>
+    <string name="urltest_shortcut_short">Url Test</string>
 </resources>

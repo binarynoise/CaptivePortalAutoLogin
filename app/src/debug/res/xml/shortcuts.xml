@@ -26,4 +26,17 @@
             android:targetPackage="de.binarynoise.captiveportalautologin"
             />
     </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/checklist"
+        android:shortcutId="urltest"
+        android:shortcutLongLabel="@string/urltest_shortcut_long"
+        android:shortcutShortLabel="@string/urltest_shortcut_short"
+        >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="de.binarynoise.captiveportalautologin.UrlTestActivity"
+            android:targetPackage="de.binarynoise.captiveportalautologin"
+            />
+    </shortcut>
 </shortcuts>
