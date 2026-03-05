@@ -1,5 +1,6 @@
 package de.binarynoise.liberator
 
+import de.binarynoise.util.okhttp.enforceHttps
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -8,7 +9,7 @@ data class PortalTestURL(
     val httpsUrl: HttpUrl,
 ) {
     constructor(httpUrl: String, httpsUrl: String) : this(httpUrl.toHttpUrl(), httpsUrl.toHttpUrl())
-    constructor(unifiedUrl: HttpUrl) : this(unifiedUrl, unifiedUrl)
+    constructor(unifiedUrl: HttpUrl) : this(unifiedUrl, unifiedUrl.enforceHttps())
     constructor(unifiedUrl: String) : this(unifiedUrl.toHttpUrl())
 }
 
