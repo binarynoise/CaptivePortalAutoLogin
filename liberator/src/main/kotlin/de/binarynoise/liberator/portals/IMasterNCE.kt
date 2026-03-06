@@ -45,6 +45,5 @@ object IMasterNCE : PortalLiberator {
             )
         ).parseJsonObject()
         check(response.getBoolean("success")) { "no success" }
-        check(response.getBoolean("isEscape")) { "not escaped" }
     }
 }
