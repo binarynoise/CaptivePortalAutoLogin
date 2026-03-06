@@ -67,7 +67,7 @@ fun Response.getLocationUrl(): HttpUrl? {
     return this.getLocation()?.toHttpUrl()
 }
 
-private fun Response.getLocationUnchecked(): String? {
+fun Response.getLocationUnchecked(): String? {
     val html = parseHtml(skipStatusCheck = true)
     
     val header = header("Location")

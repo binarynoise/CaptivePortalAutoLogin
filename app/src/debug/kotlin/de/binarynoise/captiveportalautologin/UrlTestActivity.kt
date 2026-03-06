@@ -17,7 +17,7 @@ import de.binarynoise.captiveportalautologin.databinding.ActivityUrlTestBinding
 import de.binarynoise.captiveportalautologin.util.getColorFromAttr
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.util.okhttp.get
-import de.binarynoise.util.okhttp.getLocation
+import de.binarynoise.util.okhttp.getLocationUnchecked
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -91,7 +91,7 @@ class UrlTestActivity : ComponentActivity() {
                     launch(Dispatchers.IO) {
                         val result = runCatching { client.get(testUrl.httpUrl, null) }
                         result.onSuccess {
-                            val location = it.getLocation()
+                            val location = it.getLocationUnchecked()
                             withContext(Dispatchers.Main) {
                                 httpLocationTextView.text = location
                             }
