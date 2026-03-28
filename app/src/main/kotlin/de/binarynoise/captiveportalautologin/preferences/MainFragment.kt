@@ -169,7 +169,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 entries = PortalDetection.backends.keys.toTypedArray()
                 entryValues = PortalDetection.backends.keys.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(PortalDetection.defaultBackend)
+                setDefaultValue(PortalDetection.defaultBackendKey)
             }
             
             addPreference(DropDownPreference(ctx)) {
@@ -178,7 +178,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 entries = PortalDetection.userAgents.keys.toTypedArray()
                 entryValues = PortalDetection.userAgents.values.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(PortalDetection.defaultBackend)
+                setDefaultValue(PortalDetection.defaultUserAgent)
             }
             
             addPreference(SwitchPreference(ctx)) {
