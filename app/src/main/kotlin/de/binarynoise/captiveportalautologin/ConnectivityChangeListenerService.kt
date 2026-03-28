@@ -206,6 +206,10 @@ class ConnectivityChangeListenerService : Service() {
                 log("scheduled restart")
             }
         }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            resetNetworkSuggestions()
+        }
     }
     
     private val networkRequest = NetworkRequest.Builder().apply {

@@ -33,20 +33,6 @@ fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
     return supportedSSIDSuggestions.take(wifiManager.maxNumberOfNetworkSuggestionsPerApp)
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
-fun getCurrentNetworkSuggestions(): List<WifiNetworkSuggestion> {
-    return wifiManager.networkSuggestions
-}
-
-@RequiresApi(Build.VERSION_CODES.Q)
-fun getNetworkSuggestionsEnabled(): Boolean {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        getCurrentNetworkSuggestions().isNotEmpty()
-    } else {
-        SharedPreferences.network_suggestions.get()
-    }
-}
-
 @RequiresApi(Build.VERSION_CODES.Q)
 fun resetNetworkSuggestions(): Boolean {
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -74,6 +60,6 @@ fun Number.toNetworkSuggestionStatusString(): String {
 
 @RequiresApi(Build.VERSION_CODES.Q)
 fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
-    if (!getNetworkSuggestionsEnabled()) return true
+    if (!SharedPreferences.network_suggestions.get()) return true
     return sendNetworkSuggestions(suggestions)
 }

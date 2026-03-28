@@ -18,7 +18,6 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
-import de.binarynoise.captiveportalautologin.getNetworkSuggestionsEnabled
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.liberator.PortalDetection
@@ -174,11 +173,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         if (isChecked) resetNetworkSuggestions()
                         else sendNetworkSuggestions()
                     }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        isChecked = getNetworkSuggestionsEnabled()
-                    } else {
-                        key = SharedPreferences.network_suggestions.key
-                    }
+                    key = SharedPreferences.network_suggestions.key
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =
                             "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
