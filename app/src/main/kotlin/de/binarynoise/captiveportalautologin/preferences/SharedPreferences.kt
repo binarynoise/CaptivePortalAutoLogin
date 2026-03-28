@@ -19,6 +19,7 @@ object SharedPreferences {
     val liberator_user_agent: PreferencePropertyDelegate<String> by PreferenceProperty(PortalDetection.defaultUserAgent)
     val liberator_send_stats: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
     val api_base: PreferencePropertyDelegate<String> by PreferenceProperty("")
+    val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
     
     val stats_last_retry_time by PreferenceProperty(0L)
     

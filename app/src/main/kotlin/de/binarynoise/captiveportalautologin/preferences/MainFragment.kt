@@ -18,6 +18,9 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.getNetworkSuggestionsEnabled
+import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
+import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
@@ -161,6 +164,26 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 })
                 summaryOn = "All permissions granted \uD83D\uDE0A"
                 summaryOff = "Please grant all permissions to use the app"
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                addPreference(SwitchPreference(ctx)) {
+                    title = "Network Suggestions"
+                    summary = "Let the app suggest supported networks to the OS."
+                    setOnPreferenceChangeListener { _, _ ->
+                        if (isChecked) resetNetworkSuggestions()
+                        else sendNetworkSuggestions()
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        isChecked = getNetworkSuggestionsEnabled()
+                    } else {
+                        key = SharedPreferences.network_suggestions.key
+                    }
+                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                        summaryOn =
+                            "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
+                    }
+                }
             }
             
             addPreference(DropDownPreference(ctx)) {

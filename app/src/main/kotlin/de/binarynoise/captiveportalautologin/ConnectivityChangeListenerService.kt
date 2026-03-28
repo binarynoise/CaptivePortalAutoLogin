@@ -163,6 +163,9 @@ class ConnectivityChangeListenerService : Service() {
         networkListeners.add(::bindNetworkToProcess)
         networkListeners.add(::updateNotification)
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            updateNetworkSuggestions()
+        }
         
         log("started")
         return START_STICKY
