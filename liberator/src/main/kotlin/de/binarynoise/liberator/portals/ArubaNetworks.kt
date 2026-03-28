@@ -1,6 +1,5 @@
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.LocationRedirector
 import de.binarynoise.liberator.PortalLiberator
@@ -87,7 +86,6 @@ object ArubaNetworks : PortalLiberator {
     }
 }
 
-@Experimental
 @SSID(
     "Bershka-WiFi",
     "PULL&BEAR-FreeWiFi",
@@ -106,7 +104,12 @@ object Inditex : PortalLiberator {
                 "_browser" to "1",
             )
         ).followRedirects(client)
-        val response3 = response2.submitOnlyForm(client)
+        val response3 = response2.submitOnlyForm(
+            client, parameters = mapOf(
+                // setting "visitor_name" seems to only be necessary for Stradivarius-WiFi
+                "visitor_name" to "Oscar",
+            )
+        )
         val html = response3.parseHtml()
         val form = html.forms().single()
         performArubaLogin(
