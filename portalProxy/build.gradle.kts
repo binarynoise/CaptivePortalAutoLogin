@@ -12,6 +12,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.html)
     implementation(libs.slf4j.simple)
+    implementation(platform(libs.vertx.bom))
+    implementation(platform(libs.netty.bom))
     implementation(libs.vertx.lang.kotlin)
     implementation(libs.vertx.lang.kotlin.coroutines)
     implementation(libs.vertx.web)

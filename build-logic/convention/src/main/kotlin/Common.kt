@@ -234,7 +234,7 @@ private class CommonKotlin : Plugin<Project> {
             }
             
             dependencies {
-                add("implementation", libs.kotlin.bom)
+                add("implementation", platform(libs.kotlin.bom))
                 add("implementation", libs.jebtrains.annotations)
             }
             

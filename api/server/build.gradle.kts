@@ -14,7 +14,10 @@ dependencies {
     implementation(projects.util.fileDB)
     implementation(projects.util.logger)
     
+    implementation(libs.decoroutinator)
+    
     implementation(platform(libs.ktor.bom))
+    implementation(platform(libs.netty.bom))
     implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.netty.jvm)
     implementation(libs.ktor.server.content.negotiation)

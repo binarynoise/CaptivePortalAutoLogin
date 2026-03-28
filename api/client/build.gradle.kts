@@ -16,6 +16,7 @@ dependencies {
     testImplementation(projects.util.logger)
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.ktor.bom))
+    testImplementation(platform(libs.netty.bom))
     testImplementation(libs.ktor.server.core.jvm)
     testImplementation(libs.ktor.server.netty.jvm)
     testImplementation(libs.ktor.server.status.pages)
