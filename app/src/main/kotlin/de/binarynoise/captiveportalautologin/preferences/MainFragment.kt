@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.concurrent.read
 import android.content.Intent
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -20,6 +21,7 @@ import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
+import de.binarynoise.captiveportalautologin.wifiManager
 import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
@@ -177,6 +179,21 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =
                             "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
+                            isEnabled = status != WifiManager.STATUS_SUGGESTION_APPROVAL_REJECTED_BY_USER
+                            if (!isEnabled) isChecked = false
+                        }
+                        lifecycle.addObserver(object : DefaultLifecycleObserver {
+                            override fun onResume(owner: LifecycleOwner) {
+                                wifiManager.addSuggestionUserApprovalStatusListener(ctx.mainExecutor, listener)
+                            }
+                            
+                            override fun onPause(owner: LifecycleOwner) {
+                                wifiManager.removeSuggestionUserApprovalStatusListener(listener)
+                            }
+                        })
                     }
                 }
             }
