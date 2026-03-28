@@ -2,7 +2,6 @@
 
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -13,7 +12,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID("INTERSPORTkundenwlan")
 object Intersport : PortalLiberator {
     override fun canSolve(response: Response): Boolean {

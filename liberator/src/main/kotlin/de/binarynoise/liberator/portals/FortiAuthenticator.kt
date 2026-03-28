@@ -2,7 +2,6 @@
 
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.PortalRedirector
@@ -26,7 +25,6 @@ import okhttp3.Response
 @Target(AnnotationTarget.CLASS)
 annotation class FortiAuthenticatorSubPortal
 
-@Experimental
 @SSID(
     "ITS - FREEWIFI",
     "Douglas Guest",
@@ -48,7 +46,6 @@ object FortiAuthenticator : PortalLiberator {
     }
 }
 
-@Experimental
 object FortiAuthenticatorRedirect : PortalRedirector {
     override fun canRedirect(response: Response): Boolean {
         if (response.isRedirect) return false

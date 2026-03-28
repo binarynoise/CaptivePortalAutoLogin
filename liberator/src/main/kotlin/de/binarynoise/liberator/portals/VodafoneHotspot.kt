@@ -1,6 +1,5 @@
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -15,7 +14,6 @@ import okhttp3.Response
 import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@Experimental
 @SSID(
     "@VodafoneWifi",
     "Kunstmuseum WLAN",

@@ -6,7 +6,6 @@ import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -96,7 +95,7 @@ fun authorizeMistPortal(
  * simple JWT token generation
  */
 fun simpleJwt(data: ByteArray, secret: String): String {
-    val JWTBase64 = kotlin.io.encoding.Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT)
+    val JWTBase64 = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT)
     val signatureMethod = "HmacSHA256"
     
     val header = JSONObject().put("alg", "HS256").put("typ", "JWT").toString()
@@ -110,7 +109,6 @@ fun simpleJwt(data: ByteArray, secret: String): String {
     return "$encodedHeader.$encodedData.$signature"
 }
 
-@Experimental
 @SSID("Rossmann Kunden-WLAN")
 /**
  * liberates portals hosted on `portal.mist.com` directly
@@ -147,7 +145,6 @@ object MistCom : PortalLiberator {
  * they need to have their own portal liberators
  */
 
-@Experimental
 @SSID("@Hollister Co. Free Wi-Fi")
 object Abercrombie : PortalLiberator {
     fun getAuthorizeUrl(portalUrl: HttpUrl): HttpUrl {

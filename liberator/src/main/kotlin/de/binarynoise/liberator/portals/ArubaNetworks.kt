@@ -25,9 +25,9 @@ import okhttp3.Response
 import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@Experimental
 @SSID(
     "H&M Free WiFi",
+    "IKEA WiFi",
 )
 object ArubaNetworks : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
