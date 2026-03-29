@@ -21,6 +21,7 @@ import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
+import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.wifiManager
 import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -60,7 +61,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
         })
         
-        preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
+        preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
+        preferenceScreen.apply {
             addPreference(Preference(ctx)) {
                 title = "ABI mismatch"
                 summary = "The application's ABI does not match the device's ABI. Install the correct apk!"
@@ -194,6 +196,20 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                                 wifiManager.removeSuggestionUserApprovalStatusListener(listener)
                             }
                         })
+                    }
+                }
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    addPreference(SwitchPreference(ctx)) {
+                        key = SharedPreferences.network_suggestions_mac_randomization.key
+                        title = "Non-persistent MAC randomization"
+                        summary = "For suggested networks, the MAC address will be randomized periodically. " + //
+                            "This will lead to more anonymity, but also requires liberation for most connection attempts."
+                        setOnPreferenceChangeListener { _, _ ->
+                            updateNetworkSuggestions()
+                        }
+                    }.apply {
+                        dependency = SharedPreferences.network_suggestions.key
                     }
                 }
             }

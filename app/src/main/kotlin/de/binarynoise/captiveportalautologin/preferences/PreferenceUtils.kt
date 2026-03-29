@@ -48,7 +48,7 @@ fun PreferenceGroup.removeOnClickListenersRecursively() {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: T.() -> Unit) {
+inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: T.() -> Unit): Preference {
     contract {
         callsInPlace(setup, InvocationKind.EXACTLY_ONCE)
     }
@@ -66,6 +66,8 @@ inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: 
         // normal preferences need the setup applied before being added to the tree
         addPreference(preference)
     }
+    
+    return preference
 }
 
 abstract class AutoCleanupPreferenceFragment : PreferenceFragmentCompat() {
