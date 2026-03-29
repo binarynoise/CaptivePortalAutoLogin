@@ -172,7 +172,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 addPreference(SwitchPreference(ctx)) {
                     title = "Network Suggestions"
-                    summary = "Let the app suggest supported networks to the OS."
+                    summary = "Suggest automatic connection for supported networks to the OS."
                     setOnPreferenceChangeListener { _, _ ->
                         if (isChecked) resetNetworkSuggestions()
                         else sendNetworkSuggestions()
