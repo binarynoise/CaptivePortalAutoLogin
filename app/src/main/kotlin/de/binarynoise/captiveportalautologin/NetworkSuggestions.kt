@@ -19,7 +19,7 @@ val supportedSSIDs: List<String> = allPortalLiberators.flatMap { portalLiberator
 val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
     val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        builder.setUntrusted(true).setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(
+        builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(
             if (SharedPreferences.network_suggestions_mac_randomization.get()) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
             else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
         )
