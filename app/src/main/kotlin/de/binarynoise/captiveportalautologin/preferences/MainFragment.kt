@@ -2,9 +2,11 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.concurrent.read
 import android.content.Intent
+import android.database.ContentObserver
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
@@ -21,11 +23,14 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
+import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
-import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
+import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
+import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
 import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -212,6 +217,32 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         setOnPreferenceChangeListener { _, _ ->
                             updateNetworkSuggestions()
                         }
+                        
+                        val observer = object : ContentObserver(mainHandler) {
+                            override fun onChange(selfChange: Boolean) {
+                                if (isMacRandomizationForceEnabled) {
+                                    isEnabled = false
+                                    isPersistent = false
+                                    isChecked = true
+                                } else {
+                                    isChecked = SharedPreferences.network_suggestions_mac_randomization.get()
+                                    isPersistent = true
+                                    isEnabled = true
+                                }
+                            }
+                        }
+                        val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
+                        lifecycle.addObserver(object : DefaultLifecycleObserver {
+                            override fun onStart(owner: LifecycleOwner) {
+                                ctx.contentResolver.registerContentObserver(uri, false, observer)
+                                observer.onChange(true)
+                            }
+                            
+                            override fun onStop(owner: LifecycleOwner) {
+                                ctx.contentResolver.unregisterContentObserver(observer)
+                            }
+                        })
+                        observer.onChange(true)
                     }.apply {
                         dependency = SharedPreferences.network_suggestions.key
                     }

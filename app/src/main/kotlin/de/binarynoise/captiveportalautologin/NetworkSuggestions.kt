@@ -8,12 +8,14 @@ import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
+import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.allPortalLiberators
+import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
@@ -25,7 +27,7 @@ val supportedSSIDs: List<String> = allPortalLiberators.flatMap { portalLiberator
 val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
     val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
     val macRandomizationSetting =
-        if (SharedPreferences.network_suggestions_mac_randomization.get()) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
+        if (SharedPreferences.network_suggestions_mac_randomization.get() || isMacRandomizationForceEnabled) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
         else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(macRandomizationSetting)
@@ -40,6 +42,15 @@ val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
 val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
 
 val isMacRandomizationSupported by lazy { tryOrDefault(true) { wifiManager.invokeHiddenMethod("isConnectedMacRandomizationSupported") as Boolean } }
+
+const val SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY = "non_persistent_mac_randomization_force_enabled"
+val isMacRandomizationForceEnabled
+    get() = Settings.Global.getInt(
+        applicationContext.contentResolver,
+        SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY,
+        0,
+    ) == 1
+
 
 fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
     log("getNetworkSuggestions: limit is ${wifiManager.maxNumberOfNetworkSuggestionsPerApp}")

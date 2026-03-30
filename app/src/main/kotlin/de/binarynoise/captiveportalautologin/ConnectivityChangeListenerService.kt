@@ -20,6 +20,7 @@ import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
+import android.database.ContentObserver
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.net.Network
@@ -30,6 +31,7 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
+import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.GuardedBy
 import androidx.annotation.MainThread
@@ -62,6 +64,13 @@ class ConnectivityChangeListenerService : Service() {
     private var notification: Notification? = null
     private val notificationId = 1
     private val channelId = "ConnectivityChangeListenerService"
+    
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private val nonPersistentMacRandomizationSettingsObserver = object : ContentObserver(backgroundHandler) {
+        override fun onChange(selfChange: Boolean) {
+            if (!SharedPreferences.network_suggestions_mac_randomization.get()) updateNetworkSuggestions()
+        }
+    }
     
     private fun bindNetworkToProcess(oldState: NetworkState?, newState: NetworkState?) {
         if (oldState?.network == newState?.network) return
@@ -164,6 +173,8 @@ class ConnectivityChangeListenerService : Service() {
         networkListeners.add(::updateNotification)
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
+            contentResolver.registerContentObserver(uri, false, nonPersistentMacRandomizationSettingsObserver)
             updateNetworkSuggestions()
         }
         
@@ -209,6 +220,7 @@ class ConnectivityChangeListenerService : Service() {
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             removeNetworkSuggestions()
+            contentResolver.unregisterContentObserver(nonPersistentMacRandomizationSettingsObserver)
         }
     }
     
