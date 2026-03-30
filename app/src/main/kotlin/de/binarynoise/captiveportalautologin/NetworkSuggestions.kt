@@ -2,6 +2,7 @@
 
 package de.binarynoise.captiveportalautologin
 
+import java.lang.reflect.Field
 import android.annotation.SuppressLint
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
@@ -14,20 +15,26 @@ import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.logger.Logger.log
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 val supportedSSIDs: List<String> = allPortalLiberators.flatMap { portalLiberator ->
     portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
 }
 
+@SuppressLint("InlinedApi")
 val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
     val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
+    val macRandomizationSetting =
+        if (SharedPreferences.network_suggestions_mac_randomization.get()) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
+        else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(
-            if (SharedPreferences.network_suggestions_mac_randomization.get()) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
-            else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
-        )
+        builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(macRandomizationSetting)
     }
-    return@map builder.build()
+    val suggestion = builder.build()
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        suggestion.setMacRandomizationSetting(macRandomizationSetting)
+    }
+    return@map suggestion
 }
 
 val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
@@ -66,26 +73,49 @@ fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetwo
     return sendNetworkSuggestions(suggestions)
 }
 
+fun Any.getHiddenInstanceField(name: String): Field {
+    return HiddenApiBypass.getInstanceFields(this::class.java).single { it.name == name }
+}
+
+fun Any.invokeHiddenMethod(name: String, vararg args: Any?): Any {
+    return HiddenApiBypass.invoke(this::class.java, this, name, *args)
+}
+
 fun WifiNetworkSuggestion.getWifiConfiguration(): WifiConfiguration {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        this::class.java.declaredMethods.single { it.name == "getWifiConfiguration" }.invoke(this) as WifiConfiguration
+        this.invokeHiddenMethod("getWifiConfiguration") as WifiConfiguration
     } else {
-        this::class.java.declaredFields.single { it.name == "wifiConfiguration" }.get(this) as WifiConfiguration
+        this.getHiddenInstanceField("wifiConfiguration").get(this) as WifiConfiguration
     }
 }
 
+@Suppress("DEPRECATION")
 fun WifiConfiguration.setMacRandomizationSettingCompat(macRandomizationSetting: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         this.macRandomizationSetting = macRandomizationSetting
     } else {
-        this::class.java.declaredFields.single { it.name == "macRandomizationSetting" }
-            .setInt(this, macRandomizationSetting)
+        this.getHiddenInstanceField("macRandomizationSetting").setInt(this, macRandomizationSetting)
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
+@Suppress("DEPRECATION")
+@SuppressLint("InlinedApi")
+fun WifiNetworkSuggestion.setMacRandomizationSetting(macRandomizationSetting: Int) {
+    val wifiConfiguration = this.getWifiConfiguration()
+    val wifiConfigurationMacRandomizationSetting =
+        if (macRandomizationSetting == WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT) WifiConfiguration.RANDOMIZATION_NON_PERSISTENT else WifiConfiguration.RANDOMIZATION_PERSISTENT
+    wifiConfiguration.setMacRandomizationSettingCompat(wifiConfigurationMacRandomizationSetting)
+}
+
+@Suppress("Deprecation")
+fun WifiNetworkSuggestion.getSSIDCompat(): String {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return this.ssid!!
+    val wifiConfiguration = this.getWifiConfiguration()
+    return wifiConfiguration.SSID
+}
+
 fun resetNetworkSuggestionMacAddress(ssid: String): Boolean {
-    val suggestion = supportedSSIDSuggestions.single { it.ssid == ssid }
+    val suggestion = supportedSSIDSuggestions.single { it.getSSIDCompat() == ssid }
     return resetNetworkSuggestionMacAddress(suggestion)
 }
 
@@ -99,10 +129,7 @@ fun resetNetworkSuggestionMacAddress(suggestion: List<WifiNetworkSuggestion>): B
     val removeStatus = wifiManager.removeNetworkSuggestions(suggestion)
     log("resetNetworkSuggestionMacAddress removeStatus=${removeStatus.toNetworkSuggestionStatusString()}")
     if (removeStatus != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS && removeStatus != WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID) return false
-    suggestion.forEach { suggestion ->
-        val wifiConfiguration = suggestion.getWifiConfiguration()
-        wifiConfiguration.setMacRandomizationSettingCompat(WifiConfiguration.RANDOMIZATION_NON_PERSISTENT)
-    }
+    suggestion.forEach { it.setMacRandomizationSetting(WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT) }
     val addStatus = wifiManager.addNetworkSuggestions(suggestion)
     log("resetNetworkSuggestionMacAddress addStatus=${addStatus.toNetworkSuggestionStatusString()}")
     return addStatus == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS

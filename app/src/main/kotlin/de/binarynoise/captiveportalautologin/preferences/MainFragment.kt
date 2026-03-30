@@ -15,10 +15,13 @@ import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.API_BASE
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
@@ -199,17 +202,27 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     }
                 }
                 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    addPreference(SwitchPreference(ctx)) {
-                        key = SharedPreferences.network_suggestions_mac_randomization.key
-                        title = "Non-persistent MAC randomization"
-                        summary = "For suggested networks, the MAC address will be randomized periodically. " + //
-                            "This will lead to more anonymity, but also requires liberation for most connection attempts."
-                        setOnPreferenceChangeListener { _, _ ->
-                            updateNetworkSuggestions()
-                        }
-                    }.apply {
-                        dependency = SharedPreferences.network_suggestions.key
+                addPreference(SwitchPreference(ctx)) {
+                    key = SharedPreferences.network_suggestions_mac_randomization.key
+                    title = "Non-persistent MAC randomization"
+                    summary = "For suggested networks, the MAC address will be randomized periodically. " + //
+                        "This will lead to more anonymity, but also requires liberation for most connection attempts."
+                    setOnPreferenceChangeListener { _, _ ->
+                        updateNetworkSuggestions()
+                    }
+                }.apply {
+                    dependency = SharedPreferences.network_suggestions.key
+                }
+                
+                addPreference(Preference(ctx)) {
+                    title = "Change MAC-Address now"
+                    summary =
+                        "For suggested networks, immediately disconnect and resuggest with a different MAC-Address"
+                    setOnPreferenceClickListener {
+                        val networkState = networkStateLock.read { networkState }
+                        if (networkState == null) return@setOnPreferenceClickListener false
+                        resetNetworkSuggestionMacAddress(networkState.ssid)
+                        true
                     }
                 }
             }
