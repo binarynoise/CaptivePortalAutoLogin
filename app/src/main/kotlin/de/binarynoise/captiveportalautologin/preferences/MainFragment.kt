@@ -22,7 +22,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.S
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
-import de.binarynoise.captiveportalautologin.resetNetworkSuggestions
+import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.wifiManager
@@ -177,7 +177,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     title = "Network Suggestions"
                     summary = "Suggest automatic connection for supported networks to the OS."
                     setOnPreferenceChangeListener { _, _ ->
-                        if (isChecked) resetNetworkSuggestions()
+                        if (isChecked) removeNetworkSuggestions()
                         else sendNetworkSuggestions()
                     }
                     key = SharedPreferences.network_suggestions.key

@@ -45,18 +45,22 @@ fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
     return supportedSSIDSuggestions.take(wifiManager.maxNumberOfNetworkSuggestionsPerApp)
 }
 
-fun resetNetworkSuggestions(): Boolean {
+
+fun removeNetworkSuggestions(
+    suggestions: List<WifiNetworkSuggestion> = listOf(),
+    action: Int = WifiManager.ACTION_REMOVE_SUGGESTION_LINGER,
+): Boolean {
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        wifiManager.removeNetworkSuggestions(listOf(), WifiManager.ACTION_REMOVE_SUGGESTION_LINGER)
+        wifiManager.removeNetworkSuggestions(suggestions, action)
     } else {
-        wifiManager.removeNetworkSuggestions(listOf())
+        wifiManager.removeNetworkSuggestions(suggestions)
     }
     log("removeNetworkSuggestions Status = ${status.toNetworkSuggestionStatusString()}")
     return status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
 }
 
 fun sendNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) resetNetworkSuggestions()
+    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) removeNetworkSuggestions()
     val status = wifiManager.addNetworkSuggestions(suggestions)
     log("addNetworkSuggestions Status = ${status.toNetworkSuggestionStatusString()}")
     return status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
@@ -70,6 +74,9 @@ fun Number.toNetworkSuggestionStatusString(): String {
 
 fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
     if (!SharedPreferences.network_suggestions.get()) return true
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        removeNetworkSuggestions(wifiManager.networkSuggestions - suggestions)
+    }
     return sendNetworkSuggestions(suggestions)
 }
 

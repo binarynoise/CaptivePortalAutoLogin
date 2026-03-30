@@ -208,7 +208,7 @@ class ConnectivityChangeListenerService : Service() {
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            resetNetworkSuggestions()
+            removeNetworkSuggestions()
         }
     }
     
