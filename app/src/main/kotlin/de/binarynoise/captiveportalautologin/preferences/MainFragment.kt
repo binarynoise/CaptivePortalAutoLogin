@@ -21,6 +21,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.N
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
@@ -202,27 +203,29 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     }
                 }
                 
-                addPreference(SwitchPreference(ctx)) {
-                    key = SharedPreferences.network_suggestions_mac_randomization.key
-                    title = "Non-persistent MAC randomization"
-                    summary = "For suggested networks, the MAC address will be randomized periodically. " + //
-                        "This will lead to more anonymity, but also requires liberation for most connection attempts."
-                    setOnPreferenceChangeListener { _, _ ->
-                        updateNetworkSuggestions()
+                if (isMacRandomizationSupported) {
+                    addPreference(SwitchPreference(ctx)) {
+                        key = SharedPreferences.network_suggestions_mac_randomization.key
+                        title = "Non-persistent MAC randomization"
+                        summary = "For suggested networks, the MAC address will be randomized periodically. " + //
+                            "This will lead to more anonymity, but also requires liberation for most connection attempts."
+                        setOnPreferenceChangeListener { _, _ ->
+                            updateNetworkSuggestions()
+                        }
+                    }.apply {
+                        dependency = SharedPreferences.network_suggestions.key
                     }
-                }.apply {
-                    dependency = SharedPreferences.network_suggestions.key
-                }
-                
-                addPreference(Preference(ctx)) {
-                    title = "Change MAC-Address now"
-                    summary =
-                        "For suggested networks, immediately disconnect and resuggest with a different MAC-Address"
-                    setOnPreferenceClickListener {
-                        val networkState = networkStateLock.read { networkState }
-                        if (networkState == null) return@setOnPreferenceClickListener false
-                        resetNetworkSuggestionMacAddress(networkState.ssid)
-                        true
+                    
+                    addPreference(Preference(ctx)) {
+                        title = "Change MAC-Address now"
+                        summary =
+                            "For suggested networks, immediately disconnect and resuggest with a different MAC-Address"
+                        setOnPreferenceClickListener {
+                            val networkState = networkStateLock.read { networkState }
+                            if (networkState == null) return@setOnPreferenceClickListener false
+                            resetNetworkSuggestionMacAddress(networkState.ssid)
+                            true
+                        }
                     }
                 }
             }

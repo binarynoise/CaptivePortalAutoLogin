@@ -39,6 +39,8 @@ val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
 
 val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
 
+val isMacRandomizationSupported by lazy { tryOrDefault(true) { wifiManager.invokeHiddenMethod("isConnectedMacRandomizationSupported") as Boolean } }
+
 fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
     log("getNetworkSuggestions: limit is ${wifiManager.maxNumberOfNetworkSuggestionsPerApp}")
     log("getNetworkSuggestions: current count is ${supportedSSIDSuggestions.size}")
