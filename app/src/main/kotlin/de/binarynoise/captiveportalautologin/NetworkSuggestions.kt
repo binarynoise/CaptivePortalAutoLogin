@@ -1,5 +1,7 @@
 package de.binarynoise.captiveportalautologin
 
+import android.annotation.SuppressLint
+import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
@@ -65,4 +67,50 @@ fun Number.toNetworkSuggestionStatusString(): String {
 fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
     if (!SharedPreferences.network_suggestions.get()) return true
     return sendNetworkSuggestions(suggestions)
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+fun WifiNetworkSuggestion.getWifiConfiguration(): WifiConfiguration {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        this::class.java.declaredMethods.single { it.name == "getWifiConfiguration" }.invoke(this) as WifiConfiguration
+    } else {
+        this::class.java.declaredFields.single { it.name == "wifiConfiguration" }.get(this) as WifiConfiguration
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+fun WifiConfiguration.setMacRandomizationSettingCompat(macRandomizationSetting: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        this.macRandomizationSetting = macRandomizationSetting
+    } else {
+        this::class.java.declaredFields.single { it.name == "macRandomizationSetting" }
+            .setInt(this, macRandomizationSetting)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun resetNetworkSuggestionMacAddress(ssid: String): Boolean {
+    val suggestion = supportedSSIDSuggestions.single { it.ssid == ssid }
+    return resetNetworkSuggestionMacAddress(suggestion)
+}
+
+@RequiresApi(Build.VERSION_CODES.Q)
+fun resetNetworkSuggestionMacAddress(suggestion: WifiNetworkSuggestion): Boolean {
+    return resetNetworkSuggestionMacAddress(listOf(suggestion))
+}
+
+@SuppressLint("InlinedApi")
+@RequiresApi(Build.VERSION_CODES.Q)
+fun resetNetworkSuggestionMacAddress(suggestion: List<WifiNetworkSuggestion>): Boolean {
+    // removing a currently active NetworkSuggestion will disconnect from it immediately
+    val removeStatus = wifiManager.removeNetworkSuggestions(suggestion)
+    log("resetNetworkSuggestionMacAddress removeStatus=${removeStatus.toNetworkSuggestionStatusString()}")
+    if (removeStatus != WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS && removeStatus != WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_REMOVE_INVALID) return false
+    suggestion.forEach { suggestion ->
+        val wifiConfiguration = suggestion.getWifiConfiguration()
+        wifiConfiguration.setMacRandomizationSettingCompat(WifiConfiguration.RANDOMIZATION_NON_PERSISTENT)
+    }
+    val addStatus = wifiManager.addNetworkSuggestions(suggestion)
+    log("resetNetworkSuggestionMacAddress addStatus=${addStatus.toNetworkSuggestionStatusString()}")
+    return addStatus == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
 }
