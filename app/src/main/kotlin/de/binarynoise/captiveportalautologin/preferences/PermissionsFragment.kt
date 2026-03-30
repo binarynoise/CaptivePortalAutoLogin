@@ -1,11 +1,15 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.util.startActivity
 
 class PermissionsFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -39,6 +43,19 @@ class PermissionsFragment : AutoCleanupPreferenceFragment() {
                 }
                 
             }
+            
+            addPreference(Preference(ctx)) {
+                title = "Open Settings"
+                summary = "Click to open the app settings"
+                setOnPreferenceClickListener { _ ->
+                    ctx.startActivity {
+                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                        data = Uri.fromParts("package", ctx.packageName, null)
+                    }
+                    true
+                }
+            }
+            
             setIconSpaceReservedRecursively(false)
         }
     }

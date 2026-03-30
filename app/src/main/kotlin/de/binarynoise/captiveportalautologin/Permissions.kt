@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.LocationManager
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -131,18 +130,6 @@ object Permissions : Set<Permission> by allPermissions {
         minSdk = Build.VERSION_CODES.O,
     )
     
-    val openSettings = Permission(
-        "Open Settings",
-        "Open the app settings",
-        { _ -> true },
-        { componentActivity ->
-            componentActivity.startActivity {
-                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                data = Uri.fromParts("package", componentActivity.packageName, null)
-            }
-        },
-    )
-    
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     @Deprecated("Deprecated in Java for some reason")
     override fun <T : Any> toArray(generator: IntFunction<Array<out T>>): Array<out T> {
@@ -154,6 +141,5 @@ object Permissions : Set<Permission> by allPermissions {
         allPermissions.add(fineLocation)
         allPermissions.add(backgroundLocation)
         allPermissions.add(locationEnabled)
-        allPermissions.add(openSettings)
     }
 }
