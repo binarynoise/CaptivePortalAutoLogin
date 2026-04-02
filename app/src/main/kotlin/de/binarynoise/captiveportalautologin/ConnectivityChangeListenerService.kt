@@ -224,12 +224,6 @@ class ConnectivityChangeListenerService : Service() {
         }
     }
     
-    private val networkRequest = NetworkRequest.Builder().apply {
-        addTransportType(TRANSPORT_WIFI)
-        if (Build.VERSION.SDK_INT >= 31) {
-            setIncludeOtherUidNetworks(true)
-        }
-    }.build()
     private val networkCallback = createNetworkCallback()
     
     private fun createNetworkCallback(): ConnectivityManager.NetworkCallback {
@@ -602,6 +596,13 @@ class ConnectivityChangeListenerService : Service() {
                 networkListeners.javaForEach { it(oldState, newState) }
             }
         }
+        
+        val networkRequest: NetworkRequest = NetworkRequest.Builder().apply {
+            addTransportType(TRANSPORT_WIFI)
+            if (Build.VERSION.SDK_INT >= 31) {
+                setIncludeOtherUidNetworks(true)
+            }
+        }.build()
         
         fun start(silent: Boolean = false): Unit = serviceStateLock.read {
             if (serviceState.running || serviceState.restart) return

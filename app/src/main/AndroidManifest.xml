@@ -36,10 +36,22 @@
         
         <activity
             android:name=".GeckoViewActivity"
-            android:parentActivityName=".HomeActivity"
             android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             android:windowSoftInputMode="adjustResize"
             />
+        
+        <activity
+            android:name=".RecordCaptivePortalActivity"
+            android:label="Capture Captive Portal"
+            android:exported="true"
+            android:theme="@style/CaptivePortalAutoLogin.NoBlur"
+            android:windowSoftInputMode="adjustResize"
+            >
+            <intent-filter>
+                <action android:name="android.net.conn.CAPTIVE_PORTAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         
         <activity-alias
             android:name=".HomeActivity"
