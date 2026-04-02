@@ -41,7 +41,7 @@ object NetworkAuth : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        client.get(response.requestUrl, "grant").followRedirects(client).checkSuccess()
+        client.get(response.requestUrl, "grant").followRedirects(client) { it.isNetworkAuthDomain() }.checkSuccess()
     }
 }
 
