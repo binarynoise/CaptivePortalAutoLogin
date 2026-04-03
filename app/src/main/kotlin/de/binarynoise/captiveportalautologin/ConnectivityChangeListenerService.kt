@@ -44,6 +44,7 @@ import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Error
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Success
+import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext

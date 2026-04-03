@@ -3,6 +3,7 @@ package de.binarynoise.captiveportalautologin.preferences
 import kotlin.concurrent.read
 import android.content.Intent
 import android.database.ContentObserver
+import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
@@ -21,9 +22,10 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
-import de.binarynoise.captiveportalautologin.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
+import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
+import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.isNetworkSuggestion
@@ -60,8 +62,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     null,
                     ConnectivityChangeListenerService.serviceStateLock.read { ConnectivityChangeListenerService.serviceState })
                 ConnectivityChangeListenerService.networkListeners.add(::updateNetworkStatus)
-                updateNetworkStatus(null, ConnectivityChangeListenerService.networkStateLock.read {
-                    ConnectivityChangeListenerService.networkState
+                updateNetworkStatus(null, networkStateLock.read {
+                    networkState
                 })
             }
             
@@ -157,6 +159,22 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
                 serviceStateListeners.add {
                     isEnabled = it.running
+                }
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Capture Captive Portal Login (Simplified)"
+                summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
+                setOnPreferenceClickListener {
+                    val networkState = networkStateLock.read { networkState }
+                    if (networkState == null) return@setOnPreferenceClickListener false
+                    val intent = Intent(ctx, RecordCaptivePortalActivity::class.java)
+                    intent.putExtra(ConnectivityManager.EXTRA_NETWORK, networkState.network)
+                    startActivity(intent)
+                    true
+                }
+                networkStateListeners.add {
+                    isEnabled = it != null && it.hasPortal
                 }
             }
             
