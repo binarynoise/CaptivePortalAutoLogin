@@ -14,14 +14,16 @@ import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-val supportedSSIDs: List<String> = allPortalLiberators.flatMap { portalLiberator ->
-    portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
-}
+val supportedSSIDs: List<String> =
+    allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }.flatMap { portalLiberator ->
+            portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
+        }
 
 @SuppressLint("InlinedApi")
 val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
