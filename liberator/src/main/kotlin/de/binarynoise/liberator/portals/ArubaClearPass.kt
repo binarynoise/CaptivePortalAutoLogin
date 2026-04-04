@@ -17,7 +17,7 @@ import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-abstract class ArubaClearPassLiberator(val hosts: List<String>) : PortalLiberator {
+abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (LocationRedirector.canRedirect(response)) return false
         return response.requestUrl.host in hosts
@@ -53,7 +53,7 @@ abstract class ArubaClearPassLiberator(val hosts: List<String>) : PortalLiberato
     "Stradivarius-WiFi",
     "Zara-WiFi",
 )
-object Inditex : ArubaClearPassLiberator(listOf("wifi.inditex.com")) {
+object Inditex : ArubaClearPassLiberator("wifi.inditex.com") {
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         if (response.requestUrl.decodedPath.endsWith("Employees.php")) throw UnsupportedPortalException("employee portal page")
         return super.solve(
@@ -70,4 +70,8 @@ object Inditex : ArubaClearPassLiberator(listOf("wifi.inditex.com")) {
 
 @Experimental
 @SSID("URBAN_GUEST_WIFI")
-object UrbanOutfitters : ArubaClearPassLiberator(listOf("register.urbn.com"))
+object UrbanOutfitters : ArubaClearPassLiberator("register.urbn.com")
+
+@Experimental
+@SSID("Tally's Bunny Wifi")
+object TallyWeijl : ArubaClearPassLiberator("guestportal.tally-weijl.com")
