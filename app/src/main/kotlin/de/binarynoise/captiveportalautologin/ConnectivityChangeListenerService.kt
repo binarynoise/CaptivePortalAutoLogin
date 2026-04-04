@@ -330,7 +330,6 @@ class ConnectivityChangeListenerService : Service() {
             }
             if (state.liberated) {
                 log("already liberated")
-                Toast.makeText(applicationContext, "Already liberated", Toast.LENGTH_SHORT).show()
                 return
             }
             if (state.liberating) {
