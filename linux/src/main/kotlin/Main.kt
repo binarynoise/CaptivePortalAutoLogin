@@ -164,23 +164,23 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
             if (connectivity == "portal") {
                 val ssid = querySSID()
                 
-                val result = Liberator(
+                val liberationResult = Liberator(
                     { okhttpClient -> if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS)) },
                     PortalDetection.defaultBackend,
                     PortalDetection.defaultUserAgent,
                     ssid,
                 ).liberate()
                 
-                when (result) {
+                when (liberationResult) {
                     is Liberator.LiberationResult.Success -> log("broke out of the portal")
                     is Liberator.LiberationResult.Error -> log(
-                        "Failed to liberate: ${result.message}", result.exception
+                        "Failed to liberate: ${liberationResult.message}", liberationResult.exception
                     )
                     Liberator.LiberationResult.NotCaught -> log("not caught in portal")
-                    is Liberator.LiberationResult.StillCaptured -> log("Failed to liberate: still in portal: ${result.url}")
+                    is Liberator.LiberationResult.StillCaptured -> log("Failed to liberate: still in portal: ${liberationResult.url}")
                     is Liberator.LiberationResult.Timeout -> log("Failed to liberate: timeout")
-                    is Liberator.LiberationResult.UnknownPortal -> log("Failed to liberate: unknown portal: ${result.url}")
-                    is Liberator.LiberationResult.UnsupportedPortal -> log("Failed to liberate: Portal will not be supported: ${result.url}")
+                    is Liberator.LiberationResult.UnknownPortal -> log("Failed to liberate: unknown portal: ${liberationResult.url}")
+                    is Liberator.LiberationResult.UnsupportedPortal -> log("Failed to liberate: Portal will not be supported: ${liberationResult.url}")
                 }
             }
         } catch (e: Exception) {

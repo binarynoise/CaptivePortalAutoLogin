@@ -348,7 +348,7 @@ class ConnectivityChangeListenerService : Service() {
             val userAgent: String by SharedPreferences.liberator_user_agent
             val portalTestUrl: PortalTestURL by SharedPreferences.liberator_captive_test_url
             
-            val res = Liberator(
+            val liberationResult = Liberator(
                 { okhttpClient -> okhttpClient.socketFactory(network.socketFactory) },
                 portalTestUrl,
                 userAgent,
@@ -357,7 +357,7 @@ class ConnectivityChangeListenerService : Service() {
             
             t.cancel()
             
-            when (res) {
+            when (liberationResult) {
                 Liberator.LiberationResult.NotCaught -> {
                     log("not caught in portal")
                     Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT)
@@ -374,16 +374,16 @@ class ConnectivityChangeListenerService : Service() {
                             BuildConfig.VERSION_NAME,
                             System.currentTimeMillis(),
                             networkStateLock.read { networkState?.ssid.toString() },
-                            res.url,
-                            res.solvers,
+                            liberationResult.url,
+                            liberationResult.solvers,
                         )
                     )
                 }
                 is Liberator.LiberationResult.Error -> {
-                    log("failed to liberate: ${res.message}", res.exception)
+                    log("failed to liberate: ${liberationResult.message}", liberationResult.exception)
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: ${res.exception::class.simpleName} - ${res.message}",
+                        "Failed to liberate: ${liberationResult.exception::class.simpleName} - ${liberationResult.message}",
                         Toast.LENGTH_SHORT
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -392,10 +392,10 @@ class ConnectivityChangeListenerService : Service() {
                             BuildConfig.VERSION_NAME,
                             System.currentTimeMillis(),
                             networkState?.ssid.toString(),
-                            res.url,
-                            res.message,
-                            res.solvers,
-                            res.exception.stackTraceToString(),
+                            liberationResult.url,
+                            liberationResult.message,
+                            liberationResult.solvers,
+                            liberationResult.exception.stackTraceToString(),
                         )
                     )
                 }
@@ -406,10 +406,10 @@ class ConnectivityChangeListenerService : Service() {
                     // no timeout report
                 }
                 is Liberator.LiberationResult.UnknownPortal -> {
-                    log("failed to liberate: unknown portal: ${res.url}")
+                    log("failed to liberate: unknown portal: ${liberationResult.url}")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: unknown portal ${res.url}",
+                        "Failed to liberate: unknown portal ${liberationResult.url}",
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -418,7 +418,7 @@ class ConnectivityChangeListenerService : Service() {
                             BuildConfig.VERSION_NAME,
                             System.currentTimeMillis(),
                             networkState?.ssid.toString(),
-                            res.url,
+                            liberationResult.url,
                             "unknown portal",
                             "",
                             "",
@@ -429,7 +429,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("failed to liberate: still captured")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: still captured ${res.url}",
+                        "Failed to liberate: still captured ${liberationResult.url}",
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -438,9 +438,9 @@ class ConnectivityChangeListenerService : Service() {
                             BuildConfig.VERSION_NAME,
                             System.currentTimeMillis(),
                             networkState?.ssid.toString(),
-                            res.url,
+                            liberationResult.url,
                             "still captured",
-                            res.solvers,
+                            liberationResult.solvers,
                             "",
                         )
                     )
@@ -449,7 +449,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("Failed to liberate: Portal will not be supported")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: Portal will not be supported ${res.url}",
+                        "Failed to liberate: Portal will not be supported ${liberationResult.url}",
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)

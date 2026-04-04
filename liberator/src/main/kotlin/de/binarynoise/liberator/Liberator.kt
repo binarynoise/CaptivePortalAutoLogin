@@ -3,7 +3,6 @@ package de.binarynoise.liberator
 import java.security.cert.CertPathValidatorException
 import java.util.concurrent.TimeUnit.*
 import javax.net.ssl.SSLException
-import javax.net.ssl.SSLHandshakeException
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
@@ -137,17 +136,17 @@ class Liberator(
             return LiberationResult.UnknownPortal(portalResponsePre?.requestUrl.toString())
         }
         
-        val res = recurse(portalResponsePre, 0)
+        val liberationResult = recurse(portalResponsePre, 0)
         
-        if (res !is LiberationResult.Success) {
-            return res
+        if (liberationResult !is LiberationResult.Success) {
+            return liberationResult
         }
         
         val (isInPortalPost, portalResponsePost) = isCaughtInPortal(3)
         if (!isInPortalPost) {
-            return res
+            return liberationResult
         }
-        return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), res.solvers)
+        return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), liberationResult.solvers)
     }
     
     private fun isCaughtInPortal(maxTries: Int = 1): Pair<Boolean, Response?> {
