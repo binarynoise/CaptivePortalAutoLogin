@@ -27,10 +27,11 @@ import org.json.JSONObject
 @SSID(
     "H&M Free WiFi",
     "IKEA WiFi",
+    "LEVIS GUEST",
 )
 object ArubaNetworks : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "euw1.cloudguest.central.arubanetworks.com" //
+        return response.requestUrl.host.endsWith(".cloudguest.central.arubanetworks.com") //
             && response.requestUrl.pathSegments.firstOrNull() == "portal" //
             && response.requestUrl.pathSegments.lastOrNull() == "login" //
             && response.requestUrl.hasQueryParameter("capture")
