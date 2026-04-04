@@ -7,8 +7,8 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.cast
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postJson
-import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -50,20 +50,22 @@ object Unwired : PortalLiberator {
             JSONObject(
                 mapOf(
                     "operationName" to "splashpage",
-                    "variables" to JSONObject(
-                        mapOf(
-                            "user_session_id" to user_session_id,
-                            "initial" to true,
-                            "language" to "de",
-                        ),
+                    "variables" to mapOf(
+                        "user_session_id" to user_session_id,
+                        "initial" to true,
+                        "language" to "de",
                     ),
                     "query" to GRAPHQL_SPLASHPAGE,
                 ),
             ).toString(),
         )
-        val json1 = JSONObject(response1.readText())
+        val json1 = response1.parseJsonObject()
         
-        val pages = json1.getJSONObject("data").getJSONObject("splashpage").getJSONArray("pages").asIterable()
+        val pages = json1.getJSONObject("data")
+            .getJSONObject("splashpage")
+            .getJSONObject("splashpage")
+            .getJSONArray("pages")
+            .asIterable()
         
         val widgets = pages.flatMap { it.cast<JSONObject>().getJSONArray("widgets") }
         
@@ -79,14 +81,12 @@ object Unwired : PortalLiberator {
             JSONObject(
                 mapOf(
                     "operationName" to "client_connect",
-                    "variables" to JSONObject(
-                        mapOf(
-                            "userAgentLang" to "de",
-                            "userAgentCountry" to "de",
-                            "input" to null,
-                            "userSessionId" to user_session_id, // api schema says only this parameter is mandatory
-                            "widget_id" to widgetId,
-                        ),
+                    "variables" to mapOf(
+                        "userAgentLang" to "de",
+                        "userAgentCountry" to "de",
+                        "input" to null,
+                        "userSessionId" to user_session_id, // api schema says only this parameter is mandatory
+                        "widget_id" to widgetId,
                     ),
                     "query" to GRAPHQL_CLIENT_CONNECT,
                 ),
