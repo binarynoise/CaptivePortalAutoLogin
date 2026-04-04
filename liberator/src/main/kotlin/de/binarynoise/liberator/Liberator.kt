@@ -1,6 +1,9 @@
 package de.binarynoise.liberator
 
+import java.security.cert.CertPathValidatorException
 import java.util.concurrent.TimeUnit.*
+import javax.net.ssl.SSLException
+import javax.net.ssl.SSLHandshakeException
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
@@ -126,40 +129,60 @@ class Liberator(
      * Attempts to liberate the user by making a series of HTTP requests to the portal.
      */
     fun liberate(): LiberationResult {
-        val response = client.get(portalTestUrl.httpUrl, null)
+        val (isInPortalPre, portalResponsePre) = isCaughtInPortal()
+        if (!isInPortalPre) {
+            return LiberationResult.NotCaught
+        } else if (portalResponsePre == null) {
+            log("unknown captive portal redirection")
+            return LiberationResult.UnknownPortal(portalResponsePre?.requestUrl.toString())
+        }
         
-        val res = recurse(response, 0)
+        val res = recurse(portalResponsePre, 0)
         
         if (res !is LiberationResult.Success) {
             return res
         }
         
-        var portalResponse: Response? = null
-        var count = 0
-        while (count++ < 3) {
-            Thread.sleep(1000)
-            
-            // check if the user is still in the portal
-            val (httpIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.httpUrl)
-            portalResponse = redirectedResponse
-            if (httpIsInPortal) continue
-            
-            tryOrIgnore {
-                val (httpsIsInPortal, redirectedResponse) = isInPortal(portalTestUrl.httpsUrl)
-                portalResponse = redirectedResponse
-                if (httpsIsInPortal) continue
-            }
-            
+        val (isInPortalPost, portalResponsePost) = isCaughtInPortal(3)
+        if (!isInPortalPost) {
             return res
         }
-        return LiberationResult.StillCaptured(portalResponse?.requestUrl.toString(), res.solvers)
+        return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), res.solvers)
+    }
+    
+    private fun isCaughtInPortal(maxTries: Int = 1): Pair<Boolean, Response?> {
+        var redirectedResponse: Response? = null
+        var count = 0
+        while (count++ < maxTries) {
+            if (count > 1) Thread.sleep(1000)
+            
+            val (httpIsInPortal, redirectedResponseHttp) = isInPortal(portalTestUrl.httpUrl)
+            redirectedResponse = redirectedResponseHttp
+            if (httpIsInPortal) continue
+            
+            try {
+                val (httpsIsInPortal, redirectedResponseHttps) = isInPortal(portalTestUrl.httpsUrl)
+                redirectedResponse = redirectedResponseHttps
+                if (httpsIsInPortal) continue
+            } catch (e: Exception) {
+                if(e is SSLException || e is CertPathValidatorException) {
+                    // HTTPS errors mean we're (still) in the portal but it allows the http request to pass through anyway
+                    redirectedResponse = null
+                    continue
+                }
+                throw e
+            }
+            
+            // all requests went through -> we're not in the portal (anymore)
+            return Pair(false, null)
+        }
+        return Pair(true, redirectedResponse)
     }
     
     private fun isInPortal(portalTestUrl: HttpUrl): Pair<Boolean, Response?> {
         val response = client.get(portalTestUrl, null)
-        if (!response.isSuccessful) return Pair(true, null)
         val redirectedResponse = getRedirectedResponse(client, response, cookies)
-        return Pair(redirectedResponse != null, redirectedResponse)
+        return Pair(!response.isSuccessful || redirectedResponse != null, redirectedResponse)
     }
     
     private fun recurse(response: Response, depth: Int): LiberationResult {
@@ -182,10 +205,6 @@ class Liberator(
                 val redirectedResponse = getRedirectedResponse(client, response, cookies)
                 log("redirectedResponse.requestUrl: ${redirectedResponse?.requestUrl}")
                 if (redirectedResponse == null) {
-                    if (isCaptivePortalTestUrl(response.requestUrl) && response.isSuccessful) {
-                        return LiberationResult.NotCaught
-                    }
-                    log("unknown captive portal: ${response.requestUrl}")
                     return LiberationResult.UnknownPortal(response.requestUrl.toString())
                 }
                 

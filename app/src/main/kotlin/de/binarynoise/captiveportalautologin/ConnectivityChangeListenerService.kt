@@ -406,9 +406,11 @@ class ConnectivityChangeListenerService : Service() {
                     // no timeout report
                 }
                 is Liberator.LiberationResult.UnknownPortal -> {
-                    log("failed to liberate: unknown portal")
+                    log("failed to liberate: unknown portal: ${res.url}")
                     Toast.makeText(
-                        applicationContext, "Failed to liberate: unknown portal ${res.url}", Toast.LENGTH_SHORT
+                        applicationContext,
+                        "Failed to liberate: unknown portal ${res.url}",
+                        Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
