@@ -1,22 +1,17 @@
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.LiberatorExtras
-import de.binarynoise.liberator.LocationRedirector
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
-import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
-import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
-import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import de.binarynoise.util.okhttp.submitOnlyForm
 import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -83,41 +78,6 @@ object ArubaNetworks : PortalLiberator {
             network_login_config.getString("action").toHttpUrl(response2.requestUrl),
             network_login_config.getString("username"),
             network_login_config.getString("password"),
-        )
-    }
-}
-
-@SSID(
-    "Bershka-WiFi",
-    "PULL&BEAR-FreeWiFi",
-    "Stradivarius-WiFi",
-    "Zara-WiFi",
-)
-object Inditex : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "wifi.inditex.com" && !LocationRedirector.canRedirect(response)
-    }
-    
-    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        if (response.requestUrl.decodedPath.endsWith("Employees.php")) throw UnsupportedPortalException("employee portal page")
-        val response2 = response.submitOnlyForm(
-            client, queryParameters = mapOf(
-                "_browser" to "1",
-            )
-        ).followRedirects(client)
-        val response3 = response2.submitOnlyForm(
-            client, parameters = mapOf(
-                // setting "visitor_name" seems to only be necessary for Stradivarius-WiFi
-                "visitor_name" to "Oscar",
-            )
-        )
-        val html = response3.parseHtml()
-        val form = html.forms().single()
-        performArubaLogin(
-            client,
-            form.attr("action").toHttpUrl(response3.requestUrl),
-            form.getInput("user"),
-            form.getInput("password"),
         )
     }
 }
