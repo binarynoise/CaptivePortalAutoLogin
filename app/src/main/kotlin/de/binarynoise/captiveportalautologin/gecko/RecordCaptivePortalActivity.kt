@@ -29,8 +29,11 @@ import de.binarynoise.captiveportalautologin.Stats
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePortalBinding
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
+import de.binarynoise.captiveportalautologin.preferences.SystemPortalTestUrl
 import de.binarynoise.captiveportalautologin.util.invokeSystemApiFunction
+import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.logger.Logger.log
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.mozilla.geckoview.GeckoSession
 
 class RecordCaptivePortalActivity : ComponentActivity() {
@@ -38,7 +41,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     private val binding by viewBinding { ActivityRecordCaptivePortalBinding.inflate(layoutInflater) }
     val backgroundHandler = Handler(HandlerThread("background").apply { start() }.looper)
     
-    private val portalTestUrl by SharedPreferences.liberator_captive_test_url
+    private var portalTestUrl = SharedPreferences.liberator_captive_test_url.get()
     
     var captivePortal: CaptivePortal? = null
     lateinit var network: Network
@@ -93,6 +96,13 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         log("captivePortal = $captivePortal")
         network = IntentCompat.getParcelableExtra(intent, EXTRA_NETWORK, Network::class.java)!!
         log("network = $network")
+        
+        if (portalTestUrl == SystemPortalTestUrl) {
+            // only use android's provided captivePortalUrl if the user hasn't overridden the url in the settings
+            val captivePortalUrl =
+                intent.getStringExtra(ConnectivityManager.EXTRA_CAPTIVE_PORTAL_URL)?.toHttpUrlOrNull()
+            if (captivePortalUrl != null) portalTestUrl = PortalTestURL(captivePortalUrl)
+        }
         
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
         
