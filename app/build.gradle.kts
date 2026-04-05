@@ -30,25 +30,6 @@ android {
         enable = true
     }
     
-    buildTypes {
-        create("quickRelease") {
-            initWith(getByName("release"))
-            matchingFallbacks += "release"
-            
-            isMinifyEnabled = false
-            isShrinkResources = false
-            versionNameSuffix = "-qr"
-        }
-        create("r8debug") {
-            initWith(getByName("debug"))
-            matchingFallbacks += "debug"
-            
-            isMinifyEnabled = true
-            isShrinkResources = true
-            versionNameSuffix = "-r8d"
-        }
-    }
-    
     flavorDimensions += "abi"
     productFlavors {
         create("arm") {
