@@ -28,7 +28,7 @@ class RequestBody(
                 json.optString("error"),
                 json.optJSONObject("formData")
                     ?.toMap()
-                    ?.mapValues { (_, value) -> (value as JSONArray).toList().map { it as String }.toTypedArray() },
+                    ?.mapValues { (_, value) -> (value as JSONArray).toList().map { it.toString() }.toTypedArray() },
                 json.optJSONArray("raw")?.toList()?.map { UploadData.fromJson(it as JSONObject) }?.toTypedArray(),
             )
         }

@@ -282,6 +282,7 @@ class GeckoViewActivity : ComponentActivity() {
             addLoadSiteMenuEntry(menu, "load 404", "http://am-i-captured.binarynoise.de/404")
             addLoadSiteMenuEntry(menu, "load 404 https", "https://am-i-captured.binarynoise.de/404")
             addLoadSiteMenuEntry(menu, "jstest", "http://dev.jeffersonscher.com/jstest.asp")
+            addLoadSiteMenuEntry(menu, "Google", "https://google.com/")
         }
         return super.onCreateOptionsMenu(menu)
     }
