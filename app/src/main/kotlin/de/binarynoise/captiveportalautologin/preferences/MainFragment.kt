@@ -288,10 +288,10 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             addPreference(DropDownPreference(ctx)) {
                 key = SharedPreferences.liberator_captive_test_url.key
                 title = "Captive Portal Test Backend"
-                entries = PortalDetection.backends.keys.toTypedArray()
-                entryValues = PortalDetection.backends.keys.toTypedArray()
+                entries = PortalDetection.backendsAndroid.keys.toTypedArray()
+                entryValues = PortalDetection.backendsAndroid.keys.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(PortalDetection.defaultBackendKey)
+                setDefaultValue(SharedPreferences.liberator_captive_test_url.defaultKey)
             }
             
             addPreference(DropDownPreference(ctx)) {

@@ -16,3 +16,14 @@ fun invokeSystemApiFunction(
         TODO()
     }
 }
+
+fun getSystemApiStaticField(
+    clazz: Class<*>,
+    fieldName: String,
+): Any? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        HiddenApiBypass.getStaticFields(clazz).single { it.name == fieldName }.get(null)
+    } else {
+        TODO("VERSION.SDK_INT < P")
+    }
+}
