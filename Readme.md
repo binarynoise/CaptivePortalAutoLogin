@@ -17,9 +17,7 @@ Features:
 
 ### Installation
 
-1. Download the APK from
-   - ~~[GitHub Releases](https://github.com/binarynoise/CaptivePortalAutoLogin/releases)~~
-   - [the Telegram channel](https://t.me/+__MmjOzaVOw3MDc6)
+1. Download the APK from [GitHub Releases](https://github.com/binarynoise/CaptivePortalAutoLogin/releases)
 2. Install the APK on your Android device
 3. Grant the required permissions
 
@@ -28,8 +26,9 @@ Features:
 #### Starting the Service
 
 1. Open the app
-2. Toggle on the **Service Status** switch to enable the background monitoring service
-3. The service will automatically detect and liberate captive portals when you connect to Wi-Fi networks
+2. Grant permissions
+3. Toggle on the **Service Status** switch to enable the background monitoring service
+4. The service will automatically detect and liberate captive portals when you connect to Wi-Fi networks
 
 #### Manual Liberation
 
@@ -68,60 +67,14 @@ Run:
     - `--restartNetworking`: toggle NetworkManager off/on at start;
     - at runtime: press `r` to restart networking, `q` to quit
 
-## Roadmap
-
-- Android
-    - [x] UI (Settings screen)
-    - [x] Background service
-    - [ ] Notify the Android system about success
-        - [x] Xposed
-        - [ ] Hijack `android.net.conn.CAPTIVE_PORTAL` action
-            - <https://cs.android.com/android/platform/superproject/+/android-latest-release:packages/modules/CaptivePortalLogin/src/com/android/captiveportallogin/CaptivePortalLoginActivity.java;l=985;drc=6de39e8e8b1228d1630121c65b5a172610394526>
-            - <https://cs.android.com/android/platform/superproject/+/android-latest-release:packages/modules/Connectivity/framework/src/android/net/CaptivePortal.java;l=125;drc=7d6dfd52b270dd26cbc26f4e6f93365af1aabd68>
-            - <https://cs.android.com/android/platform/superproject/+/android-latest-release:packages/modules/CaptivePortalLogin/AndroidManifest.xml;l=69;drc=ec150a8c6585a59e12fafd3b9de785c8d0c83139>
-    - [ ] Replace all Toasts with updating the status notification
-    - [x] Proper permission handling
-    - [x] Export and upload HARs
-    - [ ] Dynamically load new liberator versions
-    - [x] Sign APK
-
-- Android light version
-    - [ ] Only service and permissions
-
-- Linux service
-    - [x] NetworkManager integration
-    - [ ] Other network managers?
-
-- Windows service?
-
-- Frontend common
-    - [ ] Retry Liberation with backoff
-    - [x] Collect metrics
-        - [x] Portal URL
-        - [x] SSID
-        - [x] Timestamp
-        - [x] Success
-        - [x] Error message
-        - [ ] Exception
-        - [ ] HTTP logs
-        - [ ] Location?
-    - [ ] Better icon
-    - [ ] Proper logging (e.g. https://tinylog.org/v2/)
-
-- Backend
-    - [x] Collect metrics
-
-- Misc
-    - [ ] More quotes
-
-## Contributing
+## Contributing Portals
 
 ### HAR files
 
 HAR files contain the HTTP traffic needed to liberate a portal.
 If you find a new portal, please capture the traffic (via app or browser: Chrome or Firefox DevTools)
 and submit it (via app, Telegram, or GitHub; will contain all personal information you send to the portal).
-This will help me add support for it. 
+This will help me add support for it.
 
 ### Code
 
