@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
-
 package de.binarynoise.captiveportalautologin.gecko
 
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import kotlin.time.ExperimentalTime
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
