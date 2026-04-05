@@ -13,12 +13,12 @@ import android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.UiThread
 import androidx.core.content.IntentCompat
+import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.connectivityManager
@@ -70,7 +70,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         override fun onPageStop(session: GeckoSession, success: Boolean) {
             log("onPageStop")
             binding.swipeRefresh.isRefreshing = false
-            binding.progress.visibility = View.GONE
+            binding.progress.isVisible = false
         }
         
         override fun onProgressChange(session: GeckoSession, progress: Int) {
@@ -80,7 +80,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         
         override fun onPageStart(session: GeckoSession, url: String) {
             log("onPageStart")
-            binding.progress.visibility = View.VISIBLE
+            binding.progress.isVisible = true
         }
     }
     
