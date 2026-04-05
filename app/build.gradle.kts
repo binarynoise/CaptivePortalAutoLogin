@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.viewbindingpropertydelegate.noreflection)
     
     implementation(libs.kotlin.stdlib.jdk8)

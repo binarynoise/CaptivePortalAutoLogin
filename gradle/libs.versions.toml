@@ -38,6 +38,7 @@ rhino = "1.9.1"
 r8 = "9.1.31"
 shadow = "9.4.1"
 slf4jSimple = "2.0.17"
+swiperefreshlayout = "1.2.0"
 vertx = "5.0.10"
 viewbindingpropertydelegate = "1.5.9"
 xposed = "82"
@@ -54,6 +55,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "androidxFragment" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycleRuntimeKtx" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "androidxPreferenceKtx" }
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWorkRuntimeKtx" }
 blockhound = { module = "io.projectreactor.tools:blockhound", version.ref = "blockhound" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
