@@ -297,10 +297,10 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             addPreference(DropDownPreference(ctx)) {
                 key = SharedPreferences.liberator_user_agent.key
                 title = "User Agent"
-                entries = PortalDetection.userAgents.keys.toTypedArray()
-                entryValues = PortalDetection.userAgents.values.toTypedArray()
+                entries = PortalDetection.userAgentsAndroid.keys.toTypedArray()
+                entryValues = PortalDetection.userAgentsAndroid.values.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(PortalDetection.defaultUserAgent)
+                setDefaultValue(SharedPreferences.liberator_user_agent.defaultKey)
             }
             
             addPreference(SwitchPreference(ctx)) {
