@@ -163,7 +163,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(Preference(ctx)) {
-                title = "Capture Captive Portal Login (Simplified)"
+                title = "Capture Captive Portal Login"
                 summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
                 setOnPreferenceClickListener {
                     val networkState = networkStateLock.read { networkState }
@@ -178,10 +178,12 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
-                title = "Capture Captive Portal Login"
-                summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
-                intent = Intent(ctx, GeckoViewActivity::class.java)
+            if (BuildConfig.DEBUG) {
+                addPreference(Preference(ctx)) {
+                    title = "Capture Captive Portal Login (dev)"
+                    summary = "Advanced Captive Portal Recording for developers"
+                    intent = Intent(ctx, GeckoViewActivity::class.java)
+                }
             }
             
             addPreference(CheckBoxPreference(ctx)) {

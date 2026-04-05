@@ -9,6 +9,12 @@
         >
         
         <activity
+            android:name=".gecko.GeckoViewActivity"
+            android:theme="@style/CaptivePortalAutoLogin.NoBlur"
+            android:windowSoftInputMode="adjustResize"
+            />
+        
+        <activity
             android:name=".QueuedWorkActivity"
             android:exported="true"
             />
