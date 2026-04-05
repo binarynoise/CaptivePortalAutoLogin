@@ -65,9 +65,17 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     val extensionDelegate =
         ExtensionDelegate(backgroundHandler, this, navigationDelegate, ::onExtensionLoaded, ::onExtensionDelegateError)
     
+    val progressDelegate = object : GeckoSession.ProgressDelegate {
+        override fun onPageStop(session: GeckoSession, success: Boolean) {
+            log("onPageStop")
+            binding.swipeRefresh.isRefreshing = false
+        }
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        binding.swipeRefresh.isEnabled = false
         
         captivePortal = IntentCompat.getParcelableExtra(intent, EXTRA_CAPTIVE_PORTAL, CaptivePortal::class.java)
         log("captivePortal = $captivePortal")
@@ -79,6 +87,8 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
         
         extensionDelegate.onCreate(binding.geckoView)
+        extensionDelegate.session.progressDelegate = progressDelegate
+        binding.swipeRefresh.setOnRefreshListener { extensionDelegate.session.reload() }
     }
     
     fun createFinalizedHar(): Pair<String, HAR> {
@@ -109,6 +119,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     
     fun onExtensionLoaded() {
         extensionDelegate.session.loadUri(portalTestUrl.httpUrl.toString())
+        binding.swipeRefresh.isEnabled = true
     }
     
     fun onExtensionDelegateError(exception: Throwable?) {
