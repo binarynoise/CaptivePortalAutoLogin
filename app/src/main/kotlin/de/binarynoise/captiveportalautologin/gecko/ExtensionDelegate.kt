@@ -134,7 +134,6 @@ class ExtensionDelegate(
         
         session.open(runtime)
         geckoView.setSession(session)
-        session.loadUri("about:blank")
         
         try {
             val alwaysReload = true
