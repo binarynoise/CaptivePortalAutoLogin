@@ -68,6 +68,23 @@ class GeckoViewActivity : ComponentActivity() {
     private val extensionDelegate =
         ExtensionDelegate(backgroundHandler, this, navigationDelegate, ::onExtensionLoaded, ::onExtensionDelegateError)
     
+    val progressDelegate = object : GeckoSession.ProgressDelegate {
+        override fun onPageStop(session: GeckoSession, success: Boolean) {
+            log("onPageStop")
+            binding.progress.isVisible = false
+        }
+        
+        override fun onProgressChange(session: GeckoSession, progress: Int) {
+            log("onProgressChange")
+            binding.progress.progress = progress
+        }
+        
+        override fun onPageStart(session: GeckoSession, url: String) {
+            log("onPageStart")
+            binding.progress.isVisible = true
+        }
+    }
+    
     private val portalTestUrl by SharedPreferences.liberator_captive_test_url
     
     @Suppress("unused")
@@ -116,6 +133,7 @@ class GeckoViewActivity : ComponentActivity() {
         serviceListener(null, serviceStateLock.read { serviceState })
         
         extensionDelegate.onCreate(binding.geckoView)
+        extensionDelegate.session.progressDelegate = progressDelegate
     }
     
     fun onExtensionLoaded() {

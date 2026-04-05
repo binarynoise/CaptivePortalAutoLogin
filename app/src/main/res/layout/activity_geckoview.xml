@@ -1,65 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:animateLayoutChanges="true"
     android:orientation="vertical"
     >
     
-    <TextView
-        android:id="@+id/notConnectedWarning"
-        style="@style/CaptivePortalAutoLogin.Text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/padding"
-        android:paddingTop="@dimen/padding"
-        android:text="Not connected to any network. You may need to disable mobile data and try again."
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-    
-    <TextView
-        android:id="@+id/notInCaptivePortalWifiWarning"
-        style="@style/CaptivePortalAutoLogin.Text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/padding"
-        android:paddingTop="@dimen/padding"
-        android:text="Captive Portal not detected. If you just liberated the network, save the capture now."
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-    
-    <TextView
-        android:id="@+id/serviceNotRunningWarning"
-        style="@style/CaptivePortalAutoLogin.Text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/padding"
-        android:text="Service is not running. Enable the Service and try again."
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-    
-    <TextView
-        android:id="@+id/geckoError"
-        style="@style/CaptivePortalAutoLogin.Text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="@dimen/padding"
-        android:text="Error setting up the browser. Please Force Close the app and try again."
-        android:visibility="gone"
-        tools:visibility="visible"
-        />
-    
-    <org.mozilla.geckoview.GeckoView
-        android:id="@+id/geckoView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible"
-        tools:visibility="visible"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical"
+        >
+        
+        <TextView
+            android:id="@+id/notConnectedWarning"
+            style="@style/CaptivePortalAutoLogin.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/padding"
+            android:paddingTop="@dimen/padding"
+            android:text="Not connected to any network. You may need to disable mobile data and try again."
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        
+        <TextView
+            android:id="@+id/notInCaptivePortalWifiWarning"
+            style="@style/CaptivePortalAutoLogin.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/padding"
+            android:paddingTop="@dimen/padding"
+            android:text="Captive Portal not detected. If you just liberated the network, save the capture now."
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        
+        <TextView
+            android:id="@+id/serviceNotRunningWarning"
+            style="@style/CaptivePortalAutoLogin.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/padding"
+            android:text="Service is not running. Enable the Service and try again."
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        
+        <TextView
+            android:id="@+id/geckoError"
+            style="@style/CaptivePortalAutoLogin.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="@dimen/padding"
+            android:text="Error setting up the browser. Please Force Close the app and try again."
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+        
+        <org.mozilla.geckoview.GeckoView
+            android:id="@+id/geckoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="invisible"
+            tools:visibility="visible"
+            />
+    </LinearLayout>
+    
+    <ProgressBar
+        android:id="@android:id/progress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_gravity="center"
+        android:max="100"
+        android:minHeight="0dp"
+        android:visibility="gone"
         />
-</LinearLayout>
+
+</RelativeLayout>
