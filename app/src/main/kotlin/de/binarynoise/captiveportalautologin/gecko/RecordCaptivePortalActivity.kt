@@ -54,7 +54,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         ) {
             log("onLocationChange: $url")
             location = url
-            actionBar?.subtitle = url
+            actionBar?.subtitle = url.takeUnless { it == "about:blank" }
             reevaluateNetwork()
         }
         
