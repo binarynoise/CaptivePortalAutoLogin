@@ -13,6 +13,7 @@ import android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -69,6 +70,17 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         override fun onPageStop(session: GeckoSession, success: Boolean) {
             log("onPageStop")
             binding.swipeRefresh.isRefreshing = false
+            binding.progress.visibility = View.GONE
+        }
+        
+        override fun onProgressChange(session: GeckoSession, progress: Int) {
+            log("onProgressChange")
+            binding.progress.progress = progress
+        }
+        
+        override fun onPageStart(session: GeckoSession, url: String) {
+            log("onPageStart")
+            binding.progress.visibility = View.VISIBLE
         }
     }
     
