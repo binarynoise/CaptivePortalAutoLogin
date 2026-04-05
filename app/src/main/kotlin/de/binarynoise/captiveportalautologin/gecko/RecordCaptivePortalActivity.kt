@@ -30,6 +30,8 @@ import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePortalBinding
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.preferences.SystemPortalTestUrl
+import de.binarynoise.captiveportalautologin.preferences.SystemPortalUserAgent
+import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
 import de.binarynoise.captiveportalautologin.util.invokeSystemApiFunction
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.logger.Logger.log
@@ -96,6 +98,15 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         log("captivePortal = $captivePortal")
         network = IntentCompat.getParcelableExtra(intent, EXTRA_NETWORK, Network::class.java)!!
         log("network = $network")
+        
+        if (SharedPreferences.liberator_user_agent.get() == SystemPortalUserAgent) {
+            val userAgent = intent.getStringExtra(
+                getSystemApiStaticField(
+                    ConnectivityManager::class.java, "EXTRA_CAPTIVE_PORTAL_USER_AGENT"
+                ) as String
+            )
+            if (userAgent != null) extensionDelegate.session.settings.userAgentOverride = userAgent
+        }
         
         if (portalTestUrl == SystemPortalTestUrl) {
             // only use android's provided captivePortalUrl if the user hasn't overridden the url in the settings

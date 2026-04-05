@@ -33,6 +33,8 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnErrorOccurredDeta
 import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnResponseStartedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnSendHeadersDetails
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
+import de.binarynoise.captiveportalautologin.preferences.SystemPortalUserAgent
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.postIfCreated
@@ -124,6 +126,7 @@ class ExtensionDelegate(
     
     val session = GeckoSession(GeckoSessionSettings.Builder().apply {
         usePrivateMode(true)
+        if (SharedPreferences.liberator_user_agent.get() != SystemPortalUserAgent) userAgentOverride(SharedPreferences.liberator_user_agent.get())
     }.build()).apply {
         contentDelegate = ContentDelegate
         navigationDelegate = this@ExtensionDelegate.navigationDelegate
