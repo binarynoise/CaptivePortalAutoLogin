@@ -2,19 +2,35 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import android.provider.Settings
 import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalTestURL
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+
+val SystemPortalTestUrl = PortalTestURL(
+    httpUrl = Settings.Global.getString(
+        applicationContext.contentResolver,
+        (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_HTTP_URL") as String)
+    )?.toHttpUrlOrNull() ?: PortalDetection.backends["Google"]?.httpUrl ?: PortalDetection.defaultBackend.httpUrl,
+    httpsUrl = Settings.Global.getString(
+        applicationContext.contentResolver,
+        (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_HTTPS_URL") as String)
+    )?.toHttpUrlOrNull() ?: PortalDetection.backends["Google"]?.httpsUrl ?: PortalDetection.defaultBackend.httpsUrl,
+)
+val PortalDetection.backendsAndroid: Map<String, PortalTestURL>
+    get() = mapOf("System" to SystemPortalTestUrl) + PortalDetection.backends
 
 object SharedPreferences {
     val liberator_automatically_liberate: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
     val liberator_captive_test_url: DynamicPreferencePropertyDelegate<String, PortalTestURL> by DynamicPreferenceProperty(
-        { key -> PortalDetection.backends.getValue(key) },
-        { value -> PortalDetection.backends.entries.single { it.value == value }.key },
-        PortalDetection.defaultBackendKey,
+        { key -> PortalDetection.backendsAndroid.getValue(key) },
+        { value -> PortalDetection.backendsAndroid.entries.single { it.value == value }.key },
+        PortalDetection.backendsAndroid.keys.first(),
     )
     val liberator_user_agent: PreferencePropertyDelegate<String> by PreferenceProperty(PortalDetection.defaultUserAgent)
     val liberator_send_stats: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
