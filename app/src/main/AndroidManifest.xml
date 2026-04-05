@@ -35,12 +35,6 @@
         <activity android:name=".preferences.MainActivity" />
         
         <activity
-            android:name=".gecko.GeckoViewActivity"
-            android:theme="@style/CaptivePortalAutoLogin.NoBlur"
-            android:windowSoftInputMode="adjustResize"
-            />
-        
-        <activity
             android:name=".gecko.RecordCaptivePortalActivity"
             android:exported="true"
             android:label="Capture Captive Portal"
