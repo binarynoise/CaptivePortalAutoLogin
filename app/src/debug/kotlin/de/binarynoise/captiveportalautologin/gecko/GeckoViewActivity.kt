@@ -11,8 +11,6 @@ import android.os.HandlerThread
 import android.os.Parcel
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
@@ -20,10 +18,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.BuildConfig
-import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.reportNetworkConnectivity
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
@@ -39,7 +37,6 @@ import de.binarynoise.captiveportalautologin.util.FileUtils
 import de.binarynoise.captiveportalautologin.util.FileUtils.saveTextToSd
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.postIfCreated
-import de.binarynoise.captiveportalautologin.xposed.Xposed
 import de.binarynoise.logger.Logger.log
 import org.mozilla.geckoview.GeckoSession
 
@@ -60,6 +57,7 @@ class GeckoViewActivity : ComponentActivity() {
             location = url
             
             actionBar?.subtitle = url
+            reportNetworkConnectivity()
         }
     }
     private val extensionDelegate =
@@ -91,22 +89,16 @@ class GeckoViewActivity : ComponentActivity() {
                 if (newState == null) {
                     notConnectedWarning.isVisible = true
                     notInCaptivePortalWifiWarning.isVisible = false
-                    geckoView.visibility = INVISIBLE
                     
                     return@postIfCreated
                 }
                 
                 notConnectedWarning.isVisible = false
                 notInCaptivePortalWifiWarning.isVisible = !newState.hasPortal
-                geckoView.visibility = if (newState.hasPortal || newState.debug) VISIBLE else INVISIBLE
                 
                 if (newState.hasPortal) {
                     if (extensionDelegate.session.isOpen && (navigationDelegate.location == null || navigationDelegate.location == "about:blank")) {
                         extensionDelegate.session.loadUri(portalTestUrl.httpUrl.toString())
-                    }
-                } else {
-                    if (extensionDelegate.session.isOpen) {
-                        extensionDelegate.session.loadUri("about:blank")
                     }
                 }
             }
@@ -153,20 +145,18 @@ class GeckoViewActivity : ComponentActivity() {
         
         backgroundHandler.looper.quit()
         
-        ConnectivityChangeListenerService.reportNetworkConnectivity()
+        reportNetworkConnectivity()
         
         super.onDestroy()
     }
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gecko, menu)
-        if (Xposed.getEnabled()) {
-            menu.add("Request Re-evaluation").also { menuItem ->
-                menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-                menuItem.setOnMenuItemClickListener {
-                    ConnectivityChangeListenerService.reportNetworkConnectivity()
-                    true
-                }
+        menu.add("Request Re-evaluation").also { menuItem ->
+            menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+            menuItem.setOnMenuItemClickListener {
+                reportNetworkConnectivity()
+                true
             }
         }
         if (BuildConfig.DEBUG) {
