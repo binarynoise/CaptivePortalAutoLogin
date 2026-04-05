@@ -25,6 +25,13 @@ val SystemPortalTestUrl = PortalTestURL(
 val PortalDetection.backendsAndroid: Map<String, PortalTestURL>
     get() = mapOf("System" to SystemPortalTestUrl) + PortalDetection.backends
 
+val SystemPortalUserAgent = Settings.Global.getString(
+    applicationContext.contentResolver,
+    (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_USER_AGENT") as String)
+) ?: PortalDetection.userAgents["AOSP"] ?: PortalDetection.defaultUserAgent
+val PortalDetection.userAgentsAndroid: Map<String, String>
+    get() = mapOf("System" to SystemPortalUserAgent) + PortalDetection.userAgents
+
 object SharedPreferences {
     val liberator_automatically_liberate: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
     val liberator_captive_test_url: DynamicPreferencePropertyDelegate<String, PortalTestURL> by DynamicPreferenceProperty(
@@ -32,7 +39,11 @@ object SharedPreferences {
         { value -> PortalDetection.backendsAndroid.entries.single { it.value == value }.key },
         PortalDetection.backendsAndroid.keys.first(),
     )
-    val liberator_user_agent: PreferencePropertyDelegate<String> by PreferenceProperty(PortalDetection.defaultUserAgent)
+    val liberator_user_agent: DynamicPreferencePropertyDelegate<String, String> by DynamicPreferenceProperty(
+        { key -> PortalDetection.userAgentsAndroid.getValue(key) },
+        { value -> PortalDetection.userAgentsAndroid.entries.single { it.value == value }.key },
+        PortalDetection.userAgentsAndroid.keys.first(),
+    )
     val liberator_send_stats: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
     val api_base: PreferencePropertyDelegate<String> by PreferenceProperty("")
     val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
