@@ -3,7 +3,6 @@ package de.binarynoise.captiveportalautologin.gecko
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import android.content.Intent
-import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Bundle
 import android.os.Handler
@@ -14,10 +13,10 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.BuildConfig
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.connectivityManager
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
@@ -166,8 +165,6 @@ class GeckoViewActivity : ComponentActivity() {
                     menuItem.setOnMenuItemClickListener {
                         networkStateLock.write {
                             networkState = networkState?.copy(debug = true) ?: run {
-                                val connectivityManager =
-                                    ContextCompat.getSystemService(this, ConnectivityManager::class.java)!!
                                 val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
                                     Parcel.obtain().apply { writeInt(-1) })
                                 NetworkState(
