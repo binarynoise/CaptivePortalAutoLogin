@@ -127,10 +127,11 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(SwitchPreference(ctx)) {
+                key = SharedPreferences.liberator_automatically_liberate.key
                 title = "Liberator Status"
                 summaryOn = "Automatically liberating Captive Portals"
                 summaryOff = "Not automatically liberating Captive Portals"
-                apply(SharedPreferences.liberator_automatically_liberate)
+                setDefaultValue(SharedPreferences.liberator_automatically_liberate.defaultValue)
             }
             
             addPreference(Preference(ctx)) {
@@ -286,21 +287,21 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(DropDownPreference(ctx)) {
-                key = SharedPreferences.liberator_captive_test_url.key
+                key = SharedPreferences.liberator_captive_test_url_key.key
                 title = "Captive Portal Test Backend"
                 entries = PortalDetection.backendsAndroid.keys.toTypedArray()
                 entryValues = PortalDetection.backendsAndroid.keys.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(SharedPreferences.liberator_captive_test_url.defaultKey)
+                setDefaultValue(SharedPreferences.liberator_captive_test_url_key.defaultValue)
             }
             
             addPreference(DropDownPreference(ctx)) {
-                key = SharedPreferences.liberator_user_agent.key
+                key = SharedPreferences.liberator_user_agent_key.key
                 title = "User Agent"
                 entries = PortalDetection.userAgentsAndroid.keys.toTypedArray()
-                entryValues = PortalDetection.userAgentsAndroid.values.toTypedArray()
+                entryValues = PortalDetection.userAgentsAndroid.keys.toTypedArray()
                 summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(SharedPreferences.liberator_user_agent.defaultKey)
+                setDefaultValue(SharedPreferences.liberator_user_agent_key.defaultValue)
             }
             
             addPreference(SwitchPreference(ctx)) {
