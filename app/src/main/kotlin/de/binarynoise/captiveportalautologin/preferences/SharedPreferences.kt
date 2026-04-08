@@ -1,10 +1,10 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import android.provider.Settings
 import androidx.core.content.edit
-import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
@@ -34,16 +34,15 @@ val PortalDetection.userAgentsAndroid: Map<String, String>
 
 object SharedPreferences {
     val liberator_automatically_liberate: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
-    val liberator_captive_test_url: DynamicPreferencePropertyDelegate<String, PortalTestURL> by DynamicPreferenceProperty(
-        { key -> PortalDetection.backendsAndroid.getValue(key) },
-        { value -> PortalDetection.backendsAndroid.entries.single { it.value == value }.key },
-        PortalDetection.backendsAndroid.keys.first(),
-    )
-    val liberator_user_agent: DynamicPreferencePropertyDelegate<String, String> by DynamicPreferenceProperty(
-        { key -> PortalDetection.userAgentsAndroid.getValue(key) },
-        { value -> PortalDetection.userAgentsAndroid.entries.single { it.value == value }.key },
-        PortalDetection.userAgentsAndroid.keys.first(),
-    )
+    val liberator_captive_test_url_key: PreferencePropertyDelegate<String> by PreferenceProperty(PortalDetection.backendsAndroid.keys.first())
+    val liberator_captive_test_url: MappedPreferencePropertyDelegate<String, PortalTestURL> =
+        liberator_captive_test_url_key.map { key ->
+            PortalDetection.backendsAndroid[key] ?: error("invalid portal backend")
+        }
+    val liberator_user_agent_key: PreferencePropertyDelegate<String> by PreferenceProperty(PortalDetection.userAgentsAndroid.keys.first())
+    val liberator_user_agent: MappedPreferencePropertyDelegate<String, String> = liberator_user_agent_key.map { key ->
+        PortalDetection.userAgentsAndroid[key] ?: error("invalid user agent")
+    }
     val liberator_send_stats: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
     val api_base: PreferencePropertyDelegate<String> by PreferenceProperty("")
     val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
@@ -56,32 +55,17 @@ object SharedPreferences {
             return PreferencePropertyDelegate(property, defaultValue)
         }
     }
-    
-    private class DynamicPreferenceProperty<K : Any, V>(
-        private val getValue: (K) -> V,
-        private val getKey: (V) -> K,
-        private val defaultKey: K,
-    ) {
-        operator fun getValue(parent: Any, property: KProperty<*>): DynamicPreferencePropertyDelegate<K, V> {
-            return DynamicPreferencePropertyDelegate(property, getValue, getKey, defaultKey)
-        }
-    }
 }
 
 
 open class PreferencePropertyDelegate<T : Any>(val parent: KProperty<*>, val defaultValue: T) :
-    ReadWriteProperty<Any?, T?>, (Preference) -> Unit {
+    ReadWriteProperty<Any?, T?> {
     val key = parent.name
     
     init {
         require(defaultValue is Int || defaultValue is String || defaultValue is Boolean || defaultValue is Float || defaultValue is Long) {
             "Unsupported type: ${defaultValue::class}"
         }
-    }
-    
-    override fun invoke(preference: Preference) {
-        preference.setDefaultValue(defaultValue)
-        preference.key = key
     }
     
     @Suppress("UNCHECKED_CAST")
@@ -121,50 +105,22 @@ open class PreferencePropertyDelegate<T : Any>(val parent: KProperty<*>, val def
     fun set(newValue: T?) = setValue(null, null, newValue)
 }
 
-class DynamicPreferencePropertyDelegate<K : Any, V>(
-    val parent: KProperty<*>,
-    private val getValue: (K) -> V,
-    private val getKey: (V) -> K,
-    val defaultKey: K,
-) : ReadWriteProperty<Any?, V>, (Preference) -> Unit {
-    val wrapped = PreferencePropertyDelegate(parent, defaultKey)
-    
-    val key: String by wrapped::key
-    
-    
-    override fun invoke(preference: Preference) {
-        preference.setDefaultValue(getValue(defaultKey))
-        preference.key = key
-    }
-    
+class MappedPreferencePropertyDelegate<W : Any, T : Any>(
+    val wrapped: PreferencePropertyDelegate<W>,
+    val transform: (W) -> T,
+) : ReadOnlyProperty<Any?, T> {
     @JvmName("getValueNullable")
-    operator fun getValue(thisRef: Any?, property: KProperty<*>?): V {
-        return getValue(wrapped.get())
+    operator fun getValue(thisRef: Any?, property: KProperty<*>?): T {
+        return transform(wrapped.getValue(thisRef, null))
     }
     
-    override operator fun getValue(thisRef: Any?, property: KProperty<*>): V {
+    override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return getValue(thisRef, null)
     }
     
-    @JvmName("setKeyNullable")
-    operator fun setValue(thisRef: Any?, property: KProperty<*>?, newKey: K) {
-        wrapped.set(newKey)
-    }
-    
-    override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: V) {
-        setValue(thisRef, null, value)
-    }
-    
-    @JvmName("setValueNullable")
-    operator fun setValue(thisRef: Any?, property: KProperty<*>?, newValue: V) {
-        setValue(thisRef, property, getKey(newValue))
-    }
-    
-    fun get(): V = getValue(null, null)
-    
-    @JvmName("setKey")
-    fun set(newKey: K) = setValue(null, null, newKey)
-    
-    @JvmName("setValue")
-    fun set(newValue: V) = setValue(null, null, getKey(newValue))
+    fun get(): T = getValue(null, null)
+}
+
+fun <W : Any, T : Any> PreferencePropertyDelegate<W>.map(transform: (W) -> T): MappedPreferencePropertyDelegate<W, T> {
+    return MappedPreferencePropertyDelegate(this, transform)
 }
