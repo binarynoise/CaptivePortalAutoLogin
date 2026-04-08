@@ -11,8 +11,6 @@ import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
-import androidx.preference.DropDownPreference
-import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.API_BASE
@@ -35,7 +33,6 @@ import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
-import de.binarynoise.liberator.PortalDetection
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -127,7 +124,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(SwitchPreference(ctx)) {
-                key = SharedPreferences.liberator_automatically_liberate.key
+                key = SharedPreferences.liberator_automatically_liberate.sharedPreferencesKey
                 title = "Liberator Status"
                 summaryOn = "Automatically liberating Captive Portals"
                 summaryOff = "Not automatically liberating Captive Portals"
@@ -208,7 +205,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         if (isChecked) removeNetworkSuggestions()
                         else sendNetworkSuggestions()
                     }
-                    key = SharedPreferences.network_suggestions.key
+                    key = SharedPreferences.network_suggestions.sharedPreferencesKey
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =
                             "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
@@ -232,7 +229,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 
                 if (isMacRandomizationSupported) {
                     addPreference(SwitchPreference(ctx)) {
-                        key = SharedPreferences.network_suggestions_mac_randomization.key
+                        key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
                         title = "Non-persistent MAC randomization"
                         summary = "For suggested networks, the MAC address will be randomized periodically. " + //
                             "This will lead to more anonymity, but also requires liberation for most connection attempts."
@@ -266,7 +263,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         })
                         observer.onChange(true)
                     }.apply {
-                        dependency = SharedPreferences.network_suggestions.key
+                        dependency = SharedPreferences.network_suggestions.sharedPreferencesKey
                     }
                     
                     addPreference(Preference(ctx)) {
@@ -286,26 +283,16 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(DropDownPreference(ctx)) {
-                key = SharedPreferences.liberator_captive_test_url_key.key
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url)) {
                 title = "Captive Portal Test Backend"
-                entries = PortalDetection.backendsAndroid.keys.toTypedArray()
-                entryValues = PortalDetection.backendsAndroid.keys.toTypedArray()
-                summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(SharedPreferences.liberator_captive_test_url_key.defaultValue)
             }
             
-            addPreference(DropDownPreference(ctx)) {
-                key = SharedPreferences.liberator_user_agent_key.key
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_user_agent)) {
                 title = "User Agent"
-                entries = PortalDetection.userAgentsAndroid.keys.toTypedArray()
-                entryValues = PortalDetection.userAgentsAndroid.keys.toTypedArray()
-                summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-                setDefaultValue(SharedPreferences.liberator_user_agent_key.defaultValue)
             }
             
             addPreference(SwitchPreference(ctx)) {
-                key = SharedPreferences.liberator_send_stats.key
+                key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
                 title = "Send Statistics"
                 summaryOn =
                     "Send a small ping after successfully liberating a Captive Portal and collect errors to improve the Liberator"
@@ -334,7 +321,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                         }
                     },
                 ) {
-                    key = SharedPreferences.api_base.key
+                    key = SharedPreferences.api_base.sharedPreferencesKey
                     title = "api base"
                 }
             } else {
