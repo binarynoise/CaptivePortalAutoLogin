@@ -136,6 +136,16 @@ fun WifiNetworkSuggestion.getSSIDCompat(): String {
     return wifiConfiguration.SSID
 }
 
+fun isNetworkSuggestion(ssid: String): Boolean {
+    return tryOrDefault(false) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            wifiManager.networkSuggestions.any { it.ssid == ssid }
+        } else {
+            supportedSSIDs.contains(ssid)
+        }
+    }
+}
+
 fun resetNetworkSuggestionMacAddress(ssid: String): Boolean {
     val suggestion = supportedSSIDSuggestions.singleOrNull { it.getSSIDCompat() == ssid }
     if (suggestion == null) return false

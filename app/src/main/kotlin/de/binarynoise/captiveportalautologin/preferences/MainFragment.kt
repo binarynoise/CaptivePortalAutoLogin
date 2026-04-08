@@ -26,6 +26,7 @@ import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
+import de.binarynoise.captiveportalautologin.isNetworkSuggestion
 import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
@@ -256,6 +257,9 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                             if (networkState == null) return@setOnPreferenceClickListener false
                             resetNetworkSuggestionMacAddress(networkState.ssid)
                             true
+                        }
+                        networkStateListeners.add {
+                            isEnabled = it != null && isNetworkSuggestion(it.ssid)
                         }
                     }
                 }
