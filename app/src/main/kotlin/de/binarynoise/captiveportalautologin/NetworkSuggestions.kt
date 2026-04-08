@@ -137,7 +137,8 @@ fun WifiNetworkSuggestion.getSSIDCompat(): String {
 }
 
 fun resetNetworkSuggestionMacAddress(ssid: String): Boolean {
-    val suggestion = supportedSSIDSuggestions.single { it.getSSIDCompat() == ssid }
+    val suggestion = supportedSSIDSuggestions.singleOrNull { it.getSSIDCompat() == ssid }
+    if (suggestion == null) return false
     return resetNetworkSuggestionMacAddress(suggestion)
 }
 
