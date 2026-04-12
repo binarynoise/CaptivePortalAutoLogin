@@ -180,7 +180,7 @@ tailrec fun Response.followRedirects(
     body.close()
     val newResponse: Response = client.newCall(newRequest.build()).execute()
     
-    return newResponse.followRedirects(client)
+    return newResponse.followRedirects(client, followRedirect)
 }
 
 fun createDummyResponse(): Response.Builder = Response.Builder().apply {
