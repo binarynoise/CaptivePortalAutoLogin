@@ -10,6 +10,8 @@
         
         <activity
             android:name=".gecko.GeckoViewActivity"
+            android:launchMode="singleInstance"
+            android:taskAffinity=":GeckoViewActivity"
             android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             android:windowSoftInputMode="adjustResize"
             />
@@ -17,14 +19,19 @@
         <activity
             android:name=".QueuedWorkActivity"
             android:exported="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=":QueuedWorkActivity"
             />
         <activity
             android:name=".ExperimentActivity"
             android:exported="true"
+            android:taskAffinity=":ExperimentActivity"
             />
         <activity
             android:name=".UrlTestActivity"
             android:exported="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=":UrlTestActivity"
             />
         
         <!-- Get rid of stuff -->

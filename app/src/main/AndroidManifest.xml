@@ -32,7 +32,10 @@
         android:usesCleartextTraffic="true"
         >
         
-        <activity android:name=".preferences.MainActivity" />
+        <activity
+            android:name=".preferences.MainActivity"
+            android:launchMode="singleTop"
+            />
         
         <activity
             android:name=".gecko.RecordCaptivePortalActivity"
