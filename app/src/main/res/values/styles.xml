@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <style name="CaptivePortalAutoLogin.Button" parent="android:style/Widget.DeviceDefault.Button">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Button.Accent" parent="android:style/Widget.DeviceDefault.Button.Colored">
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Text" parent="android:style/TextAppearance.DeviceDefault">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    
+    <style name="CaptivePortalAutoLogin.Text.Heading" parent="android:style/TextAppearance.DeviceDefault">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+</resources>
