@@ -136,7 +136,7 @@ class GeckoViewActivity : ComponentActivity() {
     }
     
     override fun onDestroy() {
-        
+        extensionDelegate.session.progressDelegate = null
         extensionDelegate.onDestroy(binding.geckoView)
         
         networkListeners.remove(::networkListener)
