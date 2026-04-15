@@ -72,15 +72,6 @@ class MainFragment : AutoCleanupPreferenceFragment() {
         
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
         preferenceScreen.apply {
-            addPreference(Preference(ctx)) {
-                title = "ABI mismatch"
-                summary = "The application's ABI does not match the device's ABI. Install the correct apk!"
-                
-                val deviceIs64Bit = Build.SUPPORTED_ABIS.any { abi -> abi.contains("64") }
-                val librariesAre64Bit = context.applicationInfo.nativeLibraryDir.contains("64")
-                isVisible = deviceIs64Bit != librariesAre64Bit
-            }
-            
             // TODO: add switch to disable service auto-start (and then disable manual start/stop)
             addPreference(SwitchPreference(ctx)) {
                 title = "Service Status"
