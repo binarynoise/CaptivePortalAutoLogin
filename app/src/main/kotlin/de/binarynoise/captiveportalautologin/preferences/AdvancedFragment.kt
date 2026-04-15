@@ -10,14 +10,19 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
+import de.binarynoise.captiveportalautologin.API_BASE
+import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
+import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
+import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
@@ -28,9 +33,10 @@ import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
-class MainFragment : AutoCleanupPreferenceFragment() {
+class AdvancedFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         
@@ -66,17 +72,23 @@ class MainFragment : AutoCleanupPreferenceFragment() {
         
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
         preferenceScreen.apply {
-            addPreference(Preference(ctx)) {
-                title = "Status"
+            // TODO: add switch to disable service auto-start (and then disable manual start/stop)
+            addPreference(SwitchPreference(ctx)) {
+                title = "Service Status"
                 
-                setOnPreferenceClickListener {
-                    ConnectivityChangeListenerService.start(silent = false)
-                    true
+                setOnPreferenceChangeListener { _, _ ->
+                    if (ConnectivityChangeListenerService.serviceState.running) {
+                        ConnectivityChangeListenerService.stop()
+                    } else {
+                        ConnectivityChangeListenerService.start()
+                    }
+                    false
                 }
                 
                 @Suppress("UNUSED_PARAMETER")
                 fun updateStatusText(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
                     summary = newState.toString()
+                    isChecked = newState.running
                 }
                 
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -91,6 +103,53 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 })
             }
             
+            addPreference(Preference(ctx)) {
+                title = "Network Status"
+                isSelectable = false
+                serviceStateListeners.add {
+                    isEnabled = it.running
+                }
+                networkStateListeners.add {
+                    summary = it?.toString() ?: "Not connected to Network"
+                }
+            }
+            
+            addPreference(SwitchPreference(ctx)) {
+                key = SharedPreferences.liberator_automatically_liberate.sharedPreferencesKey
+                title = "Liberator Status"
+                summaryOn = "Automatically liberating Captive Portals"
+                summaryOff = "Not automatically liberating Captive Portals"
+                setDefaultValue(SharedPreferences.liberator_automatically_liberate.defaultValue)
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Liberate me now"
+                summary = """
+                    Liberate the current Captive Portal now.
+                    Use this after network errors or when automatic liberating is disabled.
+                """.trimIndent()
+                
+                setOnPreferenceClickListener {
+                    ConnectivityChangeListenerService.retry()
+                    true
+                }
+                
+                serviceStateListeners.add {
+                    isEnabled = it.running
+                }
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Request Re-evaluation"
+                summary = "Ask android to re-evaluate the current Captive Portal."
+                setOnPreferenceClickListener {
+                    ConnectivityChangeListenerService.reportNetworkConnectivity()
+                    true
+                }
+                serviceStateListeners.add {
+                    isEnabled = it.running
+                }
+            }
             
             addPreference(Preference(ctx)) {
                 title = "Capture Captive Portal Login"
@@ -103,12 +162,31 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     startActivity(intent)
                     true
                 }
-                isVisible = false
                 networkStateListeners.add {
-                    isVisible = it != null && it.hasPortal
+                    isEnabled = it != null && it.hasPortal
                 }
             }
             
+            if (BuildConfig.DEBUG) {
+                addPreference(Preference(ctx)) {
+                    title = "Capture Captive Portal Login (dev)"
+                    summary = "Advanced Captive Portal Recording for developers"
+                    intent = Intent(ctx, GeckoViewActivity::class.java)
+                }
+            }
+            
+            addPreference(CheckBoxPreference(ctx)) {
+                title = "Permissions"
+                fragment = PermissionsFragment::class.qualifiedName
+                setOnPreferenceChangeListener { _, _ -> false }
+                lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onResume(owner: LifecycleOwner) {
+                        isChecked = Permissions.all { it.granted(context) }
+                    }
+                })
+                summaryOn = "All permissions granted \uD83D\uDE0A"
+                summaryOff = "Please grant all permissions to use the app"
+            }
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 addPreference(SwitchPreference(ctx)) {
@@ -196,12 +274,62 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            
-            addPreference(Preference(ctx)) {
-                title = "Advanced Settings"
-                fragment = AdvancedFragment::class.qualifiedName
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url)) {
+                title = "Captive Portal Test Backend"
             }
             
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_user_agent)) {
+                title = "User Agent"
+            }
+            
+            addPreference(SwitchPreference(ctx)) {
+                key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
+                title = "Send Statistics"
+                summaryOn =
+                    "Send a small ping after successfully liberating a Captive Portal and collect errors to improve the Liberator"
+                summaryOff =
+                    "Do not send a small ping after successfully liberating a Captive Portal and keep errors for yourself so I can't fix the problems"
+                isChecked = true
+                isEnabled = false
+            }
+            
+            if (BuildConfig.DEBUG) {
+                addPreference(
+                    EditTextPreference(
+                        ctx,
+                        SharedPreferences.api_base.get(),
+                        hint = API_BASE,
+                    ) { editText, s ->
+                        if (s.isBlank()) {
+                            SharedPreferences.api_base.set("")
+                            editText.error = null
+                        } else try {
+                            val url = s.trim().toHttpUrl()
+                            SharedPreferences.api_base.set(url.toString())
+                            editText.error = null
+                        } catch (e: IllegalArgumentException) {
+                            editText.error = e.message ?: "Invalid URL"
+                        }
+                    },
+                ) {
+                    key = SharedPreferences.api_base.sharedPreferencesKey
+                    title = "api base"
+                }
+            } else {
+                SharedPreferences.api_base.set("")
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Export Logs"
+                fragment = LogsFragment::class.qualifiedName
+            }
+            
+            if (BuildConfig.DEBUG) {
+                addPreference(Preference(ctx)) {
+                    title = "Debug Activities"
+                    fragment = DebugShortcutsFragment::class.qualifiedName
+                }
+            }
             setIconSpaceReservedRecursively(false)
         }
     }
