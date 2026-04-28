@@ -12,10 +12,12 @@ import buildlogic.libs
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.*
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 class CommonAndroidApplication : Plugin<Project> {
@@ -175,9 +177,9 @@ private class CommonAndroid : Plugin<Project> {
                 }
                 
                 compileOptions {
-                    val jvmVersion = target.extensions.getByType<JavaPluginExtension>().sourceCompatibility
-                    sourceCompatibility = jvmVersion
-                    targetCompatibility = jvmVersion
+                    val javaVersion = libs.versions.java.get()
+                    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+                    targetCompatibility = JavaVersion.toVersion(javaVersion)
                 }
             }
         }
@@ -199,6 +201,7 @@ class CommonKotlinAndroid : Plugin<Project> {
 }
 
 class CommonKotlinJvm : Plugin<Project> {
+    private val commonJvm = CommonJvm()
     private val commonKotlin = CommonKotlin()
     
     override fun apply(target: Project) {
@@ -207,6 +210,7 @@ class CommonKotlinJvm : Plugin<Project> {
                 apply("org.jetbrains.kotlin.jvm")
             }
             
+            commonJvm.apply(target)
             commonKotlin.apply(target)
         }
     }
@@ -241,6 +245,7 @@ private class CommonKotlin : Plugin<Project> {
             tasks.withType<KotlinCompile> {
                 compilerOptions {
                     freeCompilerArgs.add("-Xcontext-parameters")
+                    jvmTarget = JvmTarget.fromTarget(libs.versions.java.get())
                 }
             }
         }
@@ -250,5 +255,12 @@ private class CommonKotlin : Plugin<Project> {
 
 class CommonJvm : Plugin<Project> {
     override fun apply(target: Project) {
+        with(target) {
+            extensions.configure<JavaPluginExtension> {
+                val javaVersion = libs.versions.java.get()
+                sourceCompatibility = JavaVersion.toVersion(javaVersion)
+                targetCompatibility = JavaVersion.toVersion(javaVersion)
+            }
+        }
     }
 }

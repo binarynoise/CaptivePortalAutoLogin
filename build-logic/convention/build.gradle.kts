@@ -6,16 +6,16 @@ plugins {
     `kotlin-dsl`
 }
 
-val javaVersion = JavaVersion.VERSION_17
+val javaVersion = libs.versions.java.get()
 
 java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
+    sourceCompatibility = JavaVersion.toVersion(javaVersion)
+    targetCompatibility = JavaVersion.toVersion(javaVersion)
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget(javaVersion.toString())
+        jvmTarget = JvmTarget.fromTarget(javaVersion)
     }
 }
 
