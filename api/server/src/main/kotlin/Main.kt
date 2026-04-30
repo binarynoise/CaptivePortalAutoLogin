@@ -32,7 +32,10 @@ val isDevelopment = hostname != "captiveportalautologin"
 fun main() {
     if (isDevelopment) DecoroutinatorJvmApi.install()
     
-    val server = createServer("::", 8080)
+    val port = System.getenv("API_SERVER_PORT")?.toInt() ?: 8080
+    val host = System.getenv("API_SERVER_HOST") ?: "::"
+    log("launching server at $host:$port")
+    val server = createServer(host, port)
     server.start(wait = true)
 }
 
