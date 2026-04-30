@@ -21,16 +21,4 @@ interface SuccessDao {
     
     @Query("SELECT * FROM successes")
     suspend fun getAllSuccesses(): List<SuccessEntity>
-    
-    @Query(
-        """
-        SELECT * FROM successes 
-        WHERE year = :year 
-        AND month = :month 
-        AND version LIKE '%' || :version || '%'
-        AND url LIKE '%' || :domain || '%'
-        ORDER BY count DESC, ssid ASC, url ASC
-    """
-    )
-    suspend fun getSuccessDetails(year: Int, month: Int, version: String, domain: String): List<SuccessEntity>
 }

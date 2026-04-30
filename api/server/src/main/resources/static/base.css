@@ -1,6 +1,12 @@
 table {
     border-collapse: collapse;
-    max-width: 100%;
+    width: max-content;
+}
+
+div:has(>table) {
+    overflow: scroll;
+    width: 100%;
+    padding-bottom: 3px;
 }
 
 table, th, td {
@@ -14,4 +20,8 @@ table, th, td {
 
 .mono {
     font-family: monospace;
+}
+
+input[type=number] {
+    text-align: right;
 }
