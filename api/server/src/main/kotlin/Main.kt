@@ -86,8 +86,8 @@ suspend fun Application.module() {
         exception<CancellationException> { call, cause ->
             throw cause
         }
-        exception<IllegalArgumentException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "Illegal Arguments")
+        exception<Throwable> { call, cause ->
+            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
         unhandled { call ->
             System.err.println("unhandled call: ${call.request.httpMethod.value} ${call.request.uri}")

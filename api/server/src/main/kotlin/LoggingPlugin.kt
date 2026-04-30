@@ -18,8 +18,11 @@ val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "Log
             append(call.request.httpMethod.value)
             append(" ")
             append(call.request.origin.uri)
-            append(" with body ")
+            append(" with status code ")
+            append(call.response.status()?.value ?: 200)
+            append(" and body '")
             append(body.toString().substringBefore("\n").take(100))
+            append("'")
         })
     }
     
