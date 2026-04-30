@@ -1,0 +1,100 @@
+<form>
+    <p><a href="?">clear</a></p>
+    <div>
+        <table>
+            {{^preFilterOptions.isEmpty}}
+                <tr>
+                    <td>Pre-filter:</td>
+                    <td>
+                        {{#preFilterOptions}}
+                            <input type="radio" name="preFilter" value="preFilter-{{name}}"
+                                   id="preFilter-{{name}}"
+                                   {{#selected}}checked{{/selected}}>
+                            <label for="preFilter-{{name}}">{{displayName}}</label>
+                        {{/preFilterOptions}}
+                    </td>
+                </tr>
+            {{/preFilterOptions.isEmpty}}
+            {{^groupOptions.isEmpty}}
+                <tr>
+                    <td>Group by:</td>
+                    <td>
+                        {{#groupOptions}}
+                            <input type="checkbox" name="group-{{name}}" id="group-{{name}}"
+                                   {{#selected}}checked{{/selected}}>
+                            <label for="group-{{name}}">{{displayName}}</label>
+                        {{/groupOptions}}
+                    </td>
+                </tr>
+            {{/groupOptions.isEmpty}}
+            
+            {{^filterOptions.isEmpty}}
+                <tr>
+                    <td><label for="filter" style="margin-right: 6pt">Filter by:</label></td>
+                    <td>
+                        <input id="filter" name="filter" value="{{filterValue}}"
+                               style="width: auto;"/>
+                        <button type="button" style="margin-left: 4pt; font-size: 0.8em;">✕</button>
+                        <br/>
+                        {{#filterOptions}}
+                            <input type="checkbox" name="filterBy-{{name}}" id="filterBy-{{name}}"
+                                   {{#selected}}checked{{/selected}}>
+                            <label for="filterBy-{{name}}">{{displayName}}</label>
+                        {{/filterOptions}}
+                    </td>
+                </tr>
+            {{/filterOptions.isEmpty}}
+            <tr>
+                <td>
+                    <label for="limit">Limit</label>
+                </td>
+                <td>
+                    <input type="number" name="limit" id="limit" value="{{limit}}">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button type="submit">Apply</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <p></p>
+    <div>
+        <table>
+            <thead>
+            {{#header}}
+                <tr>
+                    {{#columns}}
+                        <th>
+                            {{displayName}}
+                            
+                            <input type="radio" id="sort-{{name}}-asc" name="sort" value="{{name}}-asc"
+                                   {{#sorted-asc}}checked{{/sorted-asc}}/>
+                            <label for="sort-{{name}}-asc">&darr;</label>
+                            <input type="radio" id="sort-{{name}}-desc" name="sort" value="{{name}}-desc"
+                                   {{#sorted-desc}}checked{{/sorted-desc}}/>
+                            <label for="sort-{{name}}-desc">&uarr;</label>
+                        </th>
+                    {{/columns}}
+                    <th>Details</th>
+                </tr>
+            {{/header}}
+            </thead>
+            <tbody>
+            {{#rows}}
+                <tr>
+                    {{#columns}}
+                        <td>{{.}}</td>
+                    {{/columns}}
+                    <td>
+                        <a href="{{url}}">
+                            <button type="button">open</button>
+                        </a>
+                    </td>
+                </tr>
+            {{/rows}}
+            </tbody>
+        </table>
+    </div>
+</form>
