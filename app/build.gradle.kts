@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.viewbindingpropertydelegate.noreflection)
+    implementation(libs.material)
     
     implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.coroutines.android)

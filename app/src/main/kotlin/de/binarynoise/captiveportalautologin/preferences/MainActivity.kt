@@ -8,7 +8,9 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
+import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
+import de.binarynoise.captiveportalautologin.preferences.onboarding.WelcomeFragment
 
 class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,7 +19,12 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
         
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
-                replace(R.id.fragmentContainerView, MainFragment())
+                if (Permissions.any { !it.granted(this@MainActivity) }) {
+                    intent.putExtra("startService", false)
+                    replace(R.id.fragmentContainerView, WelcomeFragment())
+                } else {
+                    replace(R.id.fragmentContainerView, MainFragment())
+                }
                 fillInAnimation()
             }
         }
@@ -63,8 +70,8 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
         }
         return true
     }
-    
-    fun FragmentTransaction.fillInAnimation() {
-        setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-    }
+}
+
+fun FragmentTransaction.fillInAnimation() {
+    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
 }

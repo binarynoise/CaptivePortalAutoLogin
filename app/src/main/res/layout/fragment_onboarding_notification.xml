@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".preferences.onboarding.NotificationFragment"
+    >
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/setup_padding_horizontal"
+        >
+        
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_dialog_email"
+            />
+        
+        
+        <TextView
+            style="@style/CaptivePortalAutoLogin.Setup.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="@dimen/setup_padding_vertical"
+            android:text="@string/setup_notification"
+            />
+        
+        <TextView
+            android:id="@+id/permission_denied"
+            style="@style/CaptivePortalAutoLogin.Setup.Text.Alert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="@dimen/setup_padding_vertical"
+            android:text="@string/setup_notification_denied"
+            android:visibility="gone"
+            tools:visibility="visible"
+            />
+    
+    </LinearLayout>
+    
+    <include
+        android:id="@+id/fab"
+        layout="@layout/fab_setup_next"
+        />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -32,6 +32,7 @@ kotlinxHtml = "0.12.0"
 kotlinxSerializationJson = "1.10.0"
 ktor = "3.4.2"
 leakcanary = "2.14"
+material = "1.13.0"
 netty = "4.2.12.Final"
 okhttp = "5.3.2"
 rhino = "1.9.1"
@@ -86,6 +87,7 @@ ktor-server-mustache = { module = "io.ktor:ktor-server-mustache" }
 ktor-server-netty-jvm = { module = "io.ktor:ktor-server-netty-jvm" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
 netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }

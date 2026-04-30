@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.floatingactionbutton.FloatingActionButton
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/button_next"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="end|bottom"
+    android:layout_margin="16dp"
+    android:contentDescription="@android:string/ok"
+    android:src="@drawable/abc_ic_go_search_api_material"
+    android:theme="@style/Theme.AppCompat.DayNight"
+    android:tint="?android:attr/colorPrimary"
+    />

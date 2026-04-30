@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">CaptivePortalAutoLogin</string>
+    <string name="welcome">Welcome!</string>
+    <string name="setup_app_description">
+        CaptivePortalAutoLogin is an app that lets your phone solve captive portals automatically.
+        Captive portals are the websites which have to be solved in order to obtain internet access in public hotspots. 
+        \nThis app will run in the background, 
+        and as soon as you encounter a network with captive portal, 
+        your operating system will notify this app and it will solve the captive portal in the background.
+        If a specific network isn\'t supported, 
+        you can choose CaptivePortalAutoLogin when signing into the network 
+        to capture the process and submit it to have it implemented in the next updates.
+    </string>
+    <string name="setup_get_started">
+        To get started, 
+        you will need to grant this app some permissions.
+    </string>
+    <string name="setup_notification">
+        In order to run in the background, 
+        this app needs to show a permanent notification.
+        \n
+        \nOn some devices it is possible to disable only the service notification category 
+        without disabling the notification permission in general.
+    </string>
+    <string name="setup_notification_denied">
+        This app cannot work without this permission.
+    </string>
+    <string name="setup_location">
+        This app needs the location permission in order to collect the SSIDs (names) of networks with captive portals.
+        WiFi names can be used to deduce the location of the device, 
+        which is why Android locks them behind the location permission.
+        \n
+        \nThis app uses the SSIDs to determine how a network can be solved
+        and to record which SSIDs are supported and can be used for automatic connections in the future.
+    </string>
+    <string name="setup_app_data_collection">
+        We collect data about successful and failed attempts to liberate a network.
+        We use this data to aggregate supported and detect problematic networks.
+        \n
+        \nThe data is completely anonymized and can\'t be linked back to your device or identity at all.
+        This is also why we can\'t fulfill data deletion requests.
+    </string>
 </resources>
