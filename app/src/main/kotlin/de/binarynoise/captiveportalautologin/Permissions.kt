@@ -69,6 +69,7 @@ private val allPermissions = mutableSetOf<Permission>()
 
 @SuppressLint("InlinedApi")
 object Permissions : Set<Permission> by allPermissions {
+    val locationPermissions = mutableSetOf<Permission>()
     
     val notifications = Permission(
         "Send Notifications",
@@ -141,5 +142,8 @@ object Permissions : Set<Permission> by allPermissions {
         allPermissions.add(fineLocation)
         allPermissions.add(backgroundLocation)
         allPermissions.add(locationEnabled)
+        locationPermissions.add(fineLocation)
+        locationPermissions.add(backgroundLocation)
+        locationPermissions.add(locationEnabled)
     }
 }

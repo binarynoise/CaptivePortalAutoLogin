@@ -8,17 +8,22 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
+import de.binarynoise.captiveportalautologin.Permission
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.util.startActivity
 
-class PermissionsFragment : AutoCleanupPreferenceFragment() {
+class PermissionsFragment(
+    val includeOpenSettingsLink: Boolean = true,
+    val permissions: Set<Permission> = Permissions,
+    val onStateChangeCallback: () -> Unit = {},
+) : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
             title = "Permissions"
             
             addPreference(PreferenceCategory(ctx)) {
-                Permissions.forEach { permission ->
+                permissions.forEach { permission ->
                     addPreference(CheckBoxPreference(ctx)) {
                         title = permission.name
                         summary = permission.description
@@ -31,6 +36,7 @@ class PermissionsFragment : AutoCleanupPreferenceFragment() {
                         fun update() {
                             isChecked = permission.granted(context)
                             isEnabled = permission.enabled(context)
+                            onStateChangeCallback()
                         }
                         
                         update()
@@ -44,7 +50,7 @@ class PermissionsFragment : AutoCleanupPreferenceFragment() {
                 
             }
             
-            addPreference(Preference(ctx)) {
+            if (includeOpenSettingsLink) addPreference(Preference(ctx)) {
                 title = "Open Settings"
                 summary = "Click to open the app settings"
                 setOnPreferenceClickListener { _ ->
