@@ -14,6 +14,7 @@ import com.github.mustachejava.Mustache
 import de.binarynoise.captiveportalautologin.server.ApiServer.Companion.api
 import de.binarynoise.captiveportalautologin.server.routes.configureRouting
 import de.binarynoise.logger.Logger.log
+import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -29,6 +30,8 @@ val hostname = Path("/proc/sys/kernel/hostname").takeIf { it.exists() }?.readTex
 val isDevelopment = hostname != "captiveportalautologin"
 
 fun main() {
+    if (isDevelopment) DecoroutinatorJvmApi.install()
+    
     val server = createServer("::", 8080)
     server.start(wait = true)
 }
@@ -86,8 +89,8 @@ suspend fun Application.module() {
         exception<CancellationException> { call, cause ->
             throw cause
         }
-        exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+        exception<IllegalArgumentException> { call, cause ->
+            call.respond(HttpStatusCode.BadRequest, cause.message ?: "Illegal Arguments")
         }
         unhandled { call ->
             System.err.println("unhandled call: ${call.request.httpMethod.value} ${call.request.uri}")
