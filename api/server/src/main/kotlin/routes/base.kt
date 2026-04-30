@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     val routes = routing {
-        staticResources("/static", "static")
+        staticResources("static", "static")
         
         api()
         stats()
@@ -21,6 +21,10 @@ fun Application.configureRouting() {
             get("/") {
                 call.response.header("Location", "https://github.com/binarynoise/CaptivePortalAutoLogin")
                 call.respond(HttpStatusCode.TemporaryRedirect)
+            }
+        } else {
+            get("/favicon.ico") {
+                call.respond(HttpStatusCode.NoContent)
             }
         }
     }
