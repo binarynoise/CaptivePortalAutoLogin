@@ -5,6 +5,7 @@ package de.binarynoise.captiveportalautologin.server
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.reflect.jvm.javaMethod
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -28,6 +29,7 @@ import io.ktor.server.response.*
 
 val hostname = Path("/proc/sys/kernel/hostname").takeIf { it.exists() }?.readText()?.trim()
 val isDevelopment = hostname != "captiveportalautologin"
+val isRunningFromJar = ::main.javaMethod!!.declaringClass.protectionDomain.codeSource.location.path.endsWith(".jar")
 
 fun main() {
     if (isDevelopment) DecoroutinatorJvmApi.install()
@@ -45,7 +47,7 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
         factory = Netty,
         port = port,
         host = host,
-        watchPaths = listOf("classes", "resources"),
+        watchPaths = if (isRunningFromJar) emptyList() else listOf("classes", "resources"),
         module = Application::module,
     )
     with(server.engineConfig) {
