@@ -2,6 +2,7 @@ name: Assemble ARM64 Debug APK
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
 jobs:

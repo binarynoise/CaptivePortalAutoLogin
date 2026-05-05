@@ -2,6 +2,7 @@ name: Assemble Linux Shadow Jar
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
