@@ -164,7 +164,7 @@ class GeckoViewActivity : ComponentActivity() {
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
                     menuItem.setOnMenuItemClickListener {
                         networkStateLock.write {
-                            networkState = networkState?.copy(debug = true) ?: run {
+                            networkState = networkState?.copy() ?: run {
                                 val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
                                     Parcel.obtain().apply { writeInt(-1) })
                                 NetworkState(
@@ -173,7 +173,6 @@ class GeckoViewActivity : ComponentActivity() {
                                     hasPortal = true,
                                     liberating = false,
                                     liberated = false,
-                                    debug = true
                                 )
                             }
                         }
