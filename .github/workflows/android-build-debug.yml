@@ -27,6 +27,6 @@ jobs:
       - name: Upload ARM64 Debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: arm64-debug-apk
           path: app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
+          archive: false
           retention-days: 30

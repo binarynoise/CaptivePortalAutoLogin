@@ -27,6 +27,6 @@ jobs:
       - name: Upload ARM64 Debug APK
         uses: actions/upload-artifact@v7
         with:
-          name: linux-shadow-jar
           path: linux/build/libs/linux-shadow.jar
+          archive: false
           retention-days: 30
