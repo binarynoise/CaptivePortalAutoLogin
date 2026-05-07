@@ -29,4 +29,3 @@ jobs:
         with:
           path: linux/build/libs/linux-shadow.jar
           archive: false
-          retention-days: 30

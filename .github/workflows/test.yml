@@ -39,4 +39,3 @@ jobs:
             **/build/reports/tests/**
             **/build/reports/lint-results*.html
             **/*.sarif
-          retention-days: 30

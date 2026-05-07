@@ -29,4 +29,3 @@ jobs:
         with:
           path: app/build/outputs/apk/arm64/debug/app-arm64-debug.apk
           archive: false
-          retention-days: 30
