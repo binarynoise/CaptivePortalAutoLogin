@@ -246,7 +246,7 @@ class ConnectivityChangeListenerService : Service() {
             override fun onLost(network: Network) = networkStateLock.write {
                 log("onUnavailable: $network")
                 val oldState = networkState
-                if (oldState?.network == network && !oldState.debug) networkState = null
+                if (oldState?.network == network) networkState = null
             }
         }
         
@@ -698,7 +698,6 @@ class ConnectivityChangeListenerService : Service() {
         val hasPortal: Boolean,
         val liberating: Boolean,
         val liberated: Boolean,
-        val debug: Boolean = false,
     ) {
         override fun toString(): String = buildString {
             append("Network $network with SSID $ssid")
@@ -715,9 +714,6 @@ class ConnectivityChangeListenerService : Service() {
                 append("liberated")
             } else {
                 append("not liberating")
-            }
-            if (debug) {
-                append(" and in debug mode")
             }
         }
     }
