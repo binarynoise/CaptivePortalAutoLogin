@@ -85,7 +85,9 @@
             {{#rows}}
                 <tr>
                     {{#columns}}
-                        <td>{{.}}</td>
+                        <td>
+                            <div class="scroll">{{.}}</div>
+                        </td>
                     {{/columns}}
                     <td>
                         <a href="{{url}}">
