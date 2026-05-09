@@ -53,12 +53,12 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
     with(server.engineConfig) {
         shutdownTimeout = 1000
         enableHttp2 = false
-        enableH2c = false
+//        enableH2c = false
     }
     return server
 }
 
-suspend fun Application.module() {
+/*suspend*/ fun Application.module() { // TODO: make this suspend again for ktor >=3.2.0
     api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
     
     check(developmentMode == isDevelopment) { "developmentMode != isDevelopment" }
@@ -91,11 +91,11 @@ suspend fun Application.module() {
         })
     }
     install(StatusPages) {
-        exception<CancellationException> { call, cause ->
-            throw cause
-        }
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            when (cause) {
+                is CancellationException -> throw cause
+                else -> call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            }
         }
         unhandled { call ->
             System.err.println("unhandled call: ${call.request.httpMethod.value} ${call.request.uri}")
