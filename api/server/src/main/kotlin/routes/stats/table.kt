@@ -51,6 +51,7 @@ suspend fun generateTableData(
     val preFilterDefinitionMap = preFilterDefinitions.associateBy { it.name }
     
     val preFilter = call.request.queryParameters.getSelectedCheckboxes("preFilter-").singleOrNull()
+        ?: call.request.queryParameters["preFilter"]
     var dataFrame: DataFrame<*> =
         (preFilterDefinitionMap.get(preFilter) ?: preFilterDefinitionMap.getValue("all")).dataFrameProvider.invoke()
     
