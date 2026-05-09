@@ -1,20 +1,8 @@
 package de.binarynoise.liberator
 
-import de.binarynoise.logger.Logger.log
 import okhttp3.Cookie
 import okhttp3.OkHttpClient
 import okhttp3.Response
-
-object PortalLiberatorConfig {
-    /**
-     * Enables additional liberators that are considered experimental.
-     */
-    var experimental: Boolean = false
-        set(value) {
-            field = value
-            log("PortalLiberatorConfig.debug = $value")
-        }
-}
 
 /**
  * This pseudo-interface is used as a superclass to easily define extension functions on both [PortalLiberator] and [PortalRedirector]

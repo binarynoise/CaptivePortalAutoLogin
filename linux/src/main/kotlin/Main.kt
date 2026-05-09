@@ -11,7 +11,6 @@ import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import de.binarynoise.liberator.Liberator
 import de.binarynoise.liberator.PortalDetection
-import de.binarynoise.liberator.PortalLiberatorConfig
 import de.binarynoise.logger.Logger.log
 import okhttp3.ConnectionPool
 
@@ -27,10 +26,6 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
     
     override fun run() {
         log("CaptivePortalAutoLogin for Linux")
-        
-        if (experimental) {
-            PortalLiberatorConfig.experimental = true
-        }
         
         if (restartNetworking) {
             restartNetworking()
@@ -169,6 +164,7 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
                     PortalDetection.defaultBackend,
                     PortalDetection.defaultUserAgent,
                     ssid,
+                    experimental = experimental,
                 ).liberate()
                 
                 when (liberationResult) {

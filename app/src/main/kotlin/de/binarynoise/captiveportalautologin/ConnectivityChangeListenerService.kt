@@ -348,6 +348,7 @@ class ConnectivityChangeListenerService : Service() {
                 portalTestUrl,
                 userAgent,
                 ssid,
+                experimental = SharedPreferences.liberator_experimental_enabled,
             ).liberate()
             
             t.cancel()

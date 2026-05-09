@@ -274,6 +274,17 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
+            addPreference(SwitchPreference(ctx)) {
+                if (!BuildConfig.DEBUG) key = SharedPreferences.liberator_experimental_enabled_sharedPreferencesKey
+                title = "Enable Experimental PortalLiberators"
+                if (BuildConfig.DEBUG) {
+                    isEnabled = false
+                    isChecked = true
+                    summary = ""
+                    summaryOn = "Always enabled on debugging builds."
+                }
+            }
+            
             addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url)) {
                 title = "Captive Portal Test Backend"
             }
