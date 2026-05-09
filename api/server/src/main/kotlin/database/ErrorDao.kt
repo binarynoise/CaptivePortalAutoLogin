@@ -27,6 +27,7 @@ interface ErrorDao {
         AND message NOT LIKE 'Binding socket to network % failed: %'
         AND message NOT LIKE 'Chain validation failed'
         AND message NOT LIKE 'java.security.cert.CertPathValidatorException: %'
+        AND message NOT LIKE 'Socket is closed'
         ORDER BY timestamp DESC
         LIMIT :limit
         """
