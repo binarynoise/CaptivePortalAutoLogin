@@ -28,8 +28,10 @@ val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "Log
     
     on(CallFailed, handler = object : suspend (ApplicationCall, Throwable) -> Unit {
         override suspend fun invoke(call: ApplicationCall, cause: Throwable) {
-            if (cause is CancellationException) throw cause
-            Logger.log("call failed", cause)
+            when (cause) {
+                is CancellationException -> throw cause
+                else -> Logger.log("call failed", cause)
+            }
         }
     })
     
