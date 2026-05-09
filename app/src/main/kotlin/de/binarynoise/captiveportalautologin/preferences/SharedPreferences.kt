@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import androidx.preference.DropDownPreference
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
+import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
 import de.binarynoise.liberator.PortalDetection
@@ -52,6 +53,13 @@ object SharedPreferences {
     val api_base: PreferencePropertyDelegate<String> by PreferenceProperty("")
     val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
     val network_suggestions_mac_randomization: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
+    
+    private val liberator_experimental: PreferencePropertyDelegate<Boolean> by PreferenceProperty(BuildConfig.DEBUG)
+    var liberator_experimental_enabled
+        get() = if (BuildConfig.DEBUG) true else liberator_experimental.get()
+        set(value) = if (!BuildConfig.DEBUG) liberator_experimental.set(value) else Unit
+    val liberator_experimental_enabled_sharedPreferencesKey: String
+        get() = liberator_experimental.sharedPreferencesKey
     
     val stats_last_retry_time by PreferenceProperty(0L)
     

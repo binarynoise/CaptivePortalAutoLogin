@@ -25,6 +25,7 @@ class Liberator(
     val portalTestUrl: PortalTestURL,
     private val userAgent: String,
     private val ssid: String?,
+    private val experimental: Boolean = false,
 ) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
@@ -187,7 +188,7 @@ class Liberator(
     private fun recurse(response: Response, depth: Int): LiberationResult {
         try {
             val solvers: List<PortalLiberator> = allPortalLiberators //
-                .filter { solver -> !solver.isExperimental() || PortalLiberatorConfig.experimental }
+                .filter { solver -> !solver.isExperimental() || experimental }
                 .filter { solver -> !solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)) }
                 .filter { solver ->
                     try {
@@ -248,7 +249,7 @@ class Liberator(
     
     private fun getRedirectedResponse(client: OkHttpClient, response: Response, cookies: Set<Cookie>): Response? {
         val redirectors = (allPortalRedirectors + LocationRedirector) //
-            .filter { redirector -> !redirector.isExperimental() || PortalLiberatorConfig.experimental }
+            .filter { redirector -> !redirector.isExperimental() || experimental }
             .filter { redirector -> !redirector.ssidMustMatch() || (ssid != null && redirector.ssidMatches(ssid)) }
             .filter { redirector -> !redirector.requiresSuccess || response.code in 200..399 }
             .filter { redirector ->
