@@ -2,23 +2,19 @@
 
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
-import java.time.LocalDate
 import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.server.ApiServer
-import de.binarynoise.captiveportalautologin.server.routes.missingParameter
-import de.binarynoise.captiveportalautologin.server.routes.toInstant
 import io.ktor.http.*
 import io.ktor.server.mustache.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-
-
-internal enum class ErrorType {
-    All, Unknown, NoNoise
-}
+import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.add
+import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
+import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 
 internal fun Route.errorRoutes() {
     get("errors") {
@@ -26,89 +22,61 @@ internal fun Route.errorRoutes() {
         call.respond(HttpStatusCode.MovedPermanently)
     }
     
-    route("errors/") {
-        get {
-            val type = ErrorType.valueOf(call.parameters["type"] ?: ErrorType.All.name)
-            val unlimited = call.parameters["unlimited"] == "true"
-            val limit = if (unlimited) Int.MAX_VALUE else 1000
-            
-            val errors = when (type) {
-                ErrorType.All -> ApiServer.api.database.errorDao().getAllErrors(limit)
-                ErrorType.Unknown -> ApiServer.api.database.errorDao().getUnknownPortalErrors(limit)
-                ErrorType.NoNoise -> ApiServer.api.database.errorDao().getNoNoiseErrors(limit)
-            }.map { error ->
-                val dateTime = error.timestamp.toLocalDateTime(UTC)
-                val url = error.url
-                
-                mutableMapOf<String, Comparable<*>>(
-                    "version" to error.version,
-                    "year" to dateTime.year,
-                    "month" to dateTime.month.number,
-                    "ssid" to error.ssid,
-                    "message" to error.message,
-                    "domain" to if (url.isNotEmpty()) URLBuilder(urlString = url).host else "",
-                )
-            }
-                .groupingBy { it }
-                .eachCount()
-                .map { (key, count) ->
-                    key.apply {
-                        put("count", count)
-                        put("majorVersion", (this["version"] as String).substringBefore('+').substringBefore('-'))
-                    }
-                }
-                .sortedWith(compareByDescending<MutableMap<String, Comparable<*>>> { it["year"] as Int }.thenByDescending { it["month"] as Int }
-                    .thenByDescending { it["count"] as Int }
-                    .thenBy { it["domain"] as String })
-            
-            call.respond(
-                MustacheContent(
-                    "errors.mustache", mapOf(
-                        "title" to "Errors: ${
-                            when (type) {
-                                ErrorType.All -> "All"
-                                ErrorType.Unknown -> "Unknown Portals"
-                                ErrorType.NoNoise -> "No Noise"
-                            }
-                        }",
-                        "backLink" to "../",
-                        "errors" to errors,
-                    )
-                )
-            )
-        }
+    get("errors/") {
+        val columnDefinitions: DataFrame<ColumnDefinition> = dataFrameOf(
+            ColumnDefinition("version", "Version", Comparators.VersionComparator),
+            ColumnDefinition("majorVersion", "Major Version", Comparators.RegularComparator),
+            ColumnDefinition("year", "Year", Comparators.RegularComparator),
+            ColumnDefinition("month", "Month", Comparators.RegularComparator),
+            ColumnDefinition("timestamp", "Timestamp", Comparators.RegularComparator),
+            ColumnDefinition("ssid", "SSID", Comparators.RegularComparator),
+            ColumnDefinition("url", "URL", Comparators.RegularComparator),
+            ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
+            ColumnDefinition("message", "Message", Comparators.RegularComparator),
+            ColumnDefinition("solver", "Solver", Comparators.RegularComparator),
+            ColumnDefinition("stackTrace", "Stack Trace", Comparators.RegularComparator),
+        )
+        val groupDefault: Set<String> = setOf("year", "month", "majorVersion", "message")
         
-        get("details") {
-            val year: Int = call.request.queryParameters["year"]?.toIntOrNull() ?: missingParameter("year")
-            val month: Int = call.request.queryParameters["month"]?.toIntOrNull() ?: missingParameter("month")
-            val version = call.request.queryParameters["version"] ?: missingParameter("version")
-            val domain = call.request.queryParameters["domain"] ?: missingParameter("domain")
-            val message = call.request.queryParameters["message"] ?: missingParameter("message")
-            
-            val monthStart = LocalDate.of(year, month, 1)
-            val monthEnd = monthStart.plusMonths(1)
-            
-            val errors = ApiServer.api.database.errorDao()
-                .getErrorDetails(monthStart.toInstant(), monthEnd.toInstant(), version, message, domain)
-                .map {
-                    mapOf(
-                        "url" to it.url,
-                        "ssid" to it.ssid,
-                        "timestamp" to it.timestamp.toLocalDateTime(UTC),
-                    )
-                }
-            
-            
-            call.respond(
-                MustacheContent(
-                    "errors-details.mustache", mapOf(
-                        "title" to "Errors - $domain - $message",
-                        "backLink" to "./",
-                        "version" to version,
-                        "errors" to errors,
-                    )
-                )
+        val preFilterDefinitions: List<PreFilterDefinition> = listOf(
+            PreFilterDefinition("all", "All") {
+                ApiServer.api.database.errorDao()
+                    .getAllErrors(Int.MAX_VALUE)
+                    .toDataFrame()
+                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
+                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
+                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
+                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+            },
+            PreFilterDefinition("unknown", "Unknown Portals") {
+                ApiServer.api.database.errorDao()
+                    .getUnknownPortalErrors(Int.MAX_VALUE)
+                    .toDataFrame()
+                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
+                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
+                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
+                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+            },
+            PreFilterDefinition("no_noise", "No Noise") {
+                ApiServer.api.database.errorDao()
+                    .getNoNoiseErrors(Int.MAX_VALUE)
+                    .toDataFrame()
+                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
+                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
+                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
+                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+            },
+        )
+        
+        val tableData = generateTableData(call, columnDefinitions, groupDefault, preFilterDefinitions)
+        
+        call.respond(
+            MustacheContent(
+                "errors.mustache", mapOf(
+                    "title" to "Errors",
+                    "backLink" to "../",
+                ) + tableData.toMap()
             )
-        }
+        )
     }
 }
