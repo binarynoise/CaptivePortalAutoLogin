@@ -1,17 +1,13 @@
-@file:OptIn(ExperimentalSerializationApi::class, ExperimentalTime::class)
-
 package de.binarynoise.captiveportalautologin.server
 
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
