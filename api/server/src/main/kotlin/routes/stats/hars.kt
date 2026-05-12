@@ -48,7 +48,8 @@ internal fun Route.harRoutes() {
                 ActionColumnDefinition("download", "Download", listOf("name")),
                 ActionColumnDefinition("archive", "Archive", listOf("name", "archived")),
             )
-            val groupDefault: Set<String> = setOf("domain")
+            val defaultGroups: Set<String> = setOf("domain")
+            val defaultSort = "domain-asc"
             
             val preFilterDefinitions: List<PreFilterDefinition> = listOf(
                 PreFilterDefinition("all", "All") {
@@ -65,9 +66,10 @@ internal fun Route.harRoutes() {
             val tableData = generateTableData(
                 call,
                 columnDefinitions,
-                groupDefault,
                 preFilterDefinitions,
-                actionColumnDefinitions = actionColumnDefinitions
+                defaultGroups,
+                defaultSort = defaultSort,
+                actionColumnDefinitions = actionColumnDefinitions,
             )
             
             call.respond(
