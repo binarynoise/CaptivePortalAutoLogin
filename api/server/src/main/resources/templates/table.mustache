@@ -78,6 +78,9 @@
                             <label for="sort-{{name}}-desc">&uarr;</label>
                         </th>
                     {{/columns}}
+                    {{#actionColumns}}
+                        <th>{{.}}</th>
+                    {{/actionColumns}}
                     <th>Details</th>
                 </tr>
             {{/header}}
@@ -90,8 +93,20 @@
                             <div class="scroll">{{.}}</div>
                         </td>
                     {{/columns}}
+                    {{#actionColumns}}
+                        <td>
+                            {{#isGet}}
+                                <a href="{{&url}}">
+                                    <button type="button">{{displayName}}</button>
+                                </a>
+                            {{/isGet}}
+                            {{^isGet}}
+                                <button type="submit" formaction="{{&url}}" formmethod="post">{{displayName}}</button>
+                            {{/isGet}}
+                        </td>
+                    {{/actionColumns}}
                     <td>
-                        <a href="{{url}}">
+                        <a href="{{&url}}">
                             <button type="button">open</button>
                         </a>
                     </td>
