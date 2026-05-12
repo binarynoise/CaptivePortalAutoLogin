@@ -33,7 +33,7 @@ internal fun Route.errorRoutes() {
             ColumnDefinition("solver", "Solver", Comparators.RegularComparator),
             ColumnDefinition("stackTrace", "Stack Trace", Comparators.RegularComparator),
         )
-        val groupDefault: Set<String> = setOf("year", "month", "majorVersion", "message")
+        val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "message")
         
         val preFilterDefinitions: List<PreFilterDefinition> = listOf(
             PreFilterDefinition("all", "All") {
@@ -65,7 +65,7 @@ internal fun Route.errorRoutes() {
             },
         )
         
-        val tableData = generateTableData(call, columnDefinitions, groupDefault, preFilterDefinitions)
+        val tableData = generateTableData(call, columnDefinitions, preFilterDefinitions, defaultGroups = defaultGroups)
         
         call.respond(
             MustacheContent(

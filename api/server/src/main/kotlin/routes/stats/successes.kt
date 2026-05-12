@@ -28,7 +28,7 @@ internal fun Route.successRoutes() {
             ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
             ColumnDefinition("count", "Count", Comparators.RegularComparator),
         )
-        val groupDefault: Set<String> = setOf("year", "month", "majorVersion", "solver")
+        val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "solver")
         
         val preFilterDefinitions: List<PreFilterDefinition> = listOf(
             PreFilterDefinition("all", "All") {
@@ -40,7 +40,7 @@ internal fun Route.successRoutes() {
             },
         )
         
-        val tableData = generateTableData(call, columnDefinitions, groupDefault, preFilterDefinitions)
+        val tableData = generateTableData(call, columnDefinitions, preFilterDefinitions, defaultGroups = defaultGroups)
         
         call.respond(
             MustacheContent(
