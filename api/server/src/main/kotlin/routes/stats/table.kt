@@ -36,6 +36,14 @@ data class ColumnDefinition(
     val comparator: Comparator<Any>,
 )
 
+// Put the unsafe cast here so we don't have unsafe casts all over the place
+@Suppress("UNCHECKED_CAST")
+fun <T> ColumnDefinition(
+    name: String,
+    displayName: String,
+    comparator: Comparator<T>,
+): ColumnDefinition = ColumnDefinition(name, displayName, comparator as Comparator<Any>)
+
 @DataSchema
 data class ActionColumnDefinition(
     val name: String,

@@ -1,27 +1,12 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
-import java.util.Comparator.comparingInt
+import java.util.Comparator.*
 import io.netty.util.NetUtil
 
 object Comparators {
-    object DomainComparator : Comparator<Any> {
-        override fun compare(o1: Any, o2: Any): Int {
-            o1 as String
-            o2 as String
+    object DomainComparator : Comparator<String> {
+        override fun compare(o1: String, o2: String): Int {
             if (o1 == o2) return 0
-            
-            fun isIP(domain: String): Boolean = NetUtil.isValidIpV4Address(domain) || NetUtil.isValidIpV6Address(domain)
-            
-            fun compareArray(a: List<String>, b: List<String>): Int {
-                val minLength = minOf(a.size, b.size)
-                for (i in 0 until minLength) {
-                    val cmp = a[i].compareTo(b[i])
-                    if (cmp != 0) return cmp
-                }
-                return a.size.compareTo(b.size)
-            }
-            
-            fun <T> List<T>.dropOneButNotLast() = if (size <= 1) this else this.subList(1, size)
             
             val isIPA = isIP(o1)
             val isIPB = isIP(o2)
@@ -49,15 +34,25 @@ object Comparators {
                 }
             }
         }
+        
+        fun isIP(domain: String): Boolean = NetUtil.isValidIpV4Address(domain) || NetUtil.isValidIpV6Address(domain)
+        
+        fun compareArray(a: List<String>, b: List<String>): Int {
+            val minLength = minOf(a.size, b.size)
+            for (i in 0 until minLength) {
+                val cmp = a[i].compareTo(b[i])
+                if (cmp != 0) return cmp
+            }
+            return a.size.compareTo(b.size)
+        }
+        
+        fun <T> List<T>.dropOneButNotLast() = if (size <= 1) this else this.subList(1, size)
     }
     
-    object VersionComparator : Comparator<Any> {
+    object VersionComparator : Comparator<String> {
         val pattern = Regex("^(\\d+)([+-])([a-f0-9]+)(-\\d{8})(-dev)?$")
         
-        override fun compare(o1: Any, o2: Any): Int {
-            o1 as String
-            o2 as String
-            
+        override fun compare(o1: String, o2: String): Int {
             if (o1 == o2) return 0
             
             val match1 = pattern.matchEntire(o1)
@@ -73,11 +68,7 @@ object Comparators {
         }
     }
     
-    object RegularComparator : Comparator<Any> {
-        override fun compare(o1: Any, o2: Any): Int {
-            o1 as Comparable<Any>
-//            o2 as Comparable<Any>
-            return o1.compareTo(o2)
-        }
+    object RegularComparator : Comparator<Comparable<Any>> {
+        override fun compare(o1: Comparable<Any>, o2: Comparable<Any>): Int = o1.compareTo(o2)
     }
 }
