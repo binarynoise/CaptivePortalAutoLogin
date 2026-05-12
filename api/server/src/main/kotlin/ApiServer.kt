@@ -34,7 +34,7 @@ class ApiServer(root: Path = Path(".")) : Api {
         runBlocking {
             database.useConnection(isReadOnly = true) {}
         }
-        log("Database initialized")
+        log("Database initialized at root ${root.toAbsolutePath()}")
     }
     
     override val har: Api.Har = object : Api.Har {
