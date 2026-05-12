@@ -16,6 +16,7 @@ import org.jetbrains.kotlinx.dataframe.api.GroupWithKey
 import org.jetbrains.kotlinx.dataframe.api.append
 import org.jetbrains.kotlinx.dataframe.api.columnNames
 import org.jetbrains.kotlinx.dataframe.api.count
+import org.jetbrains.kotlinx.dataframe.api.emptyDataFrame
 import org.jetbrains.kotlinx.dataframe.api.filter
 import org.jetbrains.kotlinx.dataframe.api.getValue
 import org.jetbrains.kotlinx.dataframe.api.groupBy
@@ -36,6 +37,20 @@ data class ColumnDefinition(
 )
 
 @DataSchema
+data class ActionColumnDefinition(
+    val name: String,
+    val displayName: String,
+    val dependencies: List<String>,
+)
+
+data class ActionColumnAction(
+    val displayName: String,
+    val url: String,
+    val method: String,
+    val isGet: Boolean = method.equals("get", ignoreCase = true)
+) : MappableData
+
+@DataSchema
 data class PreFilterDefinition(
     val name: String,
     val displayName: String,
@@ -47,15 +62,17 @@ suspend fun generateTableData(
     columnDefinitions: DataFrame<ColumnDefinition>,
     groupDefault: Set<String>,
     preFilterDefinitions: List<PreFilterDefinition>,
+    defaultPreFilter: String = "all",
+    actionColumnDefinitions: DataFrame<ActionColumnDefinition> = emptyDataFrame(),
 ): TableData {
     val preFilterDefinitionMap = preFilterDefinitions.associateBy { it.name }
     
     val preFilter = call.request.queryParameters.getSelectedCheckboxes("preFilter-").singleOrNull()
         ?: call.request.queryParameters["preFilter"]
     var dataFrame: DataFrame<*> =
-        (preFilterDefinitionMap.get(preFilter) ?: preFilterDefinitionMap.getValue("all")).dataFrameProvider.invoke()
+        (preFilterDefinitionMap.get(preFilter) ?: preFilterDefinitionMap.getValue(defaultPreFilter)).dataFrameProvider()
     
-    dataFrame = dataFrame.select(columns = columnDefinitions.rows().map { it.name }.toTypedArray())
+    dataFrame = dataFrame.select(columns = (columnDefinitions.names + actionColumnDefinitions.names).toTypedArray())
     
     val originalColumnDefinitions = columnDefinitions
     var columnDefinitions = originalColumnDefinitions
@@ -96,7 +113,15 @@ suspend fun generateTableData(
         groupColumns = columnDefinitions.rows().map { it.name }.intersect(groupDefault).toList()
     }
     
+    val visibleActionColumnDefinitions: DataFrame<ActionColumnDefinition> = if (groupColumns.isNotEmpty()) {
+        actionColumnDefinitions.filter { it.dependencies.all { dep -> dep in groupColumns } }
+    } else {
+        actionColumnDefinitions
+    }
+    val visibleActionColumnNames = visibleActionColumnDefinitions.names
+    
     if (groupColumns.isNotEmpty()) {
+        groupColumns += visibleActionColumnNames
         columnDefinitions =
             columnDefinitions.filter { colDef -> groupColumns.contains(colDef.name) || colDef.name == "count" }
         val hasCount = columnDefinitions.rows().any { it.name == "count" }
@@ -138,11 +163,12 @@ suspend fun generateTableData(
     val rows = dataFrame.rows().map { row ->
         val url = buildUrl {
             parameters["filter"] =
-                row.toMap().entries.filterNot { (key, _) -> key == "count" }.joinToString("&") { (key, value) ->
-                    val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
-                    val encodedValue = URLEncoder.encode(value.toString(), StandardCharsets.UTF_8)
-                    "${encodedKey}=${encodedValue}"
-                }
+                row.toMap().entries.filterNot { (key, _) -> key == "count" || key in visibleActionColumnNames }
+                    .joinToString("&") { (key, value) ->
+                        val encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
+                        val encodedValue = URLEncoder.encode(value.toString(), StandardCharsets.UTF_8)
+                        "${encodedKey}=${encodedValue}"
+                    }
             
             originalColumnDefinitions.rows().forEach { definition ->
                 if (definition.name != "count" && definition.name !in row.columnNames()) {
@@ -151,8 +177,9 @@ suspend fun generateTableData(
             }
         }
         TableRow(
-            columns = row.toMap().values.map { it.toString() },
+            columns = columnDefinitions.names.map { row[it].toString() },
             url = "?" + url.encodedQuery,
+            actionColumns = visibleActionColumnNames.map { row[it] as ActionColumnAction },
         )
     }
     val tableHeader = TableHeader(
@@ -162,7 +189,9 @@ suspend fun generateTableData(
                 colDef.displayName,
                 if (colDef.name == sortColumnKey) sortDirection else null,
             )
-        })
+        },
+        actionColumns = visibleActionColumnDefinitions.rows().map { it.displayName },
+    )
     
     
     val tableData = TableData(
@@ -182,6 +211,11 @@ private fun Parameters.getSelectedCheckboxes(prefix: String): List<String> = thi
     .mapValues { (_, value) -> value.single() }
     .filter { (key, value) -> key.startsWith(prefix) && value == "on" }.keys.map { key -> key.removePrefix(prefix) }
 
+@get:JvmName("columnDefinitionNames")
+val DataFrame<ColumnDefinition>.names get() = this.rows().map { it.name }.toList()
+
+@get:JvmName("actionColumnDefinitionNames")
+val DataFrame<ActionColumnDefinition>.names get() = this.rows().map { it.name }.toList()
 
 data class TableData(
     val preFilterOptions: List<TableOption>,
@@ -201,6 +235,7 @@ data class TableOption(
 
 data class TableHeader(
     val columns: List<TableHeaderColumn>,
+    val actionColumns: List<String> = emptyList(),
 ) : MappableData
 
 data class TableHeaderColumn(
@@ -238,6 +273,7 @@ data class TableHeaderColumn(
 data class TableRow(
     val columns: List<String>,
     val url: String,
+    val actionColumns: List<ActionColumnAction> = emptyList(),
 ) : MappableData
 
 interface MappableData {

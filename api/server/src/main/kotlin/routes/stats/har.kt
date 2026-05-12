@@ -3,17 +3,32 @@ package de.binarynoise.captiveportalautologin.server.routes.stats
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.moveTo
 import kotlin.io.path.name
+import kotlin.io.path.nameWithoutExtension
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
-import de.binarynoise.logger.Logger
+import de.binarynoise.logger.Logger.log
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.mustache.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.add
+import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
+import org.jetbrains.kotlinx.dataframe.api.toDataFrame
+
+private data class HarEntry(
+    val name: String,
+    val ssid: String,
+    val domain: String,
+    val timestamp: String,
+    val archived: Boolean,
+)
 
 internal fun Route.harRoutes() {
     get("har") {
@@ -23,125 +38,114 @@ internal fun Route.harRoutes() {
     
     route("har/") {
         get {
-            val unlimited = call.parameters["unlimited"] == "true"
-            val names = ApiServer.api.jsonDb.listAll<HAR>("har")
-            val groups = names.map { name ->
-                val parts = name.trim().split(' ').filter { it.isNotBlank() }
-                val timestamp = parts.lastOrNull() ?: ""
-                val domain = parts.dropLast(1).lastOrNull() ?: "unknown"
-                Triple(domain, name, timestamp)
-            }.groupBy({ it.first }, { it.second to it.third }).map { (domain, items) ->
-                mapOf(
-                    "domain" to domain,
-                    "isIP" to (domain.split('.', ':').all { split -> split.all { char -> char.isDigit() } }),
-                    "count" to items.size,
-                )
-            }.sortedWith(
-                compareBy<Map<String, Comparable<*>>> { entry -> entry["isIP"] }.then(
-                    Comparator { a, b ->
-                        if (a == b) return@Comparator 0
-                        
-                        val domainA = a["domain"] as String
-                        val isIPA = a["isIP"] as Boolean
-                        val domainB = b["domain"] as String
-                        val isIPB = b["isIP"] as Boolean
-                        
-                        fun compareArray(a: List<String>, b: List<String>): Int {
-                            val minLength = minOf(a.size, b.size)
-                            for (i in 0 until minLength) {
-                                val cmp = a[i].compareTo(b[i])
-                                if (cmp != 0) return cmp
-                            }
-                            return a.size.compareTo(b.size)
-                        }
-                        
-                        fun <T> List<T>.dropOneButNotLast() = if (size <= 1) this else this.subList(1, size)
-                        
-                        val partsA = domainA.split('.')
-                        val partsB = domainB.split('.')
-                        
-                        when {
-                            isIPA && isIPB -> compareArray(partsA, partsB)
-                            isIPA -> 1
-                            isIPB -> -1
-                            else -> compareArray(
-                                partsA.reversed().dropOneButNotLast(),
-                                partsB.reversed().dropOneButNotLast(),
-                            )
-                        }
-                    })
-            ).let { if (unlimited) it else it.take(100) }
+            val columnDefinitions: DataFrame<ColumnDefinition> = dataFrameOf(
+                ColumnDefinition("timestamp", "Timestamp", Comparators.RegularComparator),
+                ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
+                ColumnDefinition("name", "Name", Comparators.RegularComparator),
+                ColumnDefinition("archived", "Archived", Comparators.RegularComparator),
+            )
+            val actionColumnDefinitions: DataFrame<ActionColumnDefinition> = dataFrameOf(
+                ActionColumnDefinition("download", "Download", listOf("name")),
+                ActionColumnDefinition("archive", "Archive", listOf("name", "archived")),
+            )
+            val groupDefault: Set<String> = setOf("domain")
+            
+            val preFilterDefinitions: List<PreFilterDefinition> = listOf(
+                PreFilterDefinition("all", "All") {
+                    loadHarEntries(includeRegular = true, includeArchived = true)
+                },
+                PreFilterDefinition("regular", "Regular") {
+                    loadHarEntries(includeRegular = true, includeArchived = false)
+                },
+                PreFilterDefinition("archived", "Archived") {
+                    loadHarEntries(includeRegular = false, includeArchived = true)
+                },
+            )
+            
+            val tableData = generateTableData(
+                call,
+                columnDefinitions,
+                groupDefault,
+                preFilterDefinitions,
+                actionColumnDefinitions = actionColumnDefinitions
+            )
             
             call.respond(
                 MustacheContent(
                     "hars.mustache", mapOf(
                         "title" to "HAR Files",
                         "backLink" to "../",
-                        "groups" to groups,
-                    )
+                    ) + tableData.toMap()
                 )
             )
         }
         
         get("download/{id}") {
-            val id = call.parameters["id"] ?: error("id not set")
+            val id = call.parameters["id"] ?: missingParameter("id")
+            val base = ApiServer.api.jsonDb.base<HAR>()
+            val archived = "archived" in call.request.queryParameters && call.request.queryParameters.get("archived")
+                ?.takeIf { it.isNotBlank() }
+                ?.toBooleanStrict() ?: true
             
-            val path = ApiServer.api.jsonDb.base<HAR>().resolve(id)
-            if (!path.exists()) {
-                Logger.log("file not found: $path")
-                call.respond(HttpStatusCode.NotFound)
-                return@get
+            if (!archived) {
+                val path = base.resolve(id)
+                if (path.exists()) {
+                    call.respondPath(path)
+                    return@get
+                }
+            } else {
+                val path = base.resolve("archived").resolve(id)
+                if (path.exists()) {
+                    call.respondPath(path)
+                    return@get
+                }
             }
-            call.respondPath(path)
+            
+            log("file not found: id=$id, archived=$archived")
+            call.respond(HttpStatusCode.NotFound)
         }
         
         post("archive/{id}") {
-            val id = call.parameters["id"] ?: error("id not set")
+            val id = call.parameters["id"] ?: missingParameter("id")
             val base = ApiServer.api.jsonDb.base<HAR>()
             val src = base.resolve(id)
             if (!src.exists()) {
-                Logger.log("file not found: $src")
+                log("archive: file not found: $src")
                 call.respond(HttpStatusCode.NotFound)
                 return@post
             }
             val archiveDir = base.resolve("archived").apply { createDirectories() }
-            var dest = archiveDir.resolve(id)
+            val dest = archiveDir.resolve(id)
             if (dest.exists()) {
-                val alt = "$id-archived-${System.currentTimeMillis()}"
-                dest = archiveDir.resolve(alt)
+                log("archive: file already exists: $dest")
+                call.respond(HttpStatusCode.Conflict, "Archived file already exists")
+                return@post
             }
             src.moveTo(dest)
-            call.response.header("Location", "../")
+            log("archive: moved: $id")
+            call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
             call.respond(HttpStatusCode.SeeOther)
         }
         
-        get("group/{domain}/") {
-            val domainParam = call.parameters["domain"] ?: missingParameter("domain")
-            val names = ApiServer.api.jsonDb.listAll<HAR>("har")
-            val entries = names.mapNotNull { name ->
-                val parts = name.trim().split(' ').filter { it.isNotBlank() }
-                val timestamp = parts.lastOrNull() ?: ""
-                val domain = parts.dropLast(1).lastOrNull() ?: "unknown"
-                if (domain == domainParam) {
-                    mapOf(
-                        "name" to name,
-                        "timestamp" to timestamp,
-                        "download" to "../../download/$name.har",
-                        "archiveAction" to "../../archive/$name.har",
-                    )
-                } else null
-            }.sortedByDescending { it["timestamp"] as String }
-            
-            call.respond(
-                MustacheContent(
-                    "har-group.mustache", mapOf(
-                        "title" to "HAR Files - $domainParam",
-                        "backLink" to "../../",
-                        "domain" to domainParam,
-                        "entries" to entries,
-                    )
-                )
-            )
+        post("unarchive/{id}") {
+            val id = call.parameters["id"] ?: missingParameter("id")
+            val base = ApiServer.api.jsonDb.base<HAR>()
+            val src = base.resolve("archived").resolve(id)
+            if (!src.exists()) {
+                log("unarchive: file not found: $src")
+                call.respond(HttpStatusCode.NotFound)
+                return@post
+            }
+            val dest = base.resolve(id)
+            if (dest.exists()) {
+                log("unarchive: file already exists: $dest")
+                call.respond(HttpStatusCode.Conflict, "Unarchived file already exists")
+                return@post
+            }
+            src.moveTo(dest)
+            log("unarchive: moved: $id")
+            call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
+            call.respond(HttpStatusCode.SeeOther)
         }
         
         get("har-upload") {
@@ -155,6 +159,47 @@ internal fun Route.harRoutes() {
             )
         }
     }
+}
+
+private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): DataFrame<*> {
+    val base = ApiServer.api.jsonDb.base<HAR>()
+    val entries = mutableListOf<HarEntry>()
+    
+    if (includeRegular) {
+        val regular = base.listDirectoryEntries("*.har")
+        entries.addAll(regular.map { parseHarFileName(it.nameWithoutExtension, archived = false) })
+    }
+    
+    if (includeArchived) {
+        val archivedDir = base.resolve("archived")
+        if (archivedDir.exists()) {
+            val archived = archivedDir.listDirectoryEntries("*.har")
+            entries.addAll(archived.map { parseHarFileName(it.nameWithoutExtension, archived = true) })
+        }
+    }
+    
+    val dataFrame = entries.toDataFrame() //
+        .add("download") {
+            ActionColumnAction(
+                "Download",
+                "download/${it.name}.har${if (it.archived) "?archived" else ""}",
+                "get",
+            )
+        }.add("archive") {
+            if (it.archived) ActionColumnAction("Unarchive", "unarchive/${it.name}.har", "post")
+            else ActionColumnAction("Archive", "archive/${it.name}.har", "post")
+        }
+    
+    return dataFrame
+}
+
+val harFileNameRegex = """^(?:(.+) )?(\S+) ([\d-]+T[\d:]+(?:\.\d+)?Z(?:[\d+:.-]+)?)$""".toRegex()
+private fun parseHarFileName(name: String, archived: Boolean): HarEntry {
+    val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived)
+    val ssid = match.groupValues[1]
+    val domain = match.groupValues[2]
+    val timestamp = match.groupValues[3]
+    return HarEntry(name, ssid, domain, timestamp, archived)
 }
 
 private suspend fun ApplicationCall.respondPath(path: Path) {
