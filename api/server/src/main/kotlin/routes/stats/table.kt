@@ -68,9 +68,10 @@ data class PreFilterDefinition(
 suspend fun generateTableData(
     call: RoutingCall,
     columnDefinitions: DataFrame<ColumnDefinition>,
-    groupDefault: Set<String>,
     preFilterDefinitions: List<PreFilterDefinition>,
+    defaultGroups: Set<String>,
     defaultPreFilter: String = "all",
+    defaultSort: String = "timestamp-desc",
     actionColumnDefinitions: DataFrame<ActionColumnDefinition> = emptyDataFrame(),
 ): TableData {
     val preFilterDefinitionMap = preFilterDefinitions.associateBy { it.name }
@@ -117,8 +118,8 @@ suspend fun generateTableData(
         TableOption(it.name, it.displayName, it.name in groupColumns)
     }
     if (groupColumns.isEmpty()) {
-        // use groupDefault as fallback but keep the order of columnDefinitions
-        groupColumns = columnDefinitions.rows().map { it.name }.intersect(groupDefault).toList()
+        // use defaultGroups as fallback but keep the order of columnDefinitions
+        groupColumns = columnDefinitions.rows().map { it.name }.intersect(defaultGroups).toList()
     }
     
     val visibleActionColumnDefinitions: DataFrame<ActionColumnDefinition> = if (groupColumns.isNotEmpty()) {
@@ -148,7 +149,7 @@ suspend fun generateTableData(
         }
     }
     
-    val sortParam = call.request.queryParameters["sort"] ?: "timestamp-desc"
+    val sortParam = call.request.queryParameters["sort"] ?: defaultSort
     val sortDirection = SortDirection.fromSortKey("", sortParam)
     var sortColumnKey = sortParam.substringBeforeLast("-")
     var sortColumn = columnDefinitions.rows().find { it.name == sortColumnKey }
