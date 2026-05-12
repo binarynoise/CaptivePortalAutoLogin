@@ -31,12 +31,12 @@ private data class HarEntry(
 )
 
 internal fun Route.harRoutes() {
-    get("har") {
+    get("hars") {
         call.response.header("Location", "har/")
         call.respond(HttpStatusCode.MovedPermanently)
     }
     
-    route("har/") {
+    route("hars/") {
         get {
             val columnDefinitions: DataFrame<ColumnDefinition> = dataFrameOf(
                 ColumnDefinition("timestamp", "Timestamp", Comparators.RegularComparator),
