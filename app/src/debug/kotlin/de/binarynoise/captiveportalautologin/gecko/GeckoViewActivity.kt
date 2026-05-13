@@ -15,7 +15,6 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.UiThread
 import androidx.core.view.isVisible
 import by.kirich1409.viewbindingdelegate.viewBinding
-import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.connectivityManager
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
@@ -158,38 +157,36 @@ class GeckoViewActivity : ComponentActivity() {
                 true
             }
         }
-        if (BuildConfig.DEBUG) {
-            fun addLoadSiteMenuEntry(menu: Menu, title: String, uri: String) {
-                menu.add(title).also { menuItem ->
-                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
-                    menuItem.setOnMenuItemClickListener {
-                        networkStateLock.write {
-                            networkState = networkState?.copy() ?: run {
-                                val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
-                                    Parcel.obtain().apply { writeInt(-1) })
-                                NetworkState(
-                                    network,
-                                    "debug",
-                                    hasPortal = true,
-                                    liberating = false,
-                                    liberated = false,
-                                )
-                            }
+        fun addLoadSiteMenuEntry(menu: Menu, title: String, uri: String) {
+            menu.add(title).also { menuItem ->
+                menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+                menuItem.setOnMenuItemClickListener {
+                    networkStateLock.write {
+                        networkState = networkState?.copy() ?: run {
+                            val network = connectivityManager.activeNetwork ?: Network.CREATOR.createFromParcel(
+                                Parcel.obtain().apply { writeInt(-1) })
+                            NetworkState(
+                                network,
+                                "debug",
+                                hasPortal = true,
+                                liberating = false,
+                                liberated = false,
+                            )
                         }
-                        mainHandler.post {
-                            extensionDelegate.session.loadUri(uri)
-                        }
-                        true
                     }
+                    mainHandler.post {
+                        extensionDelegate.session.loadUri(uri)
+                    }
+                    true
                 }
             }
-            
-            addLoadSiteMenuEntry(menu, "about:config", "about:config")
-            addLoadSiteMenuEntry(menu, "load 404", "http://am-i-captured.binarynoise.de/404")
-            addLoadSiteMenuEntry(menu, "load 404 https", "https://am-i-captured.binarynoise.de/404")
-            addLoadSiteMenuEntry(menu, "jstest", "http://dev.jeffersonscher.com/jstest.asp")
-            addLoadSiteMenuEntry(menu, "Google", "https://google.com/")
         }
+        
+        addLoadSiteMenuEntry(menu, "about:config", "about:config")
+        addLoadSiteMenuEntry(menu, "load 404", "http://am-i-captured.binarynoise.de/404")
+        addLoadSiteMenuEntry(menu, "load 404 https", "https://am-i-captured.binarynoise.de/404")
+        addLoadSiteMenuEntry(menu, "jstest", "http://dev.jeffersonscher.com/jstest.asp")
+        addLoadSiteMenuEntry(menu, "Google", "https://google.com/")
         return super.onCreateOptionsMenu(menu)
     }
     
