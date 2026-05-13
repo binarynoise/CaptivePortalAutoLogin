@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.buildlogic.android.application)
     alias(libs.plugins.buildlogic.kotlin.android)
@@ -15,6 +17,13 @@ android {
         multiDexEnabled = true
         
         proguardFiles(decoroutinatorAndroidProGuardRules())
+        
+        val localProperties = gradleLocalProperties(rootDir, providers)
+        buildConfigField(
+            "String",
+            "API_BASE",
+            "\"" + (System.getenv("API_BASE") ?: localProperties.getProperty("API_BASE") ?: "") + "\"",
+        )
     }
     
     compileOptions {

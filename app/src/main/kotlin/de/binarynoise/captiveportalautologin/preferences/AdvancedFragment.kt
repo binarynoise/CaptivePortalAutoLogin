@@ -13,8 +13,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
-import de.binarynoise.captiveportalautologin.API_BASE
 import de.binarynoise.captiveportalautologin.BuildConfig
+import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
@@ -297,7 +297,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 addPreference(
                     EditTextPreference(
                         ctx,
-                        SharedPreferences.api_base.get(),
+                        defaultValue = "",
                         hint = API_BASE,
                     ) { editText, s ->
                         if (s.isBlank()) {

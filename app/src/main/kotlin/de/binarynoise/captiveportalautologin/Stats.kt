@@ -11,7 +11,6 @@ import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import android.content.Context
-import androidx.lifecycle.LiveData
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.NetworkType
@@ -19,6 +18,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
@@ -27,9 +27,7 @@ import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.HttpStatusCodeException
-import okhttp3.HttpUrl.Companion.toHttpUrl
-
-const val API_BASE = "https://captiveportalautologin.binarynoise.de/api/"
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats")
 private val jsonDB = JsonDB(localCacheRoot)
@@ -60,7 +58,9 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
         val key = inputData.getString("key") ?: return Result.failure()
         
         val apiBaseFromPreference by SharedPreferences.api_base
-        val apiClient = ApiClient((apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrl())
+        val apiBaseUrl = (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
+        if (apiBaseUrl == null) return Result.failure()
+        val apiClient = ApiClient(apiBaseUrl)
         
         try {
             when (type) {
