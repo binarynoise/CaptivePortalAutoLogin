@@ -16,8 +16,12 @@ import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.API_BASE
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceListeners
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.Permissions
@@ -52,21 +56,18 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
         fun updateNetworkStatus(oldState: NetworkState?, newState: NetworkState?) = runOnUiThread {
             networkStateListeners.forEach { it(newState) }
         }
+        
         lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onResume(owner: LifecycleOwner) {
-                ConnectivityChangeListenerService.serviceListeners.add(::updateServiceStatus)
-                updateServiceStatus(
-                    null,
-                    ConnectivityChangeListenerService.serviceStateLock.read { ConnectivityChangeListenerService.serviceState })
-                ConnectivityChangeListenerService.networkListeners.add(::updateNetworkStatus)
-                updateNetworkStatus(null, networkStateLock.read {
-                    networkState
-                })
+            override fun onStart(owner: LifecycleOwner) {
+                serviceListeners.add(::updateServiceStatus)
+                updateServiceStatus(null, serviceStateLock.read { serviceState })
+                networkListeners.add(::updateNetworkStatus)
+                updateNetworkStatus(null, networkStateLock.read { networkState })
             }
             
-            override fun onDestroy(owner: LifecycleOwner) {
-                ConnectivityChangeListenerService.serviceListeners.remove(::updateServiceStatus)
-                ConnectivityChangeListenerService.networkListeners.remove(::updateNetworkStatus)
+            override fun onStop(owner: LifecycleOwner) {
+                serviceListeners.remove(::updateServiceStatus)
+                networkListeners.remove(::updateNetworkStatus)
             }
         })
         
@@ -77,7 +78,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 title = "Service Status"
                 
                 setOnPreferenceChangeListener { _, _ ->
-                    if (ConnectivityChangeListenerService.serviceState.running) {
+                    if (serviceStateLock.read { serviceState.running }) {
                         ConnectivityChangeListenerService.stop()
                     } else {
                         ConnectivityChangeListenerService.start()
@@ -85,22 +86,10 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                     false
                 }
                 
-                @Suppress("UNUSED_PARAMETER")
-                fun updateStatusText(oldState: ServiceState?, newState: ServiceState) = runOnUiThread {
-                    summary = newState.toString()
-                    isChecked = newState.running
+                serviceStateListeners.add {
+                    summary = it.toString()
+                    isChecked = it.running
                 }
-                
-                lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onResume(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.serviceListeners.add(::updateStatusText)
-                        updateStatusText(null, ConnectivityChangeListenerService.serviceState)
-                    }
-                    
-                    override fun onDestroy(owner: LifecycleOwner) {
-                        ConnectivityChangeListenerService.serviceListeners.remove(::updateStatusText)
-                    }
-                })
             }
             
             addPreference(Preference(ctx)) {
@@ -207,11 +196,11 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             if (!isEnabled) isChecked = false
                         }
                         lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onResume(owner: LifecycleOwner) {
+                            override fun onStart(owner: LifecycleOwner) {
                                 wifiManager.addSuggestionUserApprovalStatusListener(ctx.mainExecutor, listener)
                             }
                             
-                            override fun onPause(owner: LifecycleOwner) {
+                            override fun onStop(owner: LifecycleOwner) {
                                 wifiManager.removeSuggestionUserApprovalStatusListener(listener)
                             }
                         })
@@ -343,5 +332,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             }
             setIconSpaceReservedRecursively(false)
         }
+        
+        updateServiceStatus(null, serviceStateLock.read { serviceState })
+        updateNetworkStatus(null, networkStateLock.read { networkState })
     }
 }
