@@ -20,5 +20,5 @@ interface SuccessDao {
     suspend fun insertOrIncrement(version: String, year: Int, month: Int, ssid: String, url: String, solver: String)
     
     @Query("SELECT * FROM successes")
-    suspend fun getAllSuccesses(): List<SuccessEntity>
+    suspend fun getAll(): List<SuccessEntity>
 }

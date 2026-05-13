@@ -1,15 +1,11 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
-import kotlinx.datetime.TimeZone.Companion.UTC
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import io.ktor.http.*
 import io.ktor.server.mustache.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.kotlinx.dataframe.DataFrame
-import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 
@@ -37,31 +33,13 @@ internal fun Route.errorRoutes() {
         
         val preFilterDefinitions: List<PreFilterDefinition> = listOf(
             PreFilterDefinition("all", "All") {
-                ApiServer.api.database.errorDao()
-                    .getAllErrors(Int.MAX_VALUE)
-                    .toDataFrame()
-                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
-                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
-                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
-                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+                ApiServer.api.database.errorDao().getAll().map { it.toExtendedErrorEntity() }.toDataFrame()
             },
             PreFilterDefinition("unknown", "Unknown Portals") {
-                ApiServer.api.database.errorDao()
-                    .getUnknownPortalErrors(Int.MAX_VALUE)
-                    .toDataFrame()
-                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
-                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
-                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
-                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+                ApiServer.api.database.errorDao().getUnknownPortals().map { it.toExtendedErrorEntity() }.toDataFrame()
             },
             PreFilterDefinition("no_noise", "No Noise") {
-                ApiServer.api.database.errorDao()
-                    .getNoNoiseErrors(Int.MAX_VALUE)
-                    .toDataFrame()
-                    .add("domain") { if (it.url.isNotEmpty()) URLBuilder(urlString = it.url).host else "" }
-                    .add("majorVersion") { it.version.split('-', '+').first().toInt() }
-                    .add("year") { it.timestamp.toLocalDateTime(UTC).year }
-                    .add("month") { it.timestamp.toLocalDateTime(UTC).month.number }
+                ApiServer.api.database.errorDao().getNoNoise().map { it.toExtendedErrorEntity() }.toDataFrame()
             },
         )
         
