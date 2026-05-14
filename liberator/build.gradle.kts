@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 dependencies {
@@ -12,7 +13,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)
     implementation(libs.json)
-    
+    implementation(libs.kotlinx.serialization.json)
+
     // KSP processor for generating PortalLiberator list
     ksp(projects.liberator.processor)
 }
