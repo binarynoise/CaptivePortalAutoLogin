@@ -72,10 +72,10 @@
                             
                             <input type="radio" id="sort-{{name}}-asc" name="sort" value="{{name}}-asc"
                                    {{#sorted-asc}}checked{{/sorted-asc}}/>
-                            <label for="sort-{{name}}-asc">&darr;</label>
+                            <label for="sort-{{name}}-asc" class="icon sort-asc" aria-label="sort ascending"></label>
                             <input type="radio" id="sort-{{name}}-desc" name="sort" value="{{name}}-desc"
                                    {{#sorted-desc}}checked{{/sorted-desc}}/>
-                            <label for="sort-{{name}}-desc">&uarr;</label>
+                            <label for="sort-{{name}}-desc" class="icon sort-desc" aria-label="sort descending"></label>
                         </th>
                     {{/columns}}
                     {{#actionColumns}}

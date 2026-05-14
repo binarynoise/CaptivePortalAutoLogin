@@ -33,3 +33,20 @@ td > .scroll {
 input[type=number] {
     text-align: right;
 }
+
+.icon {
+    width: 1em;
+    height: 1em;
+    background-color: currentColor;
+    mask-size: contain;
+    display: inline-block;
+    vertical-align: center;
+    
+    &.sort-asc {
+        mask-image: url('/static/icon/bootstrap_sort_down_asc.svg');
+    }
+    
+    &.sort-desc {
+        mask-image: url('/static/icon/bootstrap_sort_down_desc.svg');
+    }
+}
