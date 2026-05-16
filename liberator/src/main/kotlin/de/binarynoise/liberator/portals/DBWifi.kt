@@ -11,6 +11,7 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
+import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.json.JSONObject
@@ -29,36 +30,28 @@ object DBWifi : PortalLiberator {
     )
     
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host in domains
+        return response.requestUrl.host in domains && !response.isRedirect
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        val response1 = response.followRedirects(client)
-        
-        when {
-            "cna" == response1.requestUrl.firstPathSegment -> {
+        when (response.requestUrl.firstPathSegment) {
+            "cna" -> {
                 log("cna")
-                val response2 = client.postJson(response1.requestUrl, "/cna/logon", "{}")
+                val response2 = client.postJson(response.requestUrl, "/cna/logon", "{}")
                 check(JSONObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
             }
-            "sp" == response1.requestUrl.firstPathSegment -> {
+            "sp" -> {
                 log("sp")
                 client.postForm(
-                    response1.requestUrl, "/login", mapOf(
+                    response.requestUrl, "/login", mapOf(
                         "login" to "oneclick",
                         "oneSubscriptionForm_connect_policy_accept" to "on",
                     )
                 ).followRedirects(client).checkSuccess()
             }
-            else -> {
-                log("else")
-                val csrfToken = extras.cookies.find { it.name == "csrf" }?.value ?: error("no csrf")
-                client.postForm(
-                    response1.requestUrl, null, mapOf(
-                        "login" to "true",
-                        "CSRFToken" to csrfToken,
-                    )
-                ).followRedirects(client)
+            "cp" -> {
+                log("cp")
+                response.submitOnlyForm(client)
             }
         }
     }
