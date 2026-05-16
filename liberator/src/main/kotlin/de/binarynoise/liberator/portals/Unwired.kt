@@ -67,7 +67,7 @@ object Unwired : PortalLiberator {
             .getJSONArray("pages")
             .asIterable()
         
-        val widgets = pages.flatMap { it.cast<JSONObject>().getJSONArray("widgets") }
+        val widgets = pages.flatMap { it.cast<JSONObject>().getJSONArray("widgets").asIterable() }
         
         val connectWidget =
             widgets.find { it.cast<JSONObject>().getString("__typename") == "ConnectWidget" } as? JSONObject
