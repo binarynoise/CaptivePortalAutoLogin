@@ -35,7 +35,7 @@ object AenaES : PortalLiberator {
         
         val uuid = response.requestUrl.firstPathSegment
         val gigyaApiKey: String = response.readText().let { text ->
-            val pattern = "gigyaApiKey\\s*=\\s*[\"']([^\"']+)[\"']'".toRegex()
+            val pattern = "gigyaApiKey\\s*=\\s*[\"']([^\"']+)[\"']".toRegex()
             pattern.find(text)?.groupValues?.get(1) ?: error("no gigyaApiKey")
         }
         val mac = response.requestUrl.queryParameter("mac") ?: error("no mac")
