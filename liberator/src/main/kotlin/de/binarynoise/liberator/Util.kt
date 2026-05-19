@@ -3,6 +3,7 @@ package de.binarynoise.liberator
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.io.encoding.Base64
 import de.binarynoise.logger.Logger.log
 
 // TODO: move somewhere else
@@ -77,6 +78,22 @@ inline fun tryOrLog(block: () -> Unit) {
     } catch (e: Exception) {
         log("exception in tryOrLog", e)
     }
+}
+
+fun Base64.encode(
+    source: String,
+    startIndex: Int = 0,
+    endIndex: Int = source.length,
+): String {
+    return this.encode(source.encodeToByteArray(), startIndex, endIndex)
+}
+
+fun Base64.decodeString(
+    source: String,
+    startIndex: Int = 0,
+    endIndex: Int = source.length,
+): String {
+    return this.decode(source, startIndex, endIndex).toString()
 }
 
 class NoSuccessException(message: String) : Exception(message)
