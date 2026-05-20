@@ -43,7 +43,13 @@ internal fun Route.errorRoutes() {
             },
         )
         
-        val tableData = generateTableData(call, columnDefinitions, preFilterDefinitions, defaultGroups = defaultGroups)
+        val tableData = generateTableData(
+            call,
+            columnDefinitions,
+            preFilterDefinitions,
+            defaultGroups = defaultGroups,
+            defaultPreFilter = "no_noise",
+        )
         
         call.respond(
             MustacheContent(

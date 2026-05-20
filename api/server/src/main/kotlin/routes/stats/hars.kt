@@ -72,6 +72,7 @@ internal fun Route.harRoutes() {
                 defaultGroups,
                 defaultSort = defaultSort,
                 actionColumnDefinitions = actionColumnDefinitions,
+                defaultPreFilter = "regular"
             )
             
             call.respond(
