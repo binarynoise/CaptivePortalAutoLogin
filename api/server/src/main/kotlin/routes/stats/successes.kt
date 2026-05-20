@@ -35,7 +35,12 @@ internal fun Route.successRoutes() {
             },
         )
         
-        val tableData = generateTableData(call, columnDefinitions, preFilterDefinitions, defaultGroups = defaultGroups)
+        val tableData = generateTableData(
+            call,
+            columnDefinitions,
+            preFilterDefinitions,
+            defaultGroups = defaultGroups,
+        )
         
         call.respond(
             MustacheContent(
