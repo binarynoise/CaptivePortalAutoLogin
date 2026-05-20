@@ -55,7 +55,7 @@ data class ActionColumnAction(
     val displayName: String,
     val url: String,
     val method: String,
-    val isGet: Boolean = method.equals("get", ignoreCase = true)
+    val isGet: Boolean = method.equals("get", ignoreCase = true),
 ) : MappableData
 
 @DataSchema
@@ -76,10 +76,8 @@ suspend fun generateTableData(
 ): TableData {
     val preFilterDefinitionMap = preFilterDefinitions.associateBy { it.name }
     
-    val preFilter = call.request.queryParameters.getSelectedCheckboxes("preFilter-").singleOrNull()
-        ?: call.request.queryParameters["preFilter"]
-    var dataFrame: DataFrame<*> =
-        (preFilterDefinitionMap.get(preFilter) ?: preFilterDefinitionMap.getValue(defaultPreFilter)).dataFrameProvider()
+    val preFilter = call.request.queryParameters["preFilter"] ?: defaultPreFilter
+    var dataFrame: DataFrame<*> = preFilterDefinitionMap.getValue(preFilter).dataFrameProvider()
     
     dataFrame = dataFrame.select(columns = (columnDefinitions.names + actionColumnDefinitions.names).toTypedArray())
     
@@ -178,6 +176,7 @@ suspend fun generateTableData(
                         val encodedValue = URLEncoder.encode(value.toString(), StandardCharsets.UTF_8)
                         "${encodedKey}=${encodedValue}"
                     }
+            parameters["preFilter"] = preFilter
             
             originalColumnDefinitions.rows().forEach { definition ->
                 if (definition.name != "count" && definition.name !in row.columnNames()) {
