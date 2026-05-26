@@ -2,10 +2,17 @@ package de.binarynoise.liberator.portals
 
 import java.util.*
 import kotlin.time.Clock
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postForm
@@ -15,7 +22,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 // Spain Airports
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -83,7 +89,7 @@ object AenaES : PortalLiberator {
                     "APIKey" to gigyaApiKey,
                 )
             )
-            val json6 = JSONObject(response6.readText())
+            val json6 = JsonObject(response6.readText())
             // {
             //  "callId": "b6928c0a9d7645178dce65aa19110e38",
             //  "errorCode": 0,
@@ -109,7 +115,7 @@ object AenaES : PortalLiberator {
                 "pageUrl" to pageUrl,
             ),
         )
-        val json5 = JSONObject(response5.readText())
+        val json5 = JsonObject(response5.readText())
         // {
         //  "callId": "08046be0408c449e8cf270eb606826be",
         //  "errorCode": 0,
@@ -142,40 +148,32 @@ object AenaES : PortalLiberator {
                 "source" to "showScreenSet",
                 "pageURL" to pageUrl,
                 "regToken" to regToken,
-                "profile" to JSONObject(
-                    mapOf<String, Any>(
-                        "email" to loginID,
-                    )
-                ).toString(),
+                "profile" to buildJsonObject {
+                    put("email", loginID)
+                }.toString(),
                 "sdk" to "js_latest",
                 "sdkBuild" to "0",
                 "lang" to "de",
                 "APIKey" to gigyaApiKey,
-                "data" to JSONObject(
-                    mapOf(
-                        "service" to mapOf("WIFI" to "true"),
-                        "inicioRelacion" to mapOf("WIFI" to Clock.System.now().toString()),
-                        "userType" to "LITE",
-                        "isLiteVerified" to "false",
-                    )
-                ).toString(),
-                "displayedPreferences" to JSONObject(
-                    mapOf<String, Any>(
-                        "terms_Wifi" to mapOf("docVersion" to null, "docDate" to "2024-05-09T00:00:00Z"),
-                        "privacy_Aena" to mapOf("docVersion" to null, "docDate" to "2025-03-11T00:00:00Z"),
-                        "communications_Encuestas" to mapOf("docVersion" to null, "docDate" to "2025-04-09T00:00:00Z"),
-                    )
-                ).toString(),
-                "preferences" to JSONObject(
-                    mapOf<String, Any>(
-                        "terms_Wifi" to mapOf("isConsentGranted" to true),
-                        "privacy_Aena" to mapOf("isConsentGranted" to true),
-                        "communications_Encuestas" to mapOf("isConsentGranted" to true),
-                    )
-                ).toString(),
+                "data" to buildJsonObject {
+                    putJsonObject("service") { put("WIFI", "true") }
+                    putJsonObject("inicioRelacion") { put("WIFI", Clock.System.now().toString()) }
+                    put("userType", "LITE")
+                    put("isLiteVerified", "false")
+                }.toString(),
+                "displayedPreferences" to buildJsonObject {
+                    putJsonObject("terms_Wifi") { put("docVersion", null); put("docDate", "2024-05-09T00:00:00Z") }
+                    putJsonObject("privacy_Aena") { put("docVersion", null); put("docDate", "2025-03-11T00:00:00Z") }
+                    putJsonObject("communications_Encuestas") { put("docVersion", null); put("docDate", "2025-04-09T00:00:00Z") }
+                }.toString(),
+                "preferences" to buildJsonObject {
+                    putJsonObject("terms_Wifi") { put("isConsentGranted", true) }
+                    putJsonObject("privacy_Aena") { put("isConsentGranted", true) }
+                    putJsonObject("communications_Encuestas") { put("isConsentGranted", true) }
+                }.toString(),
             )
         )
-        val json7 = JSONObject(response7.readText())
+        val json7 = JsonObject(response7.readText())
         //{
         //  "callId": "50d38264d52243109eab6d9b533a4157",
         //  "errorCode": 0,
@@ -188,47 +186,41 @@ object AenaES : PortalLiberator {
         check(json7.getInt("statusCode") == 200)
         
         val response8 = client.postJson(
-            freeWifiBase, "/api/portal/$uuid/verifyAccount", JSONObject(
-                mapOf<String, Any>(
-                    "email" to loginID,
-                )
-            ).toString()
+            freeWifiBase, "/api/portal/$uuid/verifyAccount", buildJsonObject {
+                put("email", loginID)
+            }.toString()
         )
-        val json8 = JSONObject(response8.readText())
+        val json8 = JsonObject(response8.readText())
         check(json8.getInt("statusCode") == 200)
         
         
         // {"email":"blodsinnig@aena.com","user_id":"620e45fee38641278704889e32b9e190","social_network":"guest","language":"de","client_mac":"96:37:51:3c:4b:15","is_verified":false}
         
         val response9 = client.postJson(
-            freeWifiBase, "/api/portal/$uuid/register", JSONObject(
-                mapOf<String, Any>(
-                    "email" to loginID,
-                    "user_id" to json7.getString("UID"),
-                    "social_network" to "guest",
-                    "language" to "de",
-                    "client_mac" to mac,
-                    "is_verified" to false,
-                )
-            ).toString()
+            freeWifiBase, "/api/portal/$uuid/register", buildJsonObject {
+                put("email", loginID)
+                put("user_id", json7.getString("UID"))
+                put("social_network", "guest")
+                put("language", "de")
+                put("client_mac", mac)
+                put("is_verified", false)
+            }.toString()
         )
-        val json9 = JSONObject(response9.readText())
+        val json9 = JsonObject(response9.readText())
         // {"user":{"id":"aab94298-b617-4d6c-be41-73b42f59dfcb","type":"guest_wifi_user","attributes":{"userid":"620e45fee38641278704889e32b9e190","data_origin":"guest","device_mac":"96:37:51:3c:4b:15","location_name":"VLC-Valencia","accessed_days":0,"email":"blodsinnig@aena.com","name":null,"first_name":null,"last_name":"","gender":null,"phone":null,"last_seens":[],"birthday":null,"age":null,"country":null,"country_iso":null,"visit_times":1,"social_network":"guest","zip_code":null,"personal_interest":null,"promotional_code":null,"locale":"de","browser_language":null,"permit_service":"true","permit_communication":"true","permit_custom_checks":null,"finalities_json":{"COMMERCIAL":"true","SERVICE":"true"},"created":"2025-08-20T18:39:11Z","last_seen":"2025-08-20T18:39:11.097Z","last_seens_count":0,"accessed_at_count":1,"captive_portal_name":"VLC-Valencia","network_credentials":{"username":"394_9637513c4b15","password":"5XV4bqvYEEvmbiS8m3o6"}}},"statusCode":200}
         check(json9.getInt("statusCode") == 200)
         
         
         // {"device_mac":"96:37:51:3c:4b:15","role_name":"guest","is_verified":false,"is_emergency":false}
         val response10 = client.postJson(
-            freeWifiBase, "/api/network/authorize", JSONObject(
-                mapOf<String, Any>(
-                    "device_mac" to mac,
-                    "role_name" to "guest",
-                    "is_verified" to false,
-                    "is_emergency" to false,
-                )
-            ).toString()
+            freeWifiBase, "/api/network/authorize", buildJsonObject {
+                put("device_mac", mac)
+                put("role_name", "guest")
+                put("is_verified", false)
+                put("is_emergency", false)
+            }.toString()
         )
-        val json10 = JSONObject(response10.readText())
+        val json10 = JsonObject(response10.readText())
         check(json10.getInt("statusCode") == 200)
     }
 }

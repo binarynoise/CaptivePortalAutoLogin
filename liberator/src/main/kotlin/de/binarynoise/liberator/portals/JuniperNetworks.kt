@@ -6,6 +6,8 @@ import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -20,7 +22,6 @@ import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 // https://www.juniper.net/documentation/us/en/software/mist/mist-wireless/topics/task/guest-access-external-portal.html
 
@@ -54,16 +55,14 @@ fun authorizeMistPortal(
     check(isMistPortalAuthorizeUrl(authorizeUrl)) { "authorizeUrl $authorizeUrl is not a valid mist portal url" }
     val currTime = Date().time / 1000
     val expires = currTime + 600 // 10 minutes
-    val payload = JSONObject(
-        mapOf(
-            "ap_mac" to ap_mac,
-            "wlan_id" to wlan_id,
-            "client_mac" to client_mac,
-            "expires" to expires,
-            "minutes" to Int.MAX_VALUE,
-            "authorize_only" to true,
-        )
-    )
+    val payload = buildJsonObject {
+        put("ap_mac", ap_mac)
+        put("wlan_id", wlan_id)
+        put("client_mac", client_mac)
+        put("expires", expires)
+        put("minutes", Int.MAX_VALUE)
+        put("authorize_only", true)
+    }
     val jwt = simpleJwt(payload.toString().toByteArray(), secret)
     val response = client.get(authorizeUrl, null, mapOf("jwt" to jwt))
     response.checkSuccess()
@@ -98,7 +97,10 @@ fun simpleJwt(data: ByteArray, secret: String): String {
     val JWTBase64 = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT)
     val signatureMethod = "HmacSHA256"
     
-    val header = JSONObject().put("alg", "HS256").put("typ", "JWT").toString()
+    val header = buildJsonObject {
+        put("alg", "HS256")
+        put("typ", "JWT")
+    }.toString()
     val encodedHeader = JWTBase64.encode(header.toByteArray())
     val encodedData = JWTBase64.encode(data)
     

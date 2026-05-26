@@ -1,7 +1,9 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import de.binarynoise.captiveportalautologin.json.toList
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getOptJsonArray
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.toListDeep
 
 /**
  * Contains data uploaded in a URL request.
@@ -13,10 +15,10 @@ class UploadData(
     val file: String? = null,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): UploadData {
+        fun fromJson(json: JsonObject): UploadData {
             return UploadData(
-                json.optJSONArray("bytes")?.toList()?.map { (it as Number).toByte() }?.toByteArray(),
-                json.optString("file"),
+                json.getOptJsonArray("bytes")?.toListDeep()?.map { (it as Number).toByte() }?.toByteArray(),
+                json.getOptString("file"),
             )
         }
     }

@@ -6,13 +6,12 @@ dependencies {
     api(projects.util.logger)
     api(libs.rhino)
     
-    // Test dependencies
-    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-tasks.test {
+tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
         events("passed", "skipped", "failed")

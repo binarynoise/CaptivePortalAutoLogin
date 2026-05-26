@@ -91,6 +91,7 @@ dependencies {
     implementation(projects.api.client)
     implementation(projects.liberator)
     implementation(projects.util.fileDB)
+    implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
     
     implementation(libs.androidx.activity.ktx)
@@ -122,6 +123,16 @@ dependencies {
     implementation(libs.hiddenapibypass)
     
     debugImplementation(libs.leakcanary.android)
+    
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.json)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 configurations.all {

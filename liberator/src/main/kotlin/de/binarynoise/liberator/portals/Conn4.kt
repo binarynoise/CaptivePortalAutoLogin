@@ -1,10 +1,10 @@
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
-import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.firstSuccess
 import de.binarynoise.liberator.portals.Conn4.createSession
 import de.binarynoise.liberator.successes
@@ -12,6 +12,14 @@ import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.rhino.RhinoParser
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getJsonArray
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getOptJsonObject
+import de.binarynoise.util.json.getString
+import de.binarynoise.util.json.has
 import de.binarynoise.util.okhttp.decodeUrl
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
@@ -25,7 +33,6 @@ import okhttp3.Cookie
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 import org.jsoup.nodes.Element
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -82,7 +89,7 @@ object Conn4 : PortalLiberator {
         createSessionParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
         checkLoggedIn: Boolean = false,
-    ): JSONObject {
+    ): JsonObject {
         val response = client.postForm(
             apiBase, "create-session/",
             mapOf(
@@ -93,16 +100,14 @@ object Conn4 : PortalLiberator {
                 "with-tariffs" to "1",
             ) + createSessionParams,
         )
-        val json = JSONObject(response.readText())
+        val json = JsonObject(response.readText())
         if (checkOk) check(json.getBoolean("ok")) { "createSession not ok" }
         if (checkLoggedIn) check(json.getBoolean("loggedIn")) { "createSession not loggedIn" }
         return json
     }
     
-    val JSONObject.session_id: String
-        get() {
-            return this.getString("session") ?: error("no session")
-        }
+    val JsonObject.session_id: String
+        get() = this.getString("session")
     
     fun registerFree(
         client: OkHttpClient,
@@ -110,7 +115,7 @@ object Conn4 : PortalLiberator {
         sessionToken: String,
         registerFreeParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
-    ): JSONObject {
+    ): JsonObject {
         val response = client.postForm(
             apiBase, "register/free/",
             mapOf(
@@ -119,7 +124,7 @@ object Conn4 : PortalLiberator {
                 "registration[terms]" to "1",
             ) + registerFreeParams,
         )
-        val json = JSONObject(response.readText())
+        val json = JsonObject(response.readText())
         if (checkOk) check(json.getBoolean("ok")) { "registerFree not ok" }
         return json
     }
@@ -132,7 +137,7 @@ object Conn4 : PortalLiberator {
         registerFreeParams: Map<String, String> = mapOf(),
         checkOk: Boolean = true,
         checkTariffMatch: Boolean = true,
-    ): JSONObject {
+    ): JsonObject {
         val json = registerFree(
             client,
             apiBase,
@@ -150,7 +155,7 @@ object Conn4 : PortalLiberator {
         site_id: String,
         token: String,
         sessionToken: String,
-        tariff: JSONObject,
+        tariff: JsonObject,
         createSessionParams: Map<String, String> = mapOf(),
         registerFreeParams: Map<String, String> = mapOf(),
     ): Result<Unit> {
@@ -204,28 +209,28 @@ object Conn4 : PortalLiberator {
      * @return all viable tariffs ordered from best to worst
      * @param session the session information obtained from [createSession]
      */
-    fun getTariffPreference(session: JSONObject): List<JSONObject> {
-        val tariffs = session.getJSONArray("tariffs").asIterable().filterIsInstance<JSONObject>()
+    fun getTariffPreference(session: JsonObject): List<JsonObject> {
+        val tariffs = session.getJsonArray("tariffs").filterIsInstance<JsonObject>()
         if (tariffs.hasOneEntry) return tariffs
-        fun JSONObject.isBooleanEqualTo(key: String, value: Boolean, default: Boolean): Boolean {
+        fun JsonObject.isBooleanEqualTo(key: String, value: Boolean, default: Boolean): Boolean {
             if (!this.has(key)) return default
             return this.getBoolean(key) == value
         }
         
-        fun JSONObject.wanted(key: String): Boolean {
+        fun JsonObject.wanted(key: String): Boolean {
             return this.isBooleanEqualTo(key, true, true)
         }
         
-        fun JSONObject.unwanted(key: String): Boolean {
+        fun JsonObject.unwanted(key: String): Boolean {
             return this.isBooleanEqualTo(key, false, true)
         }
         
         /** get tariff timeout in minutes */
-        fun JSONObject.getTariffTimeout(): Int {
+        fun JsonObject.getTariffTimeout(): Int {
             return tryOrNull { this.getInt("validity") } ?: tryOrNull { this.getInt("duration") / 60 } ?: 0
         }
         
-        fun JSONObject.getTariffBandwidth(): Int {
+        fun JsonObject.getTariffBandwidth(): Int {
             val bandWidth = tryOrNull { this.getInt("availableBandwidth") } ?: 1
             return if (bandWidth == 0) Int.MAX_VALUE else bandWidth
         }
@@ -268,15 +273,15 @@ object Conn4 : PortalLiberator {
         val assignments = RhinoParser().parseAssignments(scriptNode)
         val token = assignments["conn4.hotspot.wbsToken.token"] ?: error("no token")
         
-        val schedule = JSONObject(assignments["_.partial.1"] ?: error("no _.partial.1")).getJSONObject("schedule")
+        val schedule = JsonObject(assignments["_.partial.1"] ?: error("no _.partial.1")).getOptJsonObject("schedule")
             ?: error("no schedule")
         
-        val sceneIds = schedule.getJSONArray("events").asIterable().map { event ->
+        val sceneIds = schedule.getJsonArray("events").map { event ->
             runCatching {
-                event as JSONObject
-                val payload = event.getJSONObject("payload") ?: error("no payload")
+                event as JsonObject
+                val payload = event.getJsonObject("payload")
                 if (payload.getString("type") != "scene") error("type != scene")
-                val data = payload.getJSONObject("data")
+                val data = payload.getJsonObject("data")
                 if (data.has("module") && data.getString("module").contains("offline")) error("offline")
                 data.getString("id")
             }
@@ -286,7 +291,7 @@ object Conn4 : PortalLiberator {
         
         check(sceneIds.isNotEmpty()) { "no scenes" }
         
-        val template = schedule.getString("scene_template") ?: error("no scene_template")
+        val template = schedule.getString("scene_template")
         
         val apiBase = sceneIds.asSequence().map { id ->
             runCatching {

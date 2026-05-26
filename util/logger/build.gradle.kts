@@ -11,14 +11,15 @@ kotlin {
     @Suppress("unused", "RedundantSuppression") //
     sourceSets {
         val commonMain by getting {
-            dependencies {}
+            dependencies {
+                compileOnly(libs.kotlinx.serialization.json)
+            }
         }
         
         val androidMain by getting {
             dependencies {
-                implementation(libs.androidx.collection.ktx)
-                implementation(libs.androidx.core.ktx)
-                implementation(libs.kotlinx.coroutines.android)
+                compileOnly(libs.androidx.collection.ktx)
+                compileOnly(libs.androidx.core.ktx)
                 
                 compileOnly(libs.xposed.api)
             }

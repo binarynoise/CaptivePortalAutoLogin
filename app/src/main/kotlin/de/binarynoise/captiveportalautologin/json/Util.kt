@@ -1,13 +1,14 @@
 package de.binarynoise.captiveportalautologin.json
 
-import kotlinx.serialization.json.Json
-import org.json.JSONArray
-import org.json.JSONObject
-
-val serializer = Json {
-    encodeDefaults = false
-    explicitNulls = false
-}
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonUnquotedLiteral
+import kotlinx.serialization.json.buildJsonObject
+import org.json.JSONObject as OrgJSONObject
+import org.json.JSONArray as OrgJSONArray
 
 fun String.looksLikeBinaryData(threshold: Double): Boolean {
     val totalChars = length
@@ -22,18 +23,31 @@ fun String.looksLikeBinaryData(threshold: Double): Boolean {
     return (nonAsciiChars.toDouble() / totalChars) > threshold
 }
 
-fun JSONObject.toMap(): Map<String, Any> {
-    val result = LinkedHashMap<String, Any>(this.length())
-    for (key in this.keys()) {
-        result[key] = this.get(key)
+fun OrgJSONObject.toJsonObject(): JsonObject {
+    val original = this
+    return buildJsonObject {
+        original.keys().forEach { key ->
+            put(key, convertJsonElement(original.get(key)))
+        }
     }
-    return result
 }
 
-fun JSONArray.toList(): List<Any> {
-    val result = ArrayList<Any>(this.length())
-    for (i in 0 until this.length()) {
-        result.add(this.get(i))
+fun OrgJSONArray.toJsonArray(): JsonArray {
+    val original = this
+    val result = buildList {
+        for (i in 0 until original.length()) {
+            this.add(convertJsonElement(original.get(i)))
+        }
     }
-    return result
+    return JsonArray(result)
+}
+
+fun convertJsonElement(value: Any?): JsonElement = when (value) {
+    null, OrgJSONObject.NULL -> JsonNull
+    is String -> JsonPrimitive(value)
+    is Number -> JsonPrimitive(value)
+    is Boolean -> JsonPrimitive(value)
+    is OrgJSONObject -> value.toJsonObject()
+    is OrgJSONArray -> value.toJsonArray()
+    else -> JsonUnquotedLiteral(value.toString())
 }

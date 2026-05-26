@@ -1,6 +1,11 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getLong
+import de.binarynoise.util.json.getOptJsonObject
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.getString
 
 /**
  * @param requestId The ID of the request. Request IDs are unique within a browser session. As a
@@ -26,8 +31,8 @@ class OnBeforeRequestDetails(
     val requestId: String,
     val url: String,
     val method: String,
-    val frameId: Int,
-    val parentFrameId: Int,
+    val frameId: Long,
+    val parentFrameId: Long,
     val originUrl: String? = null,
     val documentUrl: String? = null,
     val requestBody: RequestBody? = null,
@@ -36,16 +41,16 @@ class OnBeforeRequestDetails(
     val timeStamp: Long,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): OnBeforeRequestDetails {
+        fun fromJson(json: JsonObject): OnBeforeRequestDetails {
             return OnBeforeRequestDetails(
                 json.getString("requestId"),
                 json.getString("url"),
                 json.getString("method"),
-                json.getInt("frameId"),
-                json.getInt("parentFrameId"),
-                json.optString("originUrl"),
-                json.optString("documentUrl"),
-                json.optJSONObject("requestBody")?.let { RequestBody.fromJson(it) },
+                json.getLong("frameId"),
+                json.getLong("parentFrameId"),
+                json.getOptString("originUrl"),
+                json.getOptString("documentUrl"),
+                json.getOptJsonObject("requestBody")?.let { RequestBody.fromJson(it) },
                 json.getInt("tabId"),
                 json.getString("type"),
                 json.getLong("timeStamp")

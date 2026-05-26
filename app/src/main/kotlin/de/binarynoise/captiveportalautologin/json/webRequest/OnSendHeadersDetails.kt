@@ -1,7 +1,12 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import de.binarynoise.captiveportalautologin.json.toList
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getLong
+import de.binarynoise.util.json.getOptJsonArray
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.getString
 
 /**
  * @param requestId The ID of the request. Request IDs are unique within a browser session. As a
@@ -27,8 +32,8 @@ class OnSendHeadersDetails(
     val requestId: String,
     val url: String,
     val method: String,
-    val frameId: Int,
-    val parentFrameId: Int,
+    val frameId: Long,
+    val parentFrameId: Long,
     val originUrl: String? = null,
     val documentUrl: String? = null,
     val tabId: Int,
@@ -37,21 +42,21 @@ class OnSendHeadersDetails(
     val requestHeaders: Array<HttpHeader>? = null,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): OnSendHeadersDetails {
+        fun fromJson(json: JsonObject): OnSendHeadersDetails {
             return OnSendHeadersDetails(
                 json.getString("requestId"),
                 json.getString("url"),
                 json.getString("method"),
-                json.getInt("frameId"),
-                json.getInt("parentFrameId"),
-                json.optString("originUrl"),
-                json.optString("documentUrl"),
+                json.getLong("frameId"),
+                json.getLong("parentFrameId"),
+                json.getOptString("originUrl"),
+                json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getDouble("timeStamp").toFloat(),
-                json.optJSONArray("requestHeaders")
+                json.getFloat("timeStamp"),
+                json.getOptJsonArray("requestHeaders")
                     ?.toList()
-                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.map { HttpHeader.fromJson(it as JsonObject) }
                     ?.toTypedArray(),
             )
         }

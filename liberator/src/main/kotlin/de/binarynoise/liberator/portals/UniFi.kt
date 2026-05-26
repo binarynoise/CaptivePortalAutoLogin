@@ -1,11 +1,17 @@
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.tryOrDefault
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getJsonArray
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
@@ -14,7 +20,6 @@ import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @Experimental
@@ -27,18 +32,18 @@ object UniFi : PortalLiberator {
         return response.requestUrl.encodedPath.startsWith("/guest/s/")
     }
     
-    fun Response.parseUniFiBrokenJsonObject(skipStatusCheck: Boolean = false): JSONObject {
+    fun Response.parseUniFiBrokenJsonObject(skipStatusCheck: Boolean = false): JsonObject {
         val text = this.readText(skipStatusCheck).substringAfter('{', "")
         if (text.isEmpty()) throw IllegalArgumentException("empty JSON")
-        return JSONObject("{$text")
+        return JsonObject("{$text")
     }
     
-    fun JSONObject.getUniFiDataObject(): JSONObject {
-        return this.getJSONArray("data").getJSONObject(0)
+    fun JsonObject.getUniFiDataObject(): JsonObject {
+        return this.getJsonArray("data").getJsonObject(0)
     }
     
-    fun JSONObject.isUniFiMetaOk(): Boolean {
-        return this.getJSONObject("meta").getString("rc") == "ok"
+    fun JsonObject.isUniFiMetaOk(): Boolean {
+        return this.getJsonObject("meta").getString("rc") == "ok"
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
@@ -70,7 +75,7 @@ object UniFi : PortalLiberator {
         val loginDataJson = loginJson.getUniFiDataObject()
         check(loginDataJson.getBoolean("authorized")) { "UniFi loginResponse responded not authorized" }
         
-        val redirect_url = loginDataJson.getString("redirect_url") ?: error("no redirect_url")
+        val redirect_url = loginDataJson.getString("redirect_url")
         client.get(response.requestUrl, redirect_url).followRedirects(client)
     }
 }

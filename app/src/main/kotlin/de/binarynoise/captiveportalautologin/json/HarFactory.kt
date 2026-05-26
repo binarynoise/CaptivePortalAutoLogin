@@ -25,6 +25,7 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnErrorOccurredDeta
 import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.RequestBody
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.prettyPrinter
 
 fun Header(httpHeader: HttpHeader): Header = Header(httpHeader.name, httpHeader.value.orEmpty())
 
@@ -38,7 +39,7 @@ fun Cookie(cookie: HttpCookie): Cookie = Cookie(
     secure = cookie.secure
 )
 
-fun HAR.toJson(): String = serializer.encodeToString(this)
+fun HAR.toJson(): String = prettyPrinter.encodeToString(this)
 
 fun Request(onBeforeRequestDetails: OnBeforeRequestDetails) = Request(
     onBeforeRequestDetails.method,
@@ -127,7 +128,7 @@ fun Request.fillInPostData(body: RequestBody?): Unit = with(body) {
         val bytes: ByteArray = data.bytes ?: ByteArray(0)
         val contentString = bytes.decodeToString()
         if (contentString.looksLikeBinaryData(0.2)) {
-            val encodedContent = Base64.encode(contentString.toByteArray())
+            val encodedContent = Base64.encode(bytes)
             PostParam(i.toString(), encodedContent, data.file, "application/octet-stream")
         } else {
             PostParam(i.toString(), contentString, data.file, "text/plain")
@@ -217,7 +218,7 @@ fun Response.fillInCookies(responseHeaders: Array<HttpHeader>) {
         .map(::Cookie)
         .toList()
     val modified = cookies.addAll(newCookies)
-    if (modified) log("Got cookies: ${newCookies.size} new, ${newCookies.size} total")
+    if (modified) log("Got cookies: ${newCookies.size} new, ${cookies.size} total")
 }
 
 fun Response.fillInHeaders(responseHeaders: Array<HttpHeader>) {

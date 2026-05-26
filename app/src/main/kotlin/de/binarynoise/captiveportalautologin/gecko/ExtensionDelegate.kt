@@ -5,6 +5,11 @@ import kotlin.time.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonPrimitive
 import android.os.Handler
 import androidx.annotation.WorkerThread
 import androidx.lifecycle.LifecycleOwner
@@ -24,6 +29,7 @@ import de.binarynoise.captiveportalautologin.json.filter.FilterOnStopDetails
 import de.binarynoise.captiveportalautologin.json.handleRequestHeaders
 import de.binarynoise.captiveportalautologin.json.handleResponseHeaders
 import de.binarynoise.captiveportalautologin.json.setContent
+import de.binarynoise.captiveportalautologin.json.toJsonObject
 import de.binarynoise.captiveportalautologin.json.webRequest.OnAuthRequiredDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnBeforeRedirectDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.OnBeforeRequestDetails
@@ -41,9 +47,8 @@ import de.binarynoise.captiveportalautologin.util.postIfCreated
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.json.JSONArray
-import org.json.JSONObject
 import org.mozilla.geckoview.BuildConfig.MOZILLA_VERSION
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoResult
@@ -54,6 +59,7 @@ import org.mozilla.geckoview.GeckoSessionSettings
 import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.StorageController
 import org.mozilla.geckoview.WebExtension
+import org.json.JSONObject as OrgJSONObject
 
 
 const val extensionPath = "resource://android/assets/extension/" + "captivePortalAutoLoginTrafficCapture/"
@@ -76,10 +82,10 @@ class ExtensionDelegate(
     
     // MessageDelegate
     override fun onMessage(nativeApp: String, message: Any, sender: WebExtension.MessageSender): GeckoResult<Any>? {
-        if (message is JSONObject) {
+        if (message is OrgJSONObject) {
             backgroundHandler.post {
                 try {
-                    handleMessage(message)
+                    handleMessage(message.toJsonObject())
                 } catch (e: Exception) {
                     log("Failed to handle message", e)
                 }
@@ -96,7 +102,7 @@ class ExtensionDelegate(
         log("onConnect: ${port.hashCode().toHexString(HexFormat.UpperCase)}")
         this.port = port
         port.setDelegate(this)
-        port.postMessage(JSONObject(mapOf("event" to "config", "config" to extensionConfig)))
+        port.postMessage(OrgJSONObject(mapOf("event" to "config", "config" to extensionConfig)))
         log("onConnect: sent config")
     }
     
@@ -108,10 +114,10 @@ class ExtensionDelegate(
     
     // PortDelegate
     override fun onPortMessage(message: Any, port: WebExtension.Port) {
-        if (message is JSONObject) {
+        if (message is OrgJSONObject) {
             backgroundHandler.post {
                 try {
-                    handleMessage(message)
+                    handleMessage(message.toJsonObject())
                 } catch (e: Exception) {
                     log("Failed to handle message", e)
                 }
@@ -201,51 +207,49 @@ class ExtensionDelegate(
     private var allowEdits: Boolean = true
     
     @WorkerThread
-    fun handleMessage(message: JSONObject) {
+    fun handleMessage(message: JsonObject) {
         try {
-            
-            val eventType = message.opt("event")
-            when (eventType) {
-                null, JSONObject.NULL -> {
+            val eventTypeElement = message["event"]
+            val eventType: String
+            when (eventTypeElement) {
+                null -> {
                     message.dump("message without event")
                     return
                 }
-                is String -> {
+                is JsonPrimitive -> {
+                    eventType = eventTypeElement.content
                 }
                 else -> {
-                    eventType.dump("event")
+                    eventTypeElement.dump("event")
                     return
                 }
             }
             
-            val details = message.opt("details")
-            when (details) {
-                null, JSONObject.NULL -> {
+            val detailsElement = message["details"]
+            val details: JsonObject
+            when (detailsElement) {
+                null, is JsonNull -> {
                     message.dump("message without details")
                     return
                 }
-                is JSONObject -> {
-                    // details.dump("details")
+                is JsonObject -> {
+                    details = detailsElement
                 }
-                is JSONArray -> {
-                    if (details.length() == 1 && details.get(0) is String) {
-                        log("details: ${details.get(0) as String}")
+                is JsonArray -> {
+                    if (detailsElement.size == 1 && detailsElement[0] is JsonPrimitive) {
+                        log("details: ${detailsElement[0].jsonPrimitive.content}")
                     } else {
-                        details.dump("details")
+                        detailsElement.dump("details")
                     }
                     return
                 }
-                is String -> {
-                    log("details: $details")
-                    return
-                }
-                else -> {
-                    details.dump("details")
+                is JsonPrimitive -> {
+                    log("details: ${detailsElement.content}")
                     return
                 }
             }
             
-            val requestId = details.optString("requestId")
+            val requestId = details.getString("requestId")
             val requestIdWithRedirectCount = getRequestIdWithRedirectCount(requestId)
             
             log("event: $eventType requestId: $requestIdWithRedirectCount")

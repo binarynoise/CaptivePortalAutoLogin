@@ -3,6 +3,9 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
@@ -13,7 +16,6 @@ import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 @SSID("IKEA WiFi")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -42,9 +44,9 @@ object IKEA : PortalLiberator {
             ),
         )
         
-        val json = JSONObject(response3.readText())
+        val json = JsonObject(response3.readText())
         
-        val payload = json.getJSONObject("payload")
+        val payload = json.getJsonObject("payload")
         val realm = payload.getString("realm")
         val username = payload.getString("username")
         val password = payload.getString("password")

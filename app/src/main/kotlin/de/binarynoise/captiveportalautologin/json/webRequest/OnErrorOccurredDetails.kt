@@ -1,6 +1,12 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getLong
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.getString
 
 /**
  * @param requestId The ID of the request. Request IDs are unique within a browser session. As a
@@ -29,8 +35,8 @@ class OnErrorOccurredDetails(
     val requestId: String,
     val url: String,
     val method: String,
-    val frameId: Int,
-    val parentFrameId: Int,
+    val frameId: Long,
+    val parentFrameId: Long,
     val originUrl: String? = null,
     val documentUrl: String? = null,
     val tabId: Int,
@@ -41,19 +47,19 @@ class OnErrorOccurredDetails(
     val error: String,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): OnErrorOccurredDetails {
+        fun fromJson(json: JsonObject): OnErrorOccurredDetails {
             return OnErrorOccurredDetails(
                 json.getString("requestId"),
                 json.getString("url"),
                 json.getString("method"),
-                json.getInt("frameId"),
-                json.getInt("parentFrameId"),
-                json.optString("originUrl"),
-                json.optString("documentUrl"),
+                json.getLong("frameId"),
+                json.getLong("parentFrameId"),
+                json.getOptString("originUrl"),
+                json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getDouble("timeStamp").toFloat(),
-                json.optString("ip"),
+                json.getFloat("timeStamp"),
+                json.getOptString("ip"),
                 json.getBoolean("fromCache"),
                 json.getString("error"),
             )

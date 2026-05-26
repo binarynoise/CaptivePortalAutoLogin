@@ -6,6 +6,8 @@ import javax.net.ssl.SSLException
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
 import de.binarynoise.util.okhttp.readText
@@ -17,7 +19,6 @@ import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 import org.jsoup.Jsoup
 
 class Liberator(
@@ -117,7 +118,7 @@ class Liberator(
         if (contentType != null) when {
             contentType.startsWith("text/html") -> text = Jsoup.parse(text).html()
             contentType.startsWith("text/xml") -> text = Jsoup.parse(text).body().html()
-            contentType.startsWith("application/json") -> text = JSONObject(text).toString(2)
+            contentType.startsWith("application/json") -> text = prettyPrinter.encodeToString(JsonObject(text))
         }
         
         log(text)

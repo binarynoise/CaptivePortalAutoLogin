@@ -1,18 +1,23 @@
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
-import de.binarynoise.liberator.asIterable
 import de.binarynoise.liberator.cast
+import de.binarynoise.util.json.getJsonArray
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 import kotlin.random.Random as random
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -47,50 +52,42 @@ object Unwired : PortalLiberator {
         val response1 = client.postJson(
             response.requestUrl,
             GRAPHQL_URL,
-            JSONObject(
-                mapOf(
-                    "operationName" to "splashpage",
-                    "variables" to mapOf(
-                        "user_session_id" to user_session_id,
-                        "initial" to true,
-                        "language" to "de",
-                    ),
-                    "query" to GRAPHQL_SPLASHPAGE,
-                ),
-            ).toString(),
+            buildJsonObject {
+                put("operationName", "splashpage")
+                putJsonObject("variables") {
+                    put("user_session_id", user_session_id)
+                    put("initial", true)
+                    put("language", "de")
+                }
+                put("query", GRAPHQL_SPLASHPAGE)
+            }.toString(),
         )
         val json1 = response1.parseJsonObject()
         
-        val pages = json1.getJSONObject("data")
-            .getJSONObject("splashpage")
-            .getJSONObject("splashpage")
-            .getJSONArray("pages")
-            .asIterable()
+        val pages = json1.getJsonObject("data").getJsonObject("splashpage").getJsonObject("splashpage").getJsonArray("pages")
         
-        val widgets = pages.flatMap { it.cast<JSONObject>().getJSONArray("widgets").asIterable() }
+        val widgets = pages.flatMap { it.cast<JsonObject>().getJsonArray("widgets") }
         
         val connectWidget =
-            widgets.find { it.cast<JSONObject>().getString("__typename") == "ConnectWidget" } as? JSONObject
+            widgets.find { it.cast<JsonObject>().getString("__typename") == "ConnectWidget" } as? JsonObject
                 ?: error("unable to find ConnectWidget widget")
         
-        val widgetId = connectWidget.getString("widget_id")!!
+        val widgetId = connectWidget.getString("widget_id")
         
         client.postJson(
             response.requestUrl,
             GRAPHQL_URL,
-            JSONObject(
-                mapOf(
-                    "operationName" to "client_connect",
-                    "variables" to mapOf(
-                        "userAgentLang" to "de",
-                        "userAgentCountry" to "de",
-                        "input" to null,
-                        "userSessionId" to user_session_id, // api schema says only this parameter is mandatory
-                        "widget_id" to widgetId,
-                    ),
-                    "query" to GRAPHQL_CLIENT_CONNECT,
-                ),
-            ).toString(),
+            buildJsonObject {
+                put("operationName", "client_connect")
+                putJsonObject("variables") {
+                    put("userAgentLang", "de")
+                    put("userAgentCountry", "de")
+                    put("input", null)
+                    put("userSessionId", user_session_id) // api schema says only this parameter is mandatory
+                    put("widget_id", widgetId)
+                }
+                put("query", GRAPHQL_CLIENT_CONNECT)
+            }.toString(),
         ) {
             header("x-request-id", generateXRequestId())
         }.checkSuccess()

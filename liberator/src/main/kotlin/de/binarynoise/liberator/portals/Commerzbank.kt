@@ -3,6 +3,8 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
@@ -30,7 +32,7 @@ object Commerzbank : PortalLiberator {
                 "policy_accept" to "true",
             ),
         ).parseJsonObject()
-        val subscribeObject = json1.getJSONObject("info").getJSONObject("subscribe")
+        val subscribeObject = json1.getJsonObject("info").getJsonObject("subscribe")
         client.postForm(
             response.requestUrl,
             "/portal_api.php",

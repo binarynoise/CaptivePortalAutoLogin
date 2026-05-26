@@ -2,6 +2,8 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.toMapDeep
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
@@ -10,7 +12,6 @@ import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object SocialwiBox : PortalLiberator {
@@ -41,9 +42,9 @@ object SocialwiBox : PortalLiberator {
         val match = regex.find(script3.data()) ?: error("no match for redirectPost regex")
         val url = match.groups[1]?.value ?: error("no url in match")
         val data = match.groups[2]?.value ?: error("no data in match")
-        val json = JSONObject(data)
+        val json = JsonObject(data)
         
-        val response4 = client.postForm(response2.requestUrl, url, json.toMap().mapValues { (_, v) -> v.toString() })
+        val response4 = client.postForm(response2.requestUrl, url, json.toMapDeep().mapValues { (_, v) -> v.toString() })
         val html4 = response4.parseHtml()
         val form4 = html4.getElementsByTag("form").singleOrNull() ?: error("no form4")
         val location4 = form4.attr("action")

@@ -1,11 +1,16 @@
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.hasQueryParameter
@@ -16,7 +21,6 @@ import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID(
@@ -32,7 +36,7 @@ object ArubaNetworks : PortalLiberator {
             && response.requestUrl.hasQueryParameter("capture")
     }
     
-    fun getPortalLoginPageConfig(response: Response): JSONObject {
+    fun getPortalLoginPageConfig(response: Response): JsonObject {
         val html = response.parseHtml()
         val script = html.getElementsByTag("script")
             .filter { !it.hasAttr("src") }
@@ -40,7 +44,7 @@ object ArubaNetworks : PortalLiberator {
             .map { it.data() }
             .single { it.contains("portal_login_page_config") }
         val assignments = RhinoParser().parseAssignments(script)
-        return JSONObject(assignments["portal_login_page_config"])
+        return JsonObject(assignments.getValue("portal_login_page_config"))
     }
     
     fun performArubaLogin(client: OkHttpClient, base: HttpUrl, username: String, password: String) {
@@ -55,11 +59,11 @@ object ArubaNetworks : PortalLiberator {
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
-        val pageConfig = portal_login_page_config1.getJSONObject("page")
+        val pageConfig = portal_login_page_config1.getJsonObject("page")
         if (!pageConfig.getBoolean("require_accept_terms") || pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
         
         val capture = response.requestUrl.queryParameter("capture") ?: tryOrNull {
-            val loginConfig = portal_login_page_config1.getJSONObject("capture")
+            val loginConfig = portal_login_page_config1.getJsonObject("capture")
             loginConfig.getString("capture")
         } ?: error("no capture")
         
@@ -71,7 +75,7 @@ object ArubaNetworks : PortalLiberator {
         ).followRedirects(client)
         
         val portal_login_page_config2 = getPortalLoginPageConfig(response2)
-        val network_login_config = portal_login_page_config2.getJSONObject("network_login")
+        val network_login_config = portal_login_page_config2.getJsonObject("network_login")
         
         performArubaLogin(
             client,

@@ -1,9 +1,10 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import de.binarynoise.captiveportalautologin.json.toList
-import de.binarynoise.captiveportalautologin.json.toMap
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getOptJsonArray
+import de.binarynoise.util.json.getOptJsonObject
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.toMapDeep
 
 /**
  * Contains the HTTP request body data. Only provided if extraInfoSpec contains 'requestBody'.
@@ -23,13 +24,13 @@ class RequestBody(
     val raw: Array<UploadData>? = null,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): RequestBody {
+        fun fromJson(json: JsonObject): RequestBody {
             return RequestBody(
-                json.optString("error"),
-                json.optJSONObject("formData")
-                    ?.toMap()
-                    ?.mapValues { (_, value) -> (value as JSONArray).toList().map { it.toString() }.toTypedArray() },
-                json.optJSONArray("raw")?.toList()?.map { UploadData.fromJson(it as JSONObject) }?.toTypedArray(),
+                json.getOptString("error"),
+                json.getOptJsonObject("formData")
+                    ?.toMapDeep()
+                    ?.mapValues { (_, value) -> (value as List<*>).map { it.toString() }.toTypedArray() },
+                json.getOptJsonArray("raw")?.toList()?.map { UploadData.fromJson(it as JsonObject) }?.toTypedArray(),
             )
         }
     }

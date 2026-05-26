@@ -1,7 +1,10 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import de.binarynoise.captiveportalautologin.json.toList
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getOptJsonArray
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.getString
+import de.binarynoise.util.json.toListDeep
 
 /**
  * @param name Name of the HTTP header.
@@ -15,11 +18,11 @@ class HttpHeader(
     val binaryValue: Array<UByte>? = null,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): HttpHeader {
+        fun fromJson(json: JsonObject): HttpHeader {
             return HttpHeader(
                 json.getString("name"),
-                json.optString("value"),
-                json.optJSONArray("binaryValue")?.toList()?.map { it as UByte }?.toTypedArray(),
+                json.getOptString("value"),
+                json.getOptJsonArray("binaryValue")?.toListDeep()?.map { it as UByte }?.toTypedArray(),
             )
         }
     }

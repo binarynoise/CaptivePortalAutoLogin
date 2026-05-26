@@ -8,6 +8,8 @@ import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.Picopoint.PICOPOINT_GATEKEEPER_DOMAIN
 import de.binarynoise.liberator.tryOrDefault
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.lastPathSegment
@@ -41,7 +43,7 @@ object Picopoint : PortalLiberator {
             inputs.filter { it.attr("name").isNotEmpty() }.associate { it.attr("name") to it.attr("value") }
         val fid = postParametersMap["__fid"]
         val session = client.get(response.requestUrl, "/gk/rest/session").parseJsonObject()
-        val clientMac = session.getJSONObject("network").getString("client_mac")
+        val clientMac = session.getJsonObject("network").getString("client_mac")
         client.postForm(
             response.requestUrl, action, postParametersMap + mapOf(
                 "custom_data_1" to clientMac,

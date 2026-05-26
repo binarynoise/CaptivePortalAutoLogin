@@ -13,6 +13,8 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.reflect.KClass
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 object Logger {
     
@@ -174,15 +176,23 @@ object Logger {
         val nextIndent = indent + 1
         print("$tabs$name ")
         
-        if (this == null) {
-            println("-> null")
-            return
-        }
-        if (this is String) {
-            print("-> \"")
-            print(this)
-            println("\"")
-            return
+        when(this) {
+            null -> {
+                println("-> null")
+                return
+            }
+            is String -> {
+                println("""-> "$this"""")
+                return
+            }
+            is JsonPrimitive -> {
+                if (this.isString) {
+                    println("""-> "${this.contentOrNull}"""")
+                } else {
+                    println("""-> ${this.contentOrNull}""")
+                }
+                return
+            }
         }
         if (this::class.javaPrimitiveType != null || this is CharSequence) {
             print("-> ")
@@ -234,6 +244,16 @@ object Logger {
                     println()
                     this.forEach { (k, v) ->
                         v.dump(k.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
+                    }
+                }
+            }
+            this is Iterable<*> -> {
+                if (!this.iterator().hasNext()) {
+                    println("[]")
+                } else {
+                    println()
+                    this.forEachIndexed { index, value ->
+                        value.dump(index.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)
                     }
                 }
             }

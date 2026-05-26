@@ -1,10 +1,11 @@
 package de.binarynoise.util.okhttp
 
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.JsonArray
+import de.binarynoise.util.json.JsonObject
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -12,8 +13,6 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import org.json.JSONArray
-import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -94,23 +93,23 @@ fun Response.parseHtml(skipStatusCheck: Boolean = false): Document {
 }
 
 /**
- * Parses the JSON response and returns a [JSONObject].
+ * Parses the JSON response and returns a [JsonObject].
  *
  * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
- * @return The parsed JSON as a [JSONObject]
+ * @return The parsed JSON as a [JsonObject]
  */
-fun Response.parseJsonObject(skipStatusCheck: Boolean = false): JSONObject {
-    return JSONObject(this.readText(skipStatusCheck))
+fun Response.parseJsonObject(skipStatusCheck: Boolean = false): JsonObject {
+    return JsonObject(this.readText(skipStatusCheck))
 }
 
 /**
- * Parses the JSON response and returns a [JSONArray].
+ * Parses the JSON response and returns a [JsonArray].
  *
  * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
- * @return The parsed JSON as a [JSONArray]
+ * @return The parsed JSON as a [JsonArray]
  */
-fun Response.parseJsonArray(skipStatusCheck: Boolean = false): JSONArray {
-    return JSONArray(this.readText(skipStatusCheck))
+fun Response.parseJsonArray(skipStatusCheck: Boolean = false): JsonArray {
+    return JsonArray(this.readText(skipStatusCheck))
 }
 
 

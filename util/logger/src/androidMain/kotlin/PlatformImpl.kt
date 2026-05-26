@@ -15,8 +15,8 @@ import androidx.core.util.isEmpty
 import androidx.core.view.children
 import de.binarynoise.logger.Logger.dump
 import de.robv.android.xposed.XposedBridge
-import org.json.JSONArray
-import org.json.JSONObject
+import org.json.JSONObject as OrgJSONObject
+import org.json.JSONArray as OrgJSONArray
 
 class PlatformImpl : Platform {
     private val TAG = "Logger"
@@ -135,13 +135,13 @@ class PlatformImpl : Platform {
                 }
             }
             //</editor-fold>
-            is JSONObject -> {
+            is OrgJSONObject -> {
                 println()
                 this.keys().forEach {
                     this.get(it).dump(it, nextIndent, processed, forceInclude, forceIncludeClasses)
                 }
             }
-            is JSONArray -> {
+            is OrgJSONArray -> {
                 println()
                 for (i in 0 until this.length()) {
                     this.get(i).dump(i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses)

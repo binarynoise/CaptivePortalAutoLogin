@@ -2,12 +2,16 @@
 
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.randomEmail
 import de.binarynoise.liberator.tryOrIgnore
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getString
+import de.binarynoise.util.json.has
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.parseJsonObject
@@ -17,7 +21,6 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.json.JSONObject
 
 @Experimental
 @SSID(
@@ -39,7 +42,7 @@ object SocialWave : PortalLiberator {
             && response.requestUrl.hasQueryParameter("auth")
     }
     
-    fun getAuthUrl(startPage: Response, helloJson: JSONObject, registerJson: JSONObject): HttpUrl {
+    fun getAuthUrl(startPage: Response, helloJson: JsonObject, registerJson: JsonObject): HttpUrl {
         val authQueryParameter = startPage.requestUrl.queryParameter("auth") ?: error("no auth")
         var redir = startPage.requestUrl.queryParameter("redir")
         val token = registerJson.getString("AuthenticationToken")
@@ -55,7 +58,7 @@ object SocialWave : PortalLiberator {
         }
         
         if (!startPage.requestUrl.hasQueryParameter("redir")) tryOrIgnore {
-            redir = helloJson.getJSONObject("Settings").getString("RedirectUrl")
+            redir = helloJson.getJsonObject("Settings").getString("RedirectUrl")
         }
         // authoriseOnRouterRouterOs
         // query parameter "auth" has to be a viable URL

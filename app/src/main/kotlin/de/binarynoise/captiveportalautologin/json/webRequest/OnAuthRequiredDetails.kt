@@ -1,7 +1,14 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
-import de.binarynoise.captiveportalautologin.json.toList
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getBoolean
+import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getInt
+import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getLong
+import de.binarynoise.util.json.getOptJsonArray
+import de.binarynoise.util.json.getOptString
+import de.binarynoise.util.json.getString
 
 /**
  * @param requestId The ID of the request. Request IDs are unique within a browser session. As a
@@ -34,8 +41,8 @@ class OnAuthRequiredDetails(
     val requestId: String,
     val url: String,
     val method: String,
-    val frameId: Int,
-    val parentFrameId: Int,
+    val frameId: Long,
+    val parentFrameId: Long,
     val originUrl: String? = null,
     val documentUrl: String? = null,
     val tabId: Int,
@@ -50,25 +57,25 @@ class OnAuthRequiredDetails(
     val statusCode: Int,
 ) {
     companion object {
-        fun fromJson(json: JSONObject): OnAuthRequiredDetails {
+        fun fromJson(json: JsonObject): OnAuthRequiredDetails {
             return OnAuthRequiredDetails(
                 json.getString("requestId"),
                 json.getString("url"),
                 json.getString("method"),
-                json.getInt("frameId"),
-                json.getInt("parentFrameId"),
-                json.optString("originUrl"),
-                json.optString("documentUrl"),
+                json.getLong("frameId"),
+                json.getLong("parentFrameId"),
+                json.getOptString("originUrl"),
+                json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getDouble("timeStamp").toFloat(),
+                json.getFloat("timeStamp"),
                 json.getString("scheme"),
-                json.optString("realm"),
-                Challenger.fromJson(json.getJSONObject("challenger")),
+                json.getOptString("realm"),
+                Challenger.fromJson(json.getJsonObject("challenger")),
                 json.getBoolean("isProxy"),
-                json.optJSONArray("responseHeaders")
+                json.getOptJsonArray("responseHeaders")
                     ?.toList()
-                    ?.map { HttpHeader.fromJson(it as JSONObject) }
+                    ?.map { HttpHeader.fromJson(it as JsonObject) }
                     ?.toTypedArray(),
                 json.getString("statusLine"),
                 json.getInt("statusCode"),
