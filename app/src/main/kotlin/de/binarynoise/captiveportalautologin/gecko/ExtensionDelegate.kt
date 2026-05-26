@@ -171,6 +171,7 @@ class ExtensionDelegate(
     fun onDestroy(geckoView: GeckoView) {
         port?.disconnect()
         port?.setDelegate(null)
+        port = null
         
         extension?.let {
             it.setMessageDelegate(null, "browser")
