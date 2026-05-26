@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.moveTo
@@ -49,6 +50,7 @@ internal fun Route.harRoutes() {
             val actionColumnDefinitions: DataFrame<ActionColumnDefinition> = dataFrameOf(
                 ActionColumnDefinition("download", "Download", listOf("name")),
                 ActionColumnDefinition("archive", "Archive", listOf("name", "archived")),
+                ActionColumnDefinition("delete", "Delete", listOf("name", "archived")),
             )
             val defaultGroups: Set<String> = setOf("domain")
             val defaultSort = "domain-asc"
@@ -153,6 +155,22 @@ internal fun Route.harRoutes() {
             call.respond(HttpStatusCode.SeeOther)
         }
         
+        post("delete/{id}") {
+            val id = call.parameters["id"] ?: missingParameter("id")
+            val archived = call.parameters["archived"] == "true"
+            val base = ApiServer.api.jsonDb.base<HAR>()
+            val file = base.resolve(if (archived) "archived" else "").resolve(id)
+            if (!file.exists()) {
+                log("delete: file not found: $file")
+                call.respond(HttpStatusCode.NotFound)
+                return@post
+            }
+            file.deleteExisting()
+            log("delete: $id")
+            call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
+            call.respond(HttpStatusCode.SeeOther)
+        }
+        
         get("har-upload") {
             call.respond(
                 MustacheContent(
@@ -193,6 +211,8 @@ private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): D
         }.add("archive") {
             if (it.archived) ActionColumnAction("Unarchive", "unarchive/${it.name}.har", "post")
             else ActionColumnAction("Archive", "archive/${it.name}.har", "post")
+        }.add("delete") {
+            ActionColumnAction("Delete", "delete/${it.name}.har?archived=${it.archived}", "post")
         }
     
     return dataFrame
