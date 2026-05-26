@@ -1,0 +1,10 @@
+<td>
+    {{#isGet}}
+        <a href="{{&url}}">
+            <button type="button">{{displayName}}</button>
+        </a>
+    {{/isGet}}
+    {{^isGet}}
+        <button type="submit" formaction="{{&url}}" formmethod="post">{{displayName}}</button>
+    {{/isGet}}
+</td>
