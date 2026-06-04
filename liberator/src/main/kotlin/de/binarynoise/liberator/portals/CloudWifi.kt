@@ -1,9 +1,14 @@
 package de.binarynoise.liberator.portals
 
+import kotlinx.serialization.json.JsonObject
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
+import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.rhino.RhinoParser
+import de.binarynoise.util.json.JsonObject
+import de.binarynoise.util.json.getBoolean
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
@@ -14,6 +19,7 @@ import de.binarynoise.util.okhttp.toParameterMap
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
@@ -25,6 +31,8 @@ object CloudWifi : PortalLiberator {
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html1 = response.parseHtml()
+        
+        if (!tryOrDefault(true) { getLoginTimesJSON(html1).loginTimesOk }) throw UnsupportedPortalException("outside of login times")
         
         val forms = html1.getElementsByTag("form")
         check(forms.isNotEmpty()) { "no forms" }
@@ -63,6 +71,19 @@ object CloudWifi : PortalLiberator {
             }
             else -> error("no secondary route matched")
         }
+    }
+    
+    val JsonObject.loginTimesOk: Boolean
+        get() = this.getBoolean("loginOk")
+    
+    fun getLoginTimesJSON(html: Document): JsonObject {
+        val script = html.getElementsByTag("script").find {
+            it.data().contains("loginTimes")
+        } ?: throw NoSuchElementException("no script containing loginTimes assignment found")
+        val assignments = RhinoParser().parseAssignments(script.data())
+        val loginTimes = assignments["document.FX.data.loginTimes"]
+            ?: throw NoSuchElementException("loginTimes assignment not found")
+        return JsonObject(loginTimes)
     }
 }
 
