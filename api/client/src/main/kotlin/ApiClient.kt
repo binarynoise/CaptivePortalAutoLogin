@@ -1,6 +1,8 @@
 package de.binarynoise.captiveportalautologin.client
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.okhttp.checkSuccess
@@ -27,24 +29,24 @@ class ApiClient(private val base: HttpUrl) : Api {
         }
         
         override fun reportError(error: Api.Liberator.Error) {
-            put("liberator/error", serializer.encodeToString(error))
+            put("liberator/error", serializer.encodeToJsonElement(error))
         }
         
         override fun reportSuccess(success: Api.Liberator.Success) {
-            put("liberator/success", serializer.encodeToString(success))
+            put("liberator/success", serializer.encodeToJsonElement(success))
         }
     }
     
-    private fun post(url: String, json: String) {
+    private fun post(url: String, json: JsonElement) {
         httpClient.postJson(base, url, json).use { it.checkSuccess() }
     }
     
-    private fun put(url: String, json: String) {
+    private fun put(url: String, json: JsonElement) {
         httpClient.putJson(base, url, json).use { it.checkSuccess() }
     }
 }
 
-fun HAR.toJson(): String = serializer.encodeToString(this)
+fun HAR.toJson(): JsonElement = serializer.encodeToJsonElement(this)
 
 val serializer = Json {
     encodeDefaults = false

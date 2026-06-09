@@ -33,6 +33,9 @@ val prettyPrinter = Json {
 
 fun JsonObject(json: String) = serializer.parseToJsonElement(json).jsonObject
 fun JsonArray(json: String) = serializer.parseToJsonElement(json).jsonArray
+fun JsonElement(map: Map<String, Any>) = map.toJsonElement()
+fun JsonObject(map: Map<String, Any>) = map.toJsonElement().jsonObject
+fun JsonArray(array: Array<Any>) = array.toJsonElement().jsonArray
 
 fun JsonObject.getString(key: String): String = this.getValue(key).jsonPrimitive.content
 fun JsonObject.getOptString(key: String): String? = if (key !in this) null else this.getValue(key).jsonPrimitive.content
@@ -70,4 +73,17 @@ fun JsonElement.toAny(): Any? = when (this) {
     }
     is JsonObject -> toMapDeep()
     is JsonArray -> toListDeep()
+}
+
+// adapted from https://github.com/Kotlin/kotlinx.serialization/issues/746#issuecomment-863099397
+private fun Any?.toJsonElement(): JsonElement = when (this) {
+    null -> JsonNull
+    is JsonElement -> this
+    is Number -> JsonPrimitive(this)
+    is Boolean -> JsonPrimitive(this)
+    is String -> JsonPrimitive(this)
+    is Array<*> -> JsonArray(this.map { it.toJsonElement() })
+    is List<*> -> JsonArray(this.map { it.toJsonElement() })
+    is Map<*, *> -> JsonObject(this.map { it.key.toString() to it.value.toJsonElement() }.toMap())
+    else -> error("${this::class.java.name} is not encodable to JSON")
 }

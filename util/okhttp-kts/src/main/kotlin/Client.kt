@@ -5,6 +5,8 @@ package de.binarynoise.util.okhttp
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlinx.serialization.json.JsonElement
+import de.binarynoise.util.json.JsonElement
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -109,7 +111,7 @@ fun OkHttpClient.call(
 fun OkHttpClient.postJson(
     base: HttpUrl?,
     url: String?,
-    json: String,
+    json: JsonElement,
     queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
@@ -117,9 +119,19 @@ fun OkHttpClient.postJson(
         callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
     }
     return call(base, url, queryParameters) {
-        post(json.toRequestBody(MEDIA_TYPE_JSON))
+        post(json.toString().toRequestBody(MEDIA_TYPE_JSON))
         preConnectSetup()
     }
+}
+
+fun OkHttpClient.postJson(
+    base: HttpUrl?,
+    url: String?,
+    json: Map<String, Any>,
+    queryParameters: Map<String, String?> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    return this.postJson(base, url, JsonElement(json), queryParameters, preConnectSetup)
 }
 
 /**
@@ -136,7 +148,7 @@ fun OkHttpClient.postJson(
 fun OkHttpClient.putJson(
     base: HttpUrl?,
     url: String?,
-    json: String,
+    json: JsonElement,
     queryParameters: Map<String, String?> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
@@ -144,9 +156,19 @@ fun OkHttpClient.putJson(
         callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
     }
     return call(base, url, queryParameters) {
-        put(json.toRequestBody(MEDIA_TYPE_JSON))
+        put(json.toString().toRequestBody(MEDIA_TYPE_JSON))
         preConnectSetup()
     }
+}
+
+fun OkHttpClient.putJson(
+    base: HttpUrl?,
+    url: String?,
+    json: Map<String, Any>,
+    queryParameters: Map<String, String?> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    return this.putJson(base, url, JsonElement(json), queryParameters, preConnectSetup)
 }
 
 /**
