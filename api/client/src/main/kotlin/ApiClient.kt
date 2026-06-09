@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.client
 
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.postJson
@@ -17,6 +18,13 @@ class ApiClient(private val base: HttpUrl) : Api {
             put("har/$name", har.toJson())
         }
     }
+    
+    override val log = object : Api.Log {
+        override fun submitLog(name: String, log: LOG) {
+            put("log/$name", log.toJson())
+        }
+    }
+    
     override val liberator = object : Api.Liberator {
         override fun getLiberatorVersion(): String {
             TODO("Not yet implemented")
@@ -45,6 +53,7 @@ class ApiClient(private val base: HttpUrl) : Api {
 }
 
 fun HAR.toJson(): String = serializer.encodeToString(this)
+fun LOG.toJson(): String = serializer.encodeToString(this)
 
 val serializer = Json {
     encodeDefaults = false

@@ -14,6 +14,7 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
 import de.binarynoise.captiveportalautologin.server.database.ErrorEntity
@@ -45,6 +46,13 @@ class ApiServer(root: Path = Path(".")) : Api {
         override fun submitHar(name: String, har: HAR) {
             jsonDb.store(name, har, "har")
             log("stored har $name")
+        }
+    }
+    
+    override val log: Api.Log = object : Api.Log {
+        override fun submitLog(name: String, log: LOG) {
+            jsonDb.store(name, log, "log")
+            log("stored log $name")
         }
     }
     
