@@ -75,3 +75,7 @@ object UrbanOutfitters : ArubaClearPassLiberator("register.urbn.com")
 @Experimental
 @SSID("Tally's Bunny Wifi")
 object TallyWeijl : ArubaClearPassLiberator("guestportal.tally-weijl.com")
+
+@Experimental
+@SSID("scandic_easy")
+object ScandicHotels : ArubaClearPassLiberator("guestwifi.scandichotels.com")
