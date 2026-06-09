@@ -3,7 +3,6 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
-import de.binarynoise.util.json.JsonObject
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
@@ -11,8 +10,8 @@ import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
+import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
-import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -44,7 +43,7 @@ object IKEA : PortalLiberator {
             ),
         )
         
-        val json = JsonObject(response3.readText())
+        val json = response3.parseJsonObject()
         
         val payload = json.getJsonObject("payload")
         val realm = payload.getString("realm")

@@ -18,6 +18,7 @@ import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getJsonArray
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getOptJsonObject
+import de.binarynoise.util.json.getOptString
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.json.has
 import de.binarynoise.util.okhttp.decodeUrl
@@ -25,6 +26,7 @@ import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
+import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
@@ -100,7 +102,7 @@ object Conn4 : PortalLiberator {
                 "with-tariffs" to "1",
             ) + createSessionParams,
         )
-        val json = JsonObject(response.readText())
+        val json = response.parseJsonObject()
         if (checkOk) check(json.getBoolean("ok")) { "createSession not ok" }
         if (checkLoggedIn) check(json.getBoolean("loggedIn")) { "createSession not loggedIn" }
         return json
@@ -124,7 +126,7 @@ object Conn4 : PortalLiberator {
                 "registration[terms]" to "1",
             ) + registerFreeParams,
         )
-        val json = JsonObject(response.readText())
+        val json = response.parseJsonObject()
         if (checkOk) check(json.getBoolean("ok")) { "registerFree not ok" }
         return json
     }

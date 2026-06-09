@@ -2,8 +2,6 @@
 
 package de.binarynoise.liberator.portals
 
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
@@ -29,12 +27,13 @@ object TargetBox : PortalLiberator {
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val skipResponse = client.postJson(
-            response.requestUrl, "/wifidog/skip", buildJsonObject {
-                put("gwAddress", (response.requestUrl.queryParameter("gw_address") ?: error("no gw_address")))
-                put("gwPort", (response.requestUrl.queryParameter("gw_port") ?: error("no gw_port")))
-                put("gwId", (response.requestUrl.queryParameter("gw_id") ?: error("no gw_id")))
-                put("mac", (response.requestUrl.queryParameter("mac") ?: error("no mac")))
-            }.toString()
+            response.requestUrl, "/wifidog/skip",
+            mapOf(
+                "gwAddress" to (response.requestUrl.queryParameter("gw_address") ?: error("no gw_address")),
+                "gwPort" to (response.requestUrl.queryParameter("gw_port") ?: error("no gw_port")),
+                "gwId" to (response.requestUrl.queryParameter("gw_id") ?: error("no gw_id")),
+                "mac" to (response.requestUrl.queryParameter("mac") ?: error("no mac")),
+            ),
         ).parseJsonObject()
         check(skipResponse.getBoolean("success")) { "no success" }
         val redirectUrl = skipResponse.getString("redirectUrl")

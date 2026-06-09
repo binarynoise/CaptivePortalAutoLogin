@@ -4,14 +4,13 @@ import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.logger.Logger.log
-import de.binarynoise.util.json.JsonObject
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
+import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
-import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.OkHttpClient
@@ -38,8 +37,10 @@ object DBWifi : PortalLiberator {
         when (response.requestUrl.firstPathSegment) {
             "cna" -> {
                 log("cna")
-                val response2 = client.postJson(response.requestUrl, "/cna/logon", "{}")
-                check(JsonObject(response2.readText()).getString("result") == "success") { "response does not contain success" }
+                val response2 = client.postJson(response.requestUrl, "/cna/logon", mapOf())
+                check(
+                    response2.parseJsonObject().getString("result") == "success"
+                ) { "response does not contain success" }
             }
             "sp" -> {
                 log("sp")

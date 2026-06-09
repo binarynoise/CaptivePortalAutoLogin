@@ -32,10 +32,12 @@ val prettyPrinter = Json {
 }
 
 fun JsonObject(json: String) = serializer.parseToJsonElement(json).jsonObject
-fun JsonArray(json: String) = serializer.parseToJsonElement(json).jsonArray
-fun JsonElement(map: Map<String, Any>) = map.toJsonElement()
 fun JsonObject(map: Map<String, Any>) = map.toJsonElement().jsonObject
+fun JsonObject() = JsonObject("{}")
+fun JsonArray(json: String) = serializer.parseToJsonElement(json).jsonArray
 fun JsonArray(array: Array<Any>) = array.toJsonElement().jsonArray
+fun JsonArray() = JsonArray("[]")
+fun JsonElement(map: Map<String, Any>) = map.toJsonElement()
 
 fun JsonObject.getString(key: String): String = this.getValue(key).jsonPrimitive.content
 fun JsonObject.getOptString(key: String): String? = if (key !in this) null else this.getValue(key).jsonPrimitive.content

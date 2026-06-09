@@ -1,9 +1,6 @@
 package de.binarynoise.liberator.portals
 
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
-import kotlinx.serialization.json.putJsonObject
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
@@ -52,19 +49,20 @@ object Unwired : PortalLiberator {
         val response1 = client.postJson(
             response.requestUrl,
             GRAPHQL_URL,
-            buildJsonObject {
-                put("operationName", "splashpage")
-                putJsonObject("variables") {
-                    put("user_session_id", user_session_id)
-                    put("initial", true)
-                    put("language", "de")
-                }
-                put("query", GRAPHQL_SPLASHPAGE)
-            }.toString(),
+            mapOf(
+                "operationName" to "splashpage",
+                "variables" to mapOf(
+                    "user_session_id" to user_session_id,
+                    "initial" to true,
+                    "language" to "de",
+                ),
+                "query" to GRAPHQL_SPLASHPAGE,
+            ),
         )
         val json1 = response1.parseJsonObject()
         
-        val pages = json1.getJsonObject("data").getJsonObject("splashpage").getJsonObject("splashpage").getJsonArray("pages")
+        val pages =
+            json1.getJsonObject("data").getJsonObject("splashpage").getJsonObject("splashpage").getJsonArray("pages")
         
         val widgets = pages.flatMap { it.cast<JsonObject>().getJsonArray("widgets") }
         
@@ -77,17 +75,17 @@ object Unwired : PortalLiberator {
         client.postJson(
             response.requestUrl,
             GRAPHQL_URL,
-            buildJsonObject {
-                put("operationName", "client_connect")
-                putJsonObject("variables") {
-                    put("userAgentLang", "de")
-                    put("userAgentCountry", "de")
-                    put("input", null)
-                    put("userSessionId", user_session_id) // api schema says only this parameter is mandatory
-                    put("widget_id", widgetId)
-                }
-                put("query", GRAPHQL_CLIENT_CONNECT)
-            }.toString(),
+            mapOf(
+                "operationName" to "client_connect",
+                "variables" to mapOf(
+                    "userAgentLang" to "de",
+                    "userAgentCountry" to "de",
+                    "input" to null,
+                    "userSessionId" to user_session_id, // api schema says only this parameter is mandatory
+                    "widget_id" to widgetId,
+                ),
+                "query" to GRAPHQL_CLIENT_CONNECT,
+            ),
         ) {
             header("x-request-id", generateXRequestId())
         }.checkSuccess()

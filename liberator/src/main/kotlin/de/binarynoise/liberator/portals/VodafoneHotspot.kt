@@ -1,8 +1,6 @@
 package de.binarynoise.liberator.portals
 
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -40,13 +38,15 @@ object VodafoneHotspot : PortalLiberator {
         val landingPageLoginProfile = loginProfiles.getJsonObject(landingPageLoginProfileId)
         val accessType = landingPageLoginProfile.getString("accessType")
         val result = client.postJson(
-            response.requestUrl, "/api/v4/login", buildJsonObject {
-                put("loginProfile", landingPageLoginProfileId.toInt())
-                put("session", sessionToken)
-                put("accessType", accessType)
-            }.toString(), mapOf(
+            response.requestUrl, "/api/v4/login",
+            mapOf(
+                "loginProfile" to landingPageLoginProfileId.toInt(),
+                "session" to sessionToken,
+                "accessType" to accessType,
+            ),
+            mapOf(
                 "sessionID" to sessionToken,
-            )
+            ),
         ).parseJsonObject()
         check(result.getBoolean("success")) { error("success is not true") }
     }
