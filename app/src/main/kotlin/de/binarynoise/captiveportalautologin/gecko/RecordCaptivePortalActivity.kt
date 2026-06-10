@@ -121,7 +121,10 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         
         extensionDelegate.onCreate(binding.geckoView)
         extensionDelegate.session.progressDelegate = progressDelegate
-        binding.swipeRefresh.setOnRefreshListener { extensionDelegate.session.reload() }
+        binding.swipeRefresh.setOnRefreshListener {
+            reevaluateNetwork()
+            extensionDelegate.session.reload()
+        }
     }
     
     fun createFinalizedHar(): Pair<String, HAR> {
