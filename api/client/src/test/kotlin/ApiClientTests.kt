@@ -105,9 +105,9 @@ class ApiClientTests {
         fun reportError() {
             client.liberator.reportError(
                 Api.Liberator.Error(
-                    "test ssid",
+                    "test version",
                     System.currentTimeMillis(),
-                    "test host",
+                    "test ssid",
                     "test url",
                     "test error",
                     "test solver",
@@ -120,11 +120,11 @@ class ApiClientTests {
         fun reportSuccess() {
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
-                    "test ssid",
+                    "test version",
                     System.currentTimeMillis(),
+                    "test ssid",
                     "test url",
                     "test solver",
-                    "test ssid",
                 )
             )
         }
