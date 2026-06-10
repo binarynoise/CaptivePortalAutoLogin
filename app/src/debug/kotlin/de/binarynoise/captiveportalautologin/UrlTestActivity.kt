@@ -16,6 +16,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityUrlTestBinding
 import de.binarynoise.captiveportalautologin.util.getColorFromAttr
 import de.binarynoise.liberator.PortalDetection
+import de.binarynoise.liberator.tryOrIgnore
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocationUnchecked
 import okhttp3.OkHttpClient
@@ -69,6 +70,9 @@ class UrlTestActivity : ComponentActivity() {
                                 else -> getColorFromAttr(android.R.attr.textColor).toLong()
                             }.toInt()
                         )
+                        tryOrIgnore {
+                            response.close()
+                        }
                     }.onFailure { throwable ->
                         text = throwable::class.simpleName
                         setTextColor(0xffe50000.toInt())
