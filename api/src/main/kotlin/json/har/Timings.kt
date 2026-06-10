@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.api.json.har
 
-import kotlin.math.min
+import kotlin.math.max
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -24,7 +24,7 @@ data class Timings(
     @SerialName("ssl") var ssl: Int?,
 ) {
     val time =
-        min(blocked ?: 0, 0) + min(dns ?: 0, 0) + min(connect ?: 0, 0) + min(send, 0) + min(wait, 0) + min(receive, 0)
+        max(blocked ?: 0, 0) + max(dns ?: 0, 0) + max(connect ?: 0, 0) + max(send, 0) + max(wait, 0) + max(receive, 0)
     
     constructor() : this(null, null, null, 0, 0, 0, null)
 }
