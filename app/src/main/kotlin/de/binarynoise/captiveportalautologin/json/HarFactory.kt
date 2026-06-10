@@ -230,16 +230,23 @@ fun Response.fillInHeaders(responseHeaders: Array<HttpHeader>) {
 fun Response.setContent(contentString: String) {
     var mimeType = headers.find { it.name.lowercase() == "content-type" }?.value
     
+    val maxContentSize = 1 * 1024 * 1024
+    val truncatedContent = if (contentString.length > maxContentSize) {
+        contentString.take(maxContentSize) + "\n\n... [truncated, original size: ${contentString.length} bytes]"
+    } else {
+        contentString
+    }
+    
     val encodedContent: String
     val encoding: String?
-    if (contentString.looksLikeBinaryData(0.2)) {
-        encodedContent = Base64.encode(contentString.toByteArray())
+    if (truncatedContent.looksLikeBinaryData(0.2)) {
+        encodedContent = Base64.encode(truncatedContent.toByteArray())
         encoding = "base64"
         if (mimeType == null) {
             mimeType = "application/octet-stream"
         }
     } else {
-        encodedContent = contentString
+        encodedContent = truncatedContent
         encoding = null
         if (mimeType == null) {
             mimeType = "text/plain"
