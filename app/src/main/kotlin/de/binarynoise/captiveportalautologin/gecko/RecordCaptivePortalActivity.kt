@@ -10,6 +10,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkCapabilities.NET_CAPABILITY_CAPTIVE_PORTAL
 import android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -171,7 +172,10 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     }
     
     fun reevaluateNetwork() {
-        if (captivePortal != null) {
+        if (captivePortal != null //
+            && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE // from V onwards this request is silently ignored
+            && !Build.ID.startsWith("AP2A") // only QPR3 throws a silent server-side SecurityException
+        ) {
             invokeSystemApiFunction(CaptivePortal::class.java, captivePortal, "reevaluateNetwork")
         } else {
             ConnectivityChangeListenerService.reportNetworkConnectivity(network, true)
