@@ -222,13 +222,15 @@ class Liberator(
                     return@runCatching solver
                 }
             }.successes().getOrElse { throwable ->
-                val e = if (throwable is NoSuccessException) IllegalStateException(
-                    "all PortalLiberators failed: " + throwable.message, throwable
-                ) else throwable
-                if (throwable is NoSuccessException) return LiberationResult.UnsupportedPortal(response.requestUrl.toString())
+                if (throwable is UnsupportedPortalException) {
+                    return LiberationResult.UnsupportedPortal(response.requestUrl.toString())
+                }
+                val message = if (throwable is NoSuccessException) {
+                    "all PortalLiberators failed: ${throwable.message}"
+                } else throwable.message
                 return LiberationResult.Error(
                     response.requestUrl.toString(),
-                    e.message.orEmpty(),
+                    message.orEmpty(),
                     solvers.joinToString { it::class.simpleName.orEmpty() },
                     throwable,
                 )
