@@ -257,6 +257,7 @@ class ExtensionDelegate(
             
             if (!allowEdits) {
                 log("dropping because allowEdits=false")
+                return
             }
             
             when (eventType) {
