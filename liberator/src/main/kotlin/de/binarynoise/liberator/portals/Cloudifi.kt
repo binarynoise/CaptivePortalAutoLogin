@@ -6,9 +6,11 @@ import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.randomEmail
 import de.binarynoise.util.okhttp.followRedirects
-import de.binarynoise.util.okhttp.postForm
+import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
+import de.binarynoise.util.okhttp.submit
 import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -19,16 +21,17 @@ import okhttp3.Response
 )
 object Cloudifi : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "login.cloudi-fi.net"
+        return response.requestUrl.host == "login.cloudi-fi.net" && !response.isRedirect
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        val response1 = client.postForm(
+        val html = response.parseHtml()
+        val form = html.expectForm("#declarative-authentication-form")
+        val response1 = form.submit(
+            client,
             response.requestUrl,
-            null,
             mapOf(
-                "source" to "directregister",
-                "username" to "null",
+                "username" to randomEmail(),
             ),
         )
         response1.submitOnlyForm(client).followRedirects(client)
