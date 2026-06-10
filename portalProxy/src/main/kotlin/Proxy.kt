@@ -75,6 +75,8 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
                 .setStatusCode(HttpResponseStatus.BAD_GATEWAY.code())
                 .end("Failed to connect to $host:$port")
             return
+        } finally {
+            netClient.close()
         }
         handleServerConnected(request, netSocket)
     } catch (e: Exception) {
