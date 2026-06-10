@@ -2,7 +2,6 @@ package de.binarynoise.captiveportalautologin
 
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.content.Context
@@ -43,7 +42,6 @@ class UrlTestActivity : ComponentActivity() {
     }
     
     
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun refresh() = lifecycleScope.launch(Dispatchers.Main) {
         with(binding.table) {
             with(binding.table.context) {

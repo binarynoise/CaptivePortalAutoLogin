@@ -1,14 +1,12 @@
 package de.binarynoise.captiveportalautologin.server.routes
 
 import java.time.LocalDate
-import kotlin.time.ExperimentalTime
 import kotlin.time.toKotlinInstant
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toJavaZoneId
 import io.ktor.server.routing.*
 
 
-@ExperimentalTime
 internal fun LocalDate.toInstant() = this.atStartOfDay(UTC.toJavaZoneId()).toInstant().toKotlinInstant()
 
 internal fun missingParameter(name: String): Nothing {

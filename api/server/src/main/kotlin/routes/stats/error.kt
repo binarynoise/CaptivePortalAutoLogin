@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalTime::class)
-
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import java.time.LocalDate
-import kotlin.time.ExperimentalTime
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime

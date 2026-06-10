@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package de.binarynoise.captiveportalautologin.server
 
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.FragmentKey
