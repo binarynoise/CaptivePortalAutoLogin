@@ -93,7 +93,7 @@ fun Base64.decodeString(
     startIndex: Int = 0,
     endIndex: Int = source.length,
 ): String {
-    return this.decode(source, startIndex, endIndex).toString()
+    return this.decode(source, startIndex, endIndex).decodeToString()
 }
 
 class NoSuccessException(message: String) : Exception(message)
