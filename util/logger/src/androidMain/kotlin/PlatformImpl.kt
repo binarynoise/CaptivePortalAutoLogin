@@ -164,7 +164,7 @@ class PlatformImpl : Platform {
             }
             is ViewGroup -> {
                 println()
-                this.children.forEachIndexed { view, i ->
+                this.children.forEachIndexed { i, view ->
                     view.dump(
                         i.toString(), nextIndent, processed, forceInclude, forceIncludeClasses
                     )
