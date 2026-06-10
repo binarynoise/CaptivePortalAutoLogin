@@ -60,7 +60,7 @@ object ArubaNetworks : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
         val pageConfig = portal_login_page_config1.getJsonObject("page")
-        if (!pageConfig.getBoolean("require_accept_terms") || pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
+        if (pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
         
         val capture = response.requestUrl.queryParameter("capture") ?: tryOrNull {
             val loginConfig = portal_login_page_config1.getJsonObject("capture")
