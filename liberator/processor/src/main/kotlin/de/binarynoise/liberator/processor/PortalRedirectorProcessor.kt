@@ -18,7 +18,7 @@ class PortalRedirectorProcessor(environment: SymbolProcessorEnvironment) : Symbo
     
     private val liberatorPackage = "de.binarynoise.liberator"
     private val portalPackage = "$liberatorPackage.portals"
-    private val PortalLiberatorFqn = "$liberatorPackage.PortalRedirector"
+    private val PortalRedirectorFqn = "$liberatorPackage.PortalRedirector"
     
     @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -26,7 +26,7 @@ class PortalRedirectorProcessor(environment: SymbolProcessorEnvironment) : Symbo
             .filterIsInstance<KSClassDeclaration>()
             .filter { it.classKind == ClassKind.OBJECT }
             .filter { !it.modifiers.contains(Modifier.PRIVATE) }
-            .filter { it.implements(PortalLiberatorFqn) }
+            .filter { it.implements(PortalRedirectorFqn) }
             .toList()
         
         generateList(candidates)
