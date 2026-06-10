@@ -95,7 +95,7 @@ object CloudWifi : PortalLiberator {
 object CloudWifiRedirect : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (CloudWifi.canSolve(response)) return false
-        return response.parseHtml()
+        return response.isSuccessful && response.parseHtml()
             .getElementsByTag("script")
             .map { it.attr("src") }
             .filter { it.isNotEmpty() }
