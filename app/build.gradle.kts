@@ -35,10 +35,6 @@ android {
         viewBinding = true
     }
     
-    viewBinding {
-        enable = true
-    }
-    
     flavorDimensions += "abi"
     productFlavors {
         create("arm") {
