@@ -18,15 +18,20 @@ val LoggingPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "Log
             append(call.request.httpMethod.value)
             append(" ")
             append(call.request.origin.uri)
-            append(" with body ")
+            append(" with status code ")
+            append(call.response.status()?.value ?: 200)
+            append(" and body '")
             append(body.toString().substringBefore("\n").take(100))
+            append("'")
         })
     }
     
     on(CallFailed, handler = object : suspend (ApplicationCall, Throwable) -> Unit {
         override suspend fun invoke(call: ApplicationCall, cause: Throwable) {
-            if (cause is CancellationException) throw cause
-            Logger.log("call failed", cause)
+            when (cause) {
+                is CancellationException -> throw cause
+                else -> Logger.log("call failed", cause)
+            }
         }
     })
     

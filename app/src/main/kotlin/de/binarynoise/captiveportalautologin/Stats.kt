@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalTime::class)
-
 package de.binarynoise.captiveportalautologin
 
 import java.io.FileNotFoundException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

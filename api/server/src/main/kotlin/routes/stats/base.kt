@@ -6,12 +6,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Routing.stats() {
-    get("/stats") {
-        call.response.header("Location", "/stats/")
+    get("stats") {
+        call.response.header("Location", "stats/")
         call.respond(HttpStatusCode.MovedPermanently)
     }
     
-    route("/stats/") {
+    route("stats/") {
         get {
             call.respond(
                 MustacheContent(

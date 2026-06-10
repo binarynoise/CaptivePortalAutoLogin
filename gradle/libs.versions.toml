@@ -15,6 +15,7 @@ androidxRoomSqlite = "2.6.2"
 androidxWorkRuntimeKtx = "2.11.2"
 blockhound = "1.0.16.RELEASE"
 clikt = "5.1.0"
+dataframeCore = "1.0.0-Beta5"
 decourinator = "2.6.4"
 geckoview = "150.0.20260511200624"
 githubApi = "1.330"
@@ -30,7 +31,7 @@ kotlinxCoroutines = "1.11.0"
 kotlinxDatetime = "0.8.0-0.6.x-compat"
 kotlinxHtml = "0.12.0"
 kotlinxSerializationJson = "1.11.0"
-ktor = "3.4.2"
+ktor = "3.1.3" # TODO: update one hot-reload works reliably again on newer versions
 leakcanary = "2.14"
 material = "1.14.0"
 netty = "4.2.13.Final"
@@ -73,10 +74,12 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
 kotlin-ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "kotlinKsp" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-dataframe = { module = "org.jetbrains.kotlinx:dataframe-core", version.ref = "dataframeCore" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlinxHtml" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
@@ -111,6 +114,7 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 androidx-room = { id = "androidx.room", version.ref = "androidxRoom" }
 decourinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decourinator" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-dataframe = { id = "org.jetbrains.kotlin.plugin.dataframe", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlinKsp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

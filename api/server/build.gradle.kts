@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.kotlin.dataframe)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.shadow)
@@ -14,6 +15,8 @@ dependencies {
     implementation(projects.util.fileDB)
     implementation(projects.util.logger)
     
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlinx.dataframe)
     implementation(libs.decoroutinator)
     
     implementation(platform(libs.ktor.bom))
@@ -62,14 +65,25 @@ tasks.withType<ShadowJar> {
     minimize {
         exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
         exclude(dependency(libs.slf4j.simple.get()))
+        exclude(dependency(libs.decoroutinator.get()))
+        exclude(dependency(libs.kotlin.reflect.get()))
     }
     exclude(
-        "**/*.kotlin_*",
-        "**/*.pro",
+        "/*.css",
+        "/*.html",
+        "/*.js",
         "/*/default/linkdata/",
         "/*/default/manifest",
         "/DebugProbesKt.bin",
+        "/META-INF/**/*.kotlin_*",
+        "/META-INF/**/*.pro",
+        "/META-INF/**/*.version*",
+        "/META-INF/**/*LICENSE*",
+        "/META-INF/**/*NOTICE*",
+        "/META-INF/*jupyter*/",
+        "/META-INF/maven/",
         "/META-INF/native-image/",
-        "/META-INF/maven/"
+        "/META-INF/versions/",
+        "/org/apache/commons/codec/language/**/*.txt"
     )
 }

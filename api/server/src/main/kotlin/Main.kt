@@ -1,12 +1,10 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package de.binarynoise.captiveportalautologin.server
 
 import kotlin.io.path.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readText
+import kotlin.reflect.jvm.javaMethod
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.FragmentKey
@@ -14,6 +12,7 @@ import com.github.mustachejava.Mustache
 import de.binarynoise.captiveportalautologin.server.ApiServer.Companion.api
 import de.binarynoise.captiveportalautologin.server.routes.configureRouting
 import de.binarynoise.logger.Logger.log
+import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -27,9 +26,15 @@ import io.ktor.server.response.*
 
 val hostname = Path("/proc/sys/kernel/hostname").takeIf { it.exists() }?.readText()?.trim()
 val isDevelopment = hostname != "captiveportalautologin"
+val isRunningFromJar = ::main.javaMethod!!.declaringClass.protectionDomain.codeSource.location.path.endsWith(".jar")
 
 fun main() {
-    val server = createServer("::", 8080)
+    if (isDevelopment) DecoroutinatorJvmApi.install()
+    
+    val port = System.getenv("API_SERVER_PORT")?.toInt() ?: 8080
+    val host = System.getenv("API_SERVER_HOST") ?: "::"
+    log("launching server at $host:$port")
+    val server = createServer(host, port)
     server.start(wait = true)
 }
 
@@ -39,18 +44,18 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
         factory = Netty,
         port = port,
         host = host,
-        watchPaths = listOf("classes", "resources"),
+        watchPaths = if (isRunningFromJar) emptyList() else listOf("classes", "resources"),
         module = Application::module,
     )
     with(server.engineConfig) {
         shutdownTimeout = 1000
         enableHttp2 = false
-        enableH2c = false
+//        enableH2c = false
     }
     return server
 }
 
-suspend fun Application.module() {
+/*suspend*/ fun Application.module() { // TODO: make this suspend again for ktor >=3.2.0
     api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
     
     check(developmentMode == isDevelopment) { "developmentMode != isDevelopment" }
@@ -83,11 +88,11 @@ suspend fun Application.module() {
         })
     }
     install(StatusPages) {
-        exception<CancellationException> { call, cause ->
-            throw cause
-        }
-        exception<IllegalArgumentException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, cause.message ?: "Illegal Arguments")
+        exception<Throwable> { call, cause ->
+            when (cause) {
+                is CancellationException -> throw cause
+                else -> call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
+            }
         }
         unhandled { call ->
             System.err.println("unhandled call: ${call.request.httpMethod.value} ${call.request.uri}")

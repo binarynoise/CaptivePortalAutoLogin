@@ -1,11 +1,25 @@
 table {
     border-collapse: collapse;
-    max-width: 100%;
+    width: max-content;
+}
+
+div:has(>table) {
+    overflow: scroll;
+    width: 100%;
+    padding-bottom: 3px;
 }
 
 table, th, td {
     border: 1px solid gray;
     padding: 0.2em 0.5em;
+}
+
+td > .scroll {
+    max-width: 15cm;
+    max-height: 1lh;
+    overflow: auto;
+    white-space: pre;
+    scrollbar-width: none;
 }
 
 .hidden {
@@ -14,4 +28,29 @@ table, th, td {
 
 .mono {
     font-family: monospace;
+}
+
+input[type=number] {
+    text-align: right;
+}
+
+input:has(+label) {
+    margin-right: 0;
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+    background-color: currentColor;
+    mask-size: contain;
+    display: inline-block;
+    vertical-align: center;
+    
+    &.sort-asc {
+        mask-image: url('/static/icon/bootstrap_sort_down_asc.svg');
+    }
+    
+    &.sort-desc {
+        mask-image: url('/static/icon/bootstrap_sort_down_desc.svg');
+    }
 }
