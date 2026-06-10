@@ -32,11 +32,6 @@ class CommonAndroidApplication : Plugin<Project> {
             commonAndroid.apply(target)
             
             extensions.configure<ApplicationExtension> {
-                
-                defaultConfig {
-                    versionCode = getCommitCount()
-                }
-                
                 setupSigning(rootProject.projectDir)
                 setupVersioning(target)
                 
