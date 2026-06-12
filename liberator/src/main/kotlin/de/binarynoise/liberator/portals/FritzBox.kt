@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.LiberatorExtras
@@ -10,10 +12,9 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object FritzBox : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return "untrusted_guest.lua" == response.requestUrl.decodedPath
+        return response.requestUrl.decodedPath == "/untrusted_guest.lua"
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
@@ -21,10 +22,9 @@ object FritzBox : PortalLiberator {
     }
 }
 
-@Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object FritzBoxBlocked : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return "fritz.box" == response.requestUrl.host && "blocked" == response.requestUrl.decodedPath
+        return response.requestUrl.host == "fritz.box" && response.requestUrl.decodedPath == "/blocked"
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
