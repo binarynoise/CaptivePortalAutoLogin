@@ -90,10 +90,11 @@ fun FormElement.submit(
 fun Document.submitOnlyForm(
     client: OkHttpClient,
     baseUrl: HttpUrl,
+    cssQuery: String? = null,
     parameters: Map<String, String> = emptyMap(),
     queryParameters: Map<String, String> = emptyMap(),
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
-    val form = this.forms().single()
+    val form = this.select(cssQuery ?: "form").forms().single()
     return form.submit(client, baseUrl, parameters, queryParameters, preConnectSetup)
 }
