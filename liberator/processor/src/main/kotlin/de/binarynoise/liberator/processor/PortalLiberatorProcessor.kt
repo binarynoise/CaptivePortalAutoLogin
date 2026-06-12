@@ -34,14 +34,6 @@ class PortalLiberatorProcessor(environment: SymbolProcessorEnvironment) : Symbol
         return emptyList()
     }
     
-    private fun KSClassDeclaration.implements(interfaceName: String): Boolean {
-        return superTypes.any { superType ->
-            val resolved = superType.resolve()
-            val qName = resolved.declaration.qualifiedName?.asString()
-            qName == interfaceName
-        }
-    }
-    
     private fun generateList(objects: List<KSClassDeclaration>) {
         val fileName = "GeneratedPortalLiberators"
         val pkg = portalPackage
