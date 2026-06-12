@@ -13,8 +13,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@SSID("Commerzbank-Wifi")
-object Commerzbank : PortalLiberator {
+@SSID(
+    "Commerzbank-Wifi",
+    "Hofmeister-Gast",
+)
+object WifiAccess : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         return response.requestUrl.host == "wifiaccess.co" // 
             && response.requestUrl.pathSegments.getOrNull(1) == "portal" // 
@@ -29,7 +32,7 @@ object Commerzbank : PortalLiberator {
             mapOf(
                 "action" to "subscribe",
                 "type" to "one",
-                "policy_accept" to "true",
+                "connect_policy_accept" to "true",
             ),
         ).parseJsonObject()
         val subscribeObject = json1.getJsonObject("info").getJsonObject("subscribe")
