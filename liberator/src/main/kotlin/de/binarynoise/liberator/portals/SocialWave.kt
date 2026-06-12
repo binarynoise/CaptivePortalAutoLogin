@@ -7,8 +7,10 @@ import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.randomEmail
 import de.binarynoise.liberator.tryOrIgnore
+import de.binarynoise.util.json.getBoolean
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.json.has
@@ -24,9 +26,12 @@ import okhttp3.Response
 
 @Experimental
 @SSID(
+    "Cotidiano-Gast",
     "FreeWiFi 24 Autohof Mühldorf",
     "FreeWiFi Burger King",
     "FreeWiFi Teufel",
+    "FreeWiFi Wenkers am Markt",
+    "MeinHotspot",
     "WienerRiesenrad",
 )
 object SocialWave : PortalLiberator {
@@ -77,6 +82,11 @@ object SocialWave : PortalLiberator {
                 "query" to res,
             )
         ).parseJsonObject()
+        if (!helloJson.getBoolean("Success")) {
+            val reason = helloJson.getString("Reason")
+            if (reason == "DeactivatedLocation") throw UnsupportedPortalException("Deactivated Location")
+            throw IllegalStateException("helloJson not successful reason=$reason")
+        }
         val registerEmailJson = client.postForm(
             SOCIALWAVE_SPLASH_API_BASE, "email/register.json", mapOf(
                 "assigned_mac" to (extras.cookies.find { it.name == "assigned_mac" }?.value ?: ""),
