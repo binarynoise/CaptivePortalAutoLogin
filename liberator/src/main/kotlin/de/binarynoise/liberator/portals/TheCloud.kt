@@ -3,6 +3,7 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.firstSuccess
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.followRedirects
@@ -14,6 +15,7 @@ import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID(
+    "GERBER-FreeWifi",
     "HUGO-BOSS-WIFI",
     "WiFi Darmstadt",
     "mycloud",
@@ -28,8 +30,16 @@ object TheCloud : PortalLiberator {
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val baseUrl = response.requestUrl.enforceHttps()
-        val getOnlineResponse = client.get(baseUrl, "getonline").followRedirects(client)
-        client.postForm(baseUrl, "macauthlogin/v2/registration", mapOf("terms" to "true")) //
-            .followRedirects(client) { it.host == THECLOUD_DOMAIN }.checkSuccess()
+        client.get(baseUrl, "getonline").followRedirects(client)
+        val registerUrls = listOf(
+            "macauthlogin/v2/registration",
+            "macauthlogin/v1/registration",
+        )
+        registerUrls.asSequence().map {
+            runCatching {
+                client.postForm(baseUrl, "macauthlogin/v2/registration", mapOf("terms" to "true")) //
+                    .followRedirects(client) { it.host == THECLOUD_DOMAIN }.checkSuccess()
+            }
+        }.firstSuccess().getOrThrow()
     }
 }
