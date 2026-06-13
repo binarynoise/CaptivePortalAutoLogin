@@ -125,8 +125,17 @@ class RhinoParser(private val debug: Boolean = false) {
                 }
                 base + key
             }
+            is KeywordLiteral -> listOf(node.toSource())
+            is FunctionCall -> {
+                val base = buildPropertyPath(node.target)
+                val args = node.arguments.map { getValueString(it) }
+                base + args
+            }
             
-            else -> emptyList()
+            else -> {
+                if (debug) println("Unsupported node type: ${node::class.simpleName}")
+                emptyList()
+            }
         }
     }
     

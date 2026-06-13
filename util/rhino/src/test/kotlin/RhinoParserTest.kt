@@ -201,6 +201,31 @@ class RhinoParserTest {
                 +Arguments.of("obj.prop[0] = 'mixed';", "obj.prop.0", "mixed", 1)
                 +Arguments.of("a.b[0].c[1] = 'complex';", "a.b.0.c.1", "complex", 1)
                 
+                // FunctionCall branch
+                +multiArgs(
+                    "a.b('value').c = 'test';",
+                    2,
+                    "a.b.value.c" to "test",
+                    "a.b.0" to "value",
+                )
+                
+                // FunctionCall branch - multiple args
+                +multiArgs(
+                    "a.b('value1', 'value2').c = 'test';",
+                    3,
+                    "a.b.value1.value2.c" to "test",
+                    "a.b.0" to "value1",
+                    "a.b.1" to "value2",
+                )
+                
+                // FunctionCall on RHS
+                +multiArgs(
+                    "a.b = c('value');",
+                    2,
+                    "a.b" to "c('value')",
+                    "c.0" to "value",
+                )
+                
                 // unsupported dynamic keys
                 +Arguments.of("obj[func()] = 'functionResultKey';", "obj.func()", null, 0)
                 
@@ -208,7 +233,7 @@ class RhinoParserTest {
                 +Arguments.of("config.api['v1'].users[0].name = 'John';", "config.api.v1.users.0.name", "John", 1)
                 
                 // Edge cases
-                +Arguments.of("this.prop = 'this';", "prop", "this", 1)
+                +Arguments.of("this.prop = 'this';", "this.prop", "this", 1)
                 +Arguments.of("window['global'] = 'window';", "window.global", "window", 1)
             }
         }
