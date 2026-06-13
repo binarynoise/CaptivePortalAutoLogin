@@ -31,10 +31,13 @@ val prettyPrinter = Json {
     explicitNulls = false
 }
 
-fun JsonObject(json: String) = serializer.parseToJsonElement(json).jsonObject
+val hexEscapeRegex = """\\x([0-9a-fA-F]{2})""".toRegex()
+fun String.fixHexEscapes(): String = replace(hexEscapeRegex) { "\\u00${it.groupValues[1]}" }
+
+fun JsonObject(json: String) = serializer.parseToJsonElement(json.fixHexEscapes()).jsonObject
 fun JsonObject(map: Map<String, Any>) = map.toJsonElement().jsonObject
 fun JsonObject() = JsonObject("{}")
-fun JsonArray(json: String) = serializer.parseToJsonElement(json).jsonArray
+fun JsonArray(json: String) = serializer.parseToJsonElement(json.fixHexEscapes()).jsonArray
 fun JsonArray(array: Array<Any>) = array.toJsonElement().jsonArray
 fun JsonArray() = JsonArray("[]")
 fun JsonElement(map: Map<String, Any>) = map.toJsonElement()
