@@ -96,6 +96,23 @@ fun Base64.decodeString(
     return this.decode(source, startIndex, endIndex).decodeToString()
 }
 
+/**
+ * [Base64] encoding compliant with `btoa` from javascript
+ */
+@Suppress("SpellCheckingInspection")
+fun btoa(source:String) : String{
+    return Base64.UrlSafe.encode(source)
+}
+
+/**
+ * [Base64] decoding compliant with `atob` from javascript
+ */
+@Suppress("SpellCheckingInspection")
+fun atob(encoded: String) : String {
+    return Base64.UrlSafe.decodeString(encoded)
+}
+
+
 class NoSuccessException(message: String) : Exception(message)
 
 fun <T> Sequence<Result<T>>.firstSuccess(): Result<T> {
