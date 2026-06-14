@@ -96,13 +96,15 @@ suspend fun generateTableData(
     }
     val filterOptionsEmpty = filterOptions.none { it.selected }
     val filterString = call.request.queryParameters["filter"]?.takeUnless { it.isBlank() }
-    when {
-        filterString == null -> {}
+    val filterQueryMap: Map<String, List<String>>? = when {
+        filterString == null -> null
         filterString.contains("=") -> {
-            val filterParameters = parseQueryString(filterString).toMap().mapValues { (_, value) -> value.single() }
+            val filterQueryMap = parseQueryString(filterString).toMap()
+            val filterParameters = filterQueryMap.mapValues { (_, value) -> value.single() }
             dataFrame = dataFrame.filter { row ->
                 filterParameters.all { (key, value) -> row[key]?.toString() == value }
             }
+            filterQueryMap
         }
         else -> {
             dataFrame = dataFrame.filter { row ->
@@ -110,6 +112,7 @@ suspend fun generateTableData(
                     (active || filterOptionsEmpty) && row[name].toString().contains(filterString, ignoreCase = true)
                 }
             }
+            null
         }
     }
     
@@ -123,7 +126,7 @@ suspend fun generateTableData(
     }
     
     val visibleActionColumnDefinitions: DataFrame<ActionColumnDefinition> = if (groupColumns.isNotEmpty()) {
-        actionColumnDefinitions.filter { it.dependencies.all { dep -> dep in groupColumns } }
+        actionColumnDefinitions.filter { it.dependencies.all { dep -> dep in groupColumns || filterQueryMap != null && dep in filterQueryMap.keys } }
     } else {
         actionColumnDefinitions
     }
