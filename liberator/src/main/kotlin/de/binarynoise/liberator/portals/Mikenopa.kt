@@ -7,8 +7,10 @@ import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.lastPathSegment
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -17,7 +19,8 @@ import okhttp3.Response
 @SSID("Unger_GUEST")
 object Mikenopa : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "login.mikenopa.com"
+        return response.requestUrl.host == "login.mikenopa.com" //
+            && response.requestUrl.lastPathSegment == "initialization-task"
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
