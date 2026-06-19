@@ -5,6 +5,7 @@ import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
+import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.json.JsonObject
@@ -67,14 +68,21 @@ object ArubaNetworks : PortalLiberator {
             loginConfig.getString("capture")
         } ?: error("no capture")
         
+        val csrf_token = tryOrNull {
+            portal_login_page_config1.getJsonObject("page").getString("csrf_token")
+        } ?: error("no csrf_token")
+        
         val response2 = client.postForm(
             response.requestUrl, null, mapOf(
                 "accept_terms" to "on",
+                "csrf_token" to csrf_token,
                 "capture" to capture,
             )
         ).followRedirects(client)
         
         val portal_login_page_config2 = getPortalLoginPageConfig(response2)
+        if (tryOrDefault(false) { !portal_login_page_config2.getBoolean("network_login") }) // 
+            throw IllegalStateException("portal_login_page_config2 networklogin is false")
         val network_login_config = portal_login_page_config2.getJsonObject("network_login")
         
         performArubaLogin(
