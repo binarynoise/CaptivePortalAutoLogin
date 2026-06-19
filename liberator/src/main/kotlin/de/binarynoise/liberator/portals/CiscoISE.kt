@@ -13,7 +13,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@SSID("SSB fuer Dich - WiFi Free")
+@SSID(
+    "SSB fuer Dich - WiFi Free",
+    "postbank.de",
+    "deutsche-bank.de",
+)
 object CiscoISE : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         return response.isRedirect && response.requestUrl.encodedPath == "/portal/gateway" // redirect to Cisco ISE CWA service
@@ -53,7 +57,7 @@ object CiscoISE : PortalLiberator {
             response.requestUrl,
             "DoCoA.action",
             mapOf(
-                "delayToCoA" to "0",
+                "delayToCoA" to "2",
                 "waitForCoA" to "true",
                 "coaReason" to "Guest authenticated for network access",
                 "coaSource" to "GUEST",
