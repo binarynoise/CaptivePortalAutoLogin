@@ -63,7 +63,7 @@ fun Response.getLocation(): String? {
  * @return The redirect URL from the response header or parsed from the HTML if present, null otherwise.
  */
 fun Response.getLocationUrl(): HttpUrl? {
-    return this.getLocation()?.toHttpUrl()
+    return this.getLocation()?.toHttpUrl(this.requestUrl)
 }
 
 fun Response.getLocationUnchecked(): String? {
