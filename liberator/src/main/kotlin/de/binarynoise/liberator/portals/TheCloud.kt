@@ -8,6 +8,8 @@ import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.getLocationUrl
+import de.binarynoise.util.okhttp.lastPathSegment
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
@@ -35,10 +37,12 @@ object TheCloud : PortalLiberator {
             "macauthlogin/v2/registration",
             "macauthlogin/v1/registration",
         )
-        registerUrls.asSequence().map {
+        registerUrls.asSequence().map { registerUrl ->
             runCatching {
-                client.postForm(baseUrl, "macauthlogin/v2/registration", mapOf("terms" to "true")) //
-                    .followRedirects(client) { it.host == THECLOUD_DOMAIN }.checkSuccess()
+                val macAuthResponse = client.postForm(baseUrl, registerUrl, mapOf("terms" to "true"))
+                if (macAuthResponse.isRedirect && macAuthResponse.getLocationUrl()?.lastPathSegment == "getonline") // 
+                    throw IllegalStateException("$registerUrl redirected to getonline")
+                macAuthResponse.followRedirects(client) { it.host == THECLOUD_DOMAIN }.checkSuccess()
             }
         }.firstSuccess().getOrThrow()
     }
