@@ -49,6 +49,7 @@ abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberat
 
 @SSID(
     "Bershka-WiFi",
+    "MassimoDutti-WiFi",
     "PULL&BEAR-FreeWiFi",
     "Stradivarius-WiFi",
     "Zara-WiFi",

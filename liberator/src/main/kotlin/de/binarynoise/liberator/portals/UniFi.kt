@@ -24,8 +24,20 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @Experimental
 @SSID(
-    "L’Osteria",
+    "Baeckerhaus Veit",
+    "CS-Gastzugang",
+    "CS-Studenten",
+    "CVS-Gastzugang",
+    "GLÜCKSBRINGER",
     "Henri Willig GUEST",
+    "Hyperlocal",
+    "KaptenAndSon_Gast",
+    "Kesselwirt Stuttgart Gäste",
+    "L’Osteria",
+    "MERKUR-GAST-WLAN",
+    "Overkamp-Gast",
+    "Senzanome-Gast",
+    "poGast",
 )
 object UniFi : PortalLiberator {
     override fun canSolve(response: Response): Boolean {

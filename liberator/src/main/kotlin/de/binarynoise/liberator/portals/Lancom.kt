@@ -13,6 +13,7 @@ import okhttp3.Response
 
 @SSID(
     "emilioadani-Spot",
+    "Butlers-FreeWifi",
 )
 object LancomCloudServiceHotspot : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
