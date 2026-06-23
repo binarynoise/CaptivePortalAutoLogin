@@ -1,12 +1,16 @@
 @file:Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
+
 package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.decodedPath
+import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.isIp
+import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.OkHttpClient
@@ -20,6 +24,24 @@ object LandesmuseumStuttgart : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        response.submitOnlyForm(client)
+        response.submitOnlyForm(client).checkSuccess()
+    }
+}
+
+@Experimental
+@SSID("Staatstheater", mustMatch = true)
+object StaatstheaterStuttgart : PortalLiberator {
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.firstPathSegment == "authen"
+    }
+    
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
+        client.postForm(
+            response.requestUrl,
+            "agblogin/",
+            mapOf(
+                "AGB" to "on",
+            ),
+        ).checkSuccess()
     }
 }
