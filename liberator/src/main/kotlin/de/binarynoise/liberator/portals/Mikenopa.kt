@@ -2,12 +2,10 @@
 
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.util.okhttp.checkSuccess
-import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.lastPathSegment
@@ -15,7 +13,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID("Unger_GUEST")
 object Mikenopa : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
