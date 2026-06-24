@@ -8,11 +8,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.Clock
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
@@ -141,30 +137,15 @@ class ApiClientTests {
             
             client.liberator.reportSuccess(success)
             
-            val dateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
             val count = runBlocking {
-                server.database.successDao().getCount(
-                    success.version,
-                    dateTime.year,
-                    dateTime.month.number,
-                    success.ssid,
-                    success.url,
-                    success.solver.orEmpty()
-                )
+                server.database.successDao().getAll().size
             }
             assertEquals(1, count)
             
             client.liberator.reportSuccess(success)
             
             val count2 = runBlocking {
-                server.database.successDao().getCount(
-                    success.version,
-                    dateTime.year,
-                    dateTime.month.number,
-                    success.ssid,
-                    success.url,
-                    success.solver.orEmpty()
-                )
+                server.database.successDao().getAll().size
             }
             assertEquals(2, count2)
         }
