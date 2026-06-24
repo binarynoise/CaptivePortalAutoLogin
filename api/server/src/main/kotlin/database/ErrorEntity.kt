@@ -29,10 +29,6 @@ open class ErrorEntity(
         message = message,
         solver = solver,
         stackTrace = stackTrace,
-        domain = url.getUrlDomain(),
-        majorVersion = version.getMajorVersion(),
-        year = timestamp.toLocalDateTime(UTC).year,
-        month = timestamp.toLocalDateTime(UTC).month.number,
     )
 }
 
@@ -46,8 +42,11 @@ class ExtendedErrorEntity(
     message: String,
     solver: String,
     stackTrace: String,
-    val domain: String,
-    val majorVersion: Int,
-    val year: Int,
-    val month: Int,
-) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace)
+) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace) {
+    val domain = url.getUrlDomain()
+    val majorVersion = version.getMajorVersion()
+    private val localDateTime = timestamp.toLocalDateTime(UTC)
+    val year: Int = localDateTime.year
+    val month: Int = localDateTime.month.number
+    val day: Int = localDateTime.day
+}

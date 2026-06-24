@@ -11,11 +11,12 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
 import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_1_2
 import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_2_3
+import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_3_4
 import de.binarynoise.logger.Logger.log
 
 @Database(
     entities = [ErrorEntity::class, SuccessEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(DatabaseTypeConverters::class)
@@ -46,7 +47,7 @@ abstract class AppDatabase : RoomDatabase() {
             return Room.databaseBuilder<AppDatabase>(dbFile.absolutePath)
                 .setDriver(BundledSQLiteDriver())
                 .setJournalMode(JournalMode.TRUNCATE)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .addCallback(object : Callback() {
                     override fun onCreate(connection: SQLiteConnection) {
                         log("AppDatabase created")

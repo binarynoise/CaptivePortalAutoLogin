@@ -2,17 +2,14 @@ package de.binarynoise.captiveportalautologin.server
 
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
 import de.binarynoise.captiveportalautologin.server.database.ErrorEntity
+import de.binarynoise.captiveportalautologin.server.database.SuccessEntity
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 
@@ -53,9 +50,6 @@ class ApiServer(root: Path = Path(".")) : Api {
             TODO("fetchLiberatorUpdate Not yet implemented")
         }
         
-        private fun dateTime() = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        private fun date() = dateTime().date
-        
         override fun reportError(error: Api.Liberator.Error) {
             runBlocking {
                 val errorEntity = ErrorEntity(
@@ -73,16 +67,15 @@ class ApiServer(root: Path = Path(".")) : Api {
         }
         
         override fun reportSuccess(success: Api.Liberator.Success) {
-            val d = date()
             runBlocking {
-                database.successDao().insertOrIncrement(
+                val successEntity = SuccessEntity(
                     version = success.version,
-                    year = d.year,
-                    month = d.month.number,
+                    timestamp = Instant.fromEpochMilliseconds(success.timestamp),
                     ssid = success.ssid,
                     url = success.url,
                     solver = success.solver.orEmpty(),
                 )
+                database.successDao().insert(successEntity)
             }
             log("Stored Api.Liberator.Success: $success")
         }

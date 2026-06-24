@@ -21,11 +21,12 @@ internal fun Route.successRoutes() {
             ColumnDefinition("majorVersion", "Major Version", Comparators.RegularComparator),
             ColumnDefinition("year", "Year", Comparators.RegularComparator),
             ColumnDefinition("month", "Month", Comparators.RegularComparator),
+            ColumnDefinition("day", "Day", Comparators.RegularComparator),
+            ColumnDefinition("timestamp", "Timestamp", Comparators.RegularComparator),
             ColumnDefinition("ssid", "SSID", Comparators.RegularComparator),
             ColumnDefinition("solver", "Solver", Comparators.RegularComparator),
             ColumnDefinition("url", "URL", Comparators.RegularComparator),
             ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
-            ColumnDefinition("count", "Count", Comparators.RegularComparator),
         )
         val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "solver")
         
