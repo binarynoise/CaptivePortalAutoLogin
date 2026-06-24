@@ -90,19 +90,18 @@ internal fun Route.harRoutes() {
         
         get("download/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val base = ApiServer.api.jsonDb.base<HAR>()
             val archived = "archived" in call.request.queryParameters && call.request.queryParameters.get("archived")
                 ?.takeIf { it.isNotBlank() }
                 ?.toBooleanStrict() ?: true
             
             if (!archived) {
-                val path = base.resolve(id)
+                val path = harBase.resolve(id)
                 if (path.exists()) {
                     call.respondPath(path)
                     return@get
                 }
             } else {
-                val path = base.resolve("archived").resolve(id)
+                val path = harBase.resolve("archived").resolve(id)
                 if (path.exists()) {
                     call.respondPath(path)
                     return@get
@@ -115,14 +114,13 @@ internal fun Route.harRoutes() {
         
         post("archive/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val base = ApiServer.api.jsonDb.base<HAR>()
-            val src = base.resolve(id)
+            val src = harBase.resolve(id)
             if (!src.exists()) {
                 log("archive: file not found: $src")
                 call.respond(HttpStatusCode.NotFound)
                 return@post
             }
-            val archiveDir = base.resolve("archived").apply { createDirectories() }
+            val archiveDir = harBase.resolve("archived").apply { createDirectories() }
             val dest = archiveDir.resolve(id)
             if (dest.exists()) {
                 log("archive: file already exists: $dest")
@@ -137,14 +135,13 @@ internal fun Route.harRoutes() {
         
         post("unarchive/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val base = ApiServer.api.jsonDb.base<HAR>()
-            val src = base.resolve("archived").resolve(id)
+            val src = harBase.resolve("archived").resolve(id)
             if (!src.exists()) {
                 log("unarchive: file not found: $src")
                 call.respond(HttpStatusCode.NotFound)
                 return@post
             }
-            val dest = base.resolve(id)
+            val dest = harBase.resolve(id)
             if (dest.exists()) {
                 log("unarchive: file already exists: $dest")
                 call.respond(HttpStatusCode.Conflict, "Unarchived file already exists")
@@ -159,8 +156,7 @@ internal fun Route.harRoutes() {
         post("delete/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
             val archived = call.parameters["archived"] == "true"
-            val base = ApiServer.api.jsonDb.base<HAR>()
-            val file = base.resolve(if (archived) "archived" else "").resolve(id)
+            val file = harBase.resolve(if (archived) "archived" else "").resolve(id)
             if (!file.exists()) {
                 log("delete: file not found: $file")
                 call.respond(HttpStatusCode.NotFound)
@@ -186,16 +182,15 @@ internal fun Route.harRoutes() {
 }
 
 private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): DataFrame<*> {
-    val base = ApiServer.api.jsonDb.base<HAR>()
     val entries = mutableListOf<HarEntry>()
     
     if (includeRegular) {
-        val regular = base.listDirectoryEntries("*.har")
+        val regular = harBase.listDirectoryEntries("*.har")
         entries.addAll(regular.map { parseHarFileName(it.nameWithoutExtension, archived = false) })
     }
     
     if (includeArchived) {
-        val archivedDir = base.resolve("archived")
+        val archivedDir = harBase.resolve("archived")
         if (archivedDir.exists()) {
             val archived = archivedDir.listDirectoryEntries("*.har")
             entries.addAll(archived.map { parseHarFileName(it.nameWithoutExtension, archived = true) })
@@ -219,6 +214,7 @@ private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): D
     return dataFrame
 }
 
+private val harBase: Path = ApiServer.api.jsonDb.base<HAR>()
 val harFileNameRegex = """^(?:(.+) )?(\S+) ([\d-]+T[\d:]+(?:\.\d+)?Z(?:[\d+:.-]+)?)$""".toRegex()
 private fun parseHarFileName(name: String, archived: Boolean): HarEntry {
     val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived)
