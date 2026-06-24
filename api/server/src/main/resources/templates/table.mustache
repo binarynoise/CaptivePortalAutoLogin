@@ -35,7 +35,7 @@
                         <div style="display: flex">
                             <input id="filter" name="filter" value="{{filterValue}}"
                                    style="width: auto; flex-grow: 1;"/>
-                            <button type="button" style="margin-left: 4pt; font-size: 0.8em;">✕</button>
+                            <button type="button" style="margin-left: 4pt; font-size: 0.8em;" onclick="document.getElementById('filter').value = '';">✕</button>
                         </div>
                         {{#filterOptions}}
                             <input type="checkbox" name="filterBy-{{name}}" id="filterBy-{{name}}"
