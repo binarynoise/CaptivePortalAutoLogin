@@ -1,44 +1,46 @@
 package de.binarynoise.captiveportalautologin.server.database
 
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone.Companion.UTC
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 
-@Entity(
-    tableName = "successes",
-    primaryKeys = ["version", "year", "month", "ssid", "url", "solver"],
-)
+@Entity(tableName = "successes")
 @DataSchema
 open class SuccessEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val version: String,
-    val year: Int,
-    val month: Int,
+    val timestamp: Instant,
     val ssid: String,
     val url: String,
     val solver: String,
-    val count: Int,
 ) {
     fun toExtendedSuccessEntity() = ExtendedSuccessEntity(
-        version,
-        year,
-        month,
-        ssid,
-        url,
-        solver,
-        count,
-        url.getUrlDomain(),
-        version.getMajorVersion(),
+        id = id,
+        version = version,
+        timestamp = timestamp,
+        ssid = ssid,
+        url = url,
+        solver = solver,
     )
 }
 
 @DataSchema
 class ExtendedSuccessEntity(
+    id: Long,
     version: String,
-    year: Int,
-    month: Int,
+    timestamp: Instant,
     ssid: String,
     url: String,
     solver: String,
-    count: Int,
-    val domain: String,
-    val majorVersion: Int,
-) : SuccessEntity(version, year, month, ssid, url, solver, count)
+) : SuccessEntity(id, version, timestamp, ssid, url, solver) {
+    val domain: String = url.getUrlDomain()
+    val majorVersion: Int = version.getMajorVersion()
+    private val localDateTime = timestamp.toLocalDateTime(UTC)
+    val year: Int = localDateTime.year
+    val month: Int = localDateTime.month.number
+    val day: Int = localDateTime.day
+}
