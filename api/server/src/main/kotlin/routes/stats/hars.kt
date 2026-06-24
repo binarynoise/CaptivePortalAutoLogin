@@ -38,7 +38,7 @@ data class HarEntry(
 
 internal fun Route.harRoutes() {
     get("hars") {
-        call.response.header("Location", "har/")
+        call.response.header("Location", "hars/")
         call.respond(HttpStatusCode.MovedPermanently)
     }
     
