@@ -43,6 +43,7 @@ internal fun Route.harRoutes() {
         get {
             val columnDefinitions: DataFrame<ColumnDefinition> = dataFrameOf(
                 ColumnDefinition("timestamp", "Timestamp", Comparators.RegularComparator),
+                ColumnDefinition("ssid", "SSID", Comparators.RegularComparator),
                 ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
                 ColumnDefinition("name", "Name", Comparators.RegularComparator),
                 ColumnDefinition("archived", "Archived", Comparators.RegularComparator),
