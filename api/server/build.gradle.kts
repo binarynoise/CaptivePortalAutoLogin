@@ -34,6 +34,8 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.sqlite.bundled)
     
+    implementation("nl.jacobras:Human-Readable:1.13.0")
+    
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)

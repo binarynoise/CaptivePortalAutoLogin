@@ -4,6 +4,7 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.moveTo
 import kotlin.io.path.name
@@ -18,6 +19,7 @@ import io.ktor.server.mustache.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import nl.jacobras.humanreadable.HumanReadable
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.add
@@ -31,6 +33,7 @@ data class HarEntry(
     val domain: String,
     val timestamp: String,
     val archived: Boolean,
+    val fileSize: String,
 )
 
 internal fun Route.harRoutes() {
@@ -46,6 +49,7 @@ internal fun Route.harRoutes() {
                 ColumnDefinition("ssid", "SSID", Comparators.RegularComparator),
                 ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
                 ColumnDefinition("name", "Name", Comparators.RegularComparator),
+                ColumnDefinition("fileSize", "File Size", Comparators.RegularComparator),
                 ColumnDefinition("archived", "Archived", Comparators.RegularComparator),
             )
             val actionColumnDefinitions: DataFrame<ActionColumnDefinition> = dataFrameOf(
@@ -186,14 +190,14 @@ private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): D
     
     if (includeRegular) {
         val regular = harBase.listDirectoryEntries("*.har")
-        entries.addAll(regular.map { parseHarFileName(it.nameWithoutExtension, archived = false) })
+        entries.addAll(regular.map { parseHarPath(it, archived = false) })
     }
     
     if (includeArchived) {
         val archivedDir = harBase.resolve("archived")
         if (archivedDir.exists()) {
             val archived = archivedDir.listDirectoryEntries("*.har")
-            entries.addAll(archived.map { parseHarFileName(it.nameWithoutExtension, archived = true) })
+            entries.addAll(archived.map { parseHarPath(it, archived = true) })
         }
     }
     
@@ -216,12 +220,16 @@ private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): D
 
 private val harBase: Path = ApiServer.api.jsonDb.base<HAR>()
 val harFileNameRegex = """^(?:(.+) )?(\S+) ([\d-]+T[\d:]+(?:\.\d+)?Z(?:[\d+:.-]+)?)$""".toRegex()
-private fun parseHarFileName(name: String, archived: Boolean): HarEntry {
-    val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived)
+private fun parseHarPath(path: Path, archived: Boolean): HarEntry {
+    val fileSize = path.fileSize().let { HumanReadable.fileSize(it, decimals = 1) }
+    
+    val name = path.nameWithoutExtension
+    val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived, fileSize)
     val ssid = match.groupValues[1]
     val domain = match.groupValues[2]
     val timestamp = match.groupValues[3]
-    return HarEntry(name, ssid, domain, timestamp, archived)
+    
+    return HarEntry(name, ssid, domain, timestamp, archived, fileSize)
 }
 
 private suspend fun ApplicationCall.respondPath(path: Path) {
