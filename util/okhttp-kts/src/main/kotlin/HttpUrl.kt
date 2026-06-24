@@ -72,3 +72,29 @@ fun String.toHttpUrlOrNull(base: HttpUrl?): HttpUrl? {
 fun HttpUrl.enforceHttps(): HttpUrl {
     return this.newBuilder().scheme("https").build()
 }
+
+/**
+ * return a new [HttpUrl] with the [HttpUrl.encodedPath] set to "`/`"
+ */
+val HttpUrl.origin: HttpUrl
+    get() = this.newBuilder().encodedPath("/").build()
+
+/**
+ * returns this [HttpUrl] [origin] as a [String] that can be used in the `Origin` header
+ */
+val HttpUrl.originHeader: String
+    get() = this.origin.toString().removeSuffix("/")
+
+/**
+ * construct a new [HttpUrl] where the common [encodedPath] of [base] is removed from [this] [HttpUrl]
+ * 
+ * the resulting [HttpUrl] should only be used for path comparisons, and not for further requests
+ * 
+ * @throws IllegalArgumentException if the origins do not match
+ * @throws IllegalArgumentException if [this] is not based on [base]
+ */
+fun HttpUrl.relativeTo(base: HttpUrl): HttpUrl {
+    require(this.origin == base.origin) { "origin does not match" }
+    require(this.encodedPath.startsWith(base.encodedPath)) { "$this is not based on $base" }
+    return this.newBuilder().encodedPath(this.encodedPath.removePrefix(base.encodedPath)).build()
+}
