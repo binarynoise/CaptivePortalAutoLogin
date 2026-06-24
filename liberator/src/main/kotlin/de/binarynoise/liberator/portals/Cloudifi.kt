@@ -7,7 +7,9 @@ import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.randomEmail
+import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
+import de.binarynoise.util.okhttp.origin
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submit
@@ -20,8 +22,10 @@ import okhttp3.Response
     "Sephora Where Wifi Beats",
 )
 object Cloudifi : PortalLiberator {
+    const val CLOUDIFI_DOMAIN = "login.cloudi-fi.net"
+    
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "login.cloudi-fi.net" && !response.isRedirect
+        return response.requestUrl.host == CLOUDIFI_DOMAIN && !response.isRedirect
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
@@ -34,6 +38,15 @@ object Cloudifi : PortalLiberator {
                 "username" to randomEmail(),
             ),
         )
-        response1.submitOnlyForm(client).followRedirects(client)
+        
+        var encounteredSuccess = false
+        response1.submitOnlyForm(client).followRedirects(client) { url ->
+            // redirection chain: firewall -> cloudifi -> redirected site
+            // first wait for firewall redirection, then only follow redirects on cloudifi
+            // prevents the final redirected site from loading
+            if (url.host == CLOUDIFI_DOMAIN && url.decodedPath == "/success.php") encounteredSuccess = true
+            if (!encounteredSuccess) return@followRedirects true
+            return@followRedirects url.host == CLOUDIFI_DOMAIN
+        }
     }
 }
