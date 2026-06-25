@@ -44,7 +44,7 @@ import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Error
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Success
-import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
+import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.BackgroundHandler
 import de.binarynoise.captiveportalautologin.util.applicationContext
@@ -92,7 +92,11 @@ class ConnectivityChangeListenerService : Service() {
         val oldNotification = notification ?: return
         val text = newState?.toString().orEmpty()
         log("updateNotification: $text")
-        val newNotification = NotificationCompat.Builder(this, oldNotification).setContentText(text).build()
+        val newNotification = NotificationCompat.Builder(this, oldNotification).apply {
+            setContentText(text)
+            clearActions()
+            addNotificationActions(this, newState)
+        }.build()
         NotificationManagerCompat.from(this).notify(notificationId, newNotification)
         notification = newNotification
     }
@@ -144,25 +148,7 @@ class ConnectivityChangeListenerService : Service() {
                 )
             )
             
-            // add button to try liberating again
-            val retryIntent = Intent(this, this::class.java)
-            retryIntent.putExtra("retry", true)
-            val pendingRetryIntent =
-                PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            builder.addAction(
-                NotificationCompat.Action.Builder(
-                    null, getString(R.string.liberate_now), pendingRetryIntent
-                ).build()
-            )
-            
-            val captureIntent = Intent(this, GeckoViewActivity::class.java)
-            val pendingCaptureIntent =
-                PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            builder.addAction(
-                NotificationCompat.Action.Builder(
-                    null, getString(R.string.capture_captive_portal_short), pendingCaptureIntent
-                ).build()
-            )
+            addNotificationActions(builder, networkStateLock.read { networkState })
             
             builder.setOnlyAlertOnce(true)
         }.build()
@@ -189,6 +175,35 @@ class ConnectivityChangeListenerService : Service() {
         
         log("started")
         return START_STICKY
+    }
+    
+    fun addNotificationActions(builder: NotificationCompat.Builder, networkState: NetworkState?) {
+        val hasPortal = networkState?.hasPortal ?: false
+        val liberated = networkState?.liberated ?: false
+        
+        if (hasPortal && liberated) {
+            // add button to try liberating again
+            val retryIntent = Intent(this, this::class.java)
+            retryIntent.putExtra("retry", true)
+            val pendingRetryIntent =
+                PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
+            builder.addAction(
+                NotificationCompat.Action.Builder(
+                    null, getString(R.string.liberate_now), pendingRetryIntent
+                ).build()
+            )
+        }
+        
+        if (hasPortal) {
+            val captureIntent = Intent(this, RecordCaptivePortalActivity::class.java)
+            val pendingCaptureIntent =
+                PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
+            builder.addAction(
+                NotificationCompat.Action.Builder(
+                    null, getString(R.string.capture_captive_portal_short), pendingCaptureIntent
+                ).build()
+            )
+        }
     }
     
     override fun onDestroy() {
