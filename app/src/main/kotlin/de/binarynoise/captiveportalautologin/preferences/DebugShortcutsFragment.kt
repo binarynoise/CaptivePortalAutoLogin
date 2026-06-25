@@ -7,7 +7,6 @@ import androidx.core.content.getSystemService
 import androidx.preference.Preference
 import de.binarynoise.captiveportalautologin.util.getColorFromAttr
 
-
 class DebugShortcutsFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val context = preferenceManager.context
@@ -27,7 +26,7 @@ class DebugShortcutsFragment : AutoCleanupPreferenceFragment() {
                     shortcutIconDrawable.setTint(tintColor)
                     icon = shortcutIconDrawable
                     setOnPreferenceClickListener {
-                        startActivity(shortcut.intent!!)
+                        startActivity(shortcut.intent!!.setFlags(0))
                         true
                     }
                 }

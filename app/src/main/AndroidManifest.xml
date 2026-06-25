@@ -39,9 +39,11 @@
         
         <activity
             android:name=".gecko.RecordCaptivePortalActivity"
+            android:description="@string/capture_captive_portal_description"
             android:exported="true"
             android:label="@string/capture_captive_portal"
-            android:description="@string/capture_captive_portal_description"
+            android:launchMode="singleInstance"
+            android:taskAffinity=":RecordCaptivePortalActivity"
             android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             android:windowSoftInputMode="adjustResize"
             >
