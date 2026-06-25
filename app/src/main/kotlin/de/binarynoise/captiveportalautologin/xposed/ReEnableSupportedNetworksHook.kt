@@ -33,7 +33,7 @@ class ReEnableSupportedNetworksHook : IXposedHookLoadPackage {
             object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val config = param.args[0] as WifiConfiguration
-                    if (whitelistedSSIDs.contains(config.SSID)) param.result = true
+                    if (whitelistedSSIDs.contains(config.SSID.trim('"'))) param.result = true
                 }
             },
         )
