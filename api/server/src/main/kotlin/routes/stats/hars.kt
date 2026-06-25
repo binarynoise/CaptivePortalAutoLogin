@@ -33,7 +33,7 @@ data class HarEntry(
     val domain: String,
     val timestamp: String,
     val archived: Boolean,
-    val fileSize: String,
+    val fileSize: FileSize,
 )
 
 internal fun Route.harRoutes() {
@@ -218,10 +218,16 @@ private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): D
     return dataFrame
 }
 
+
+class FileSize(val value: Long) : Comparable<FileSize> {
+    override fun toString(): String = HumanReadable.fileSize(value, decimals = 1)
+    override fun compareTo(other: FileSize): Int = value.compareTo(other.value)
+}
+
 private val harBase: Path = ApiServer.api.jsonDb.base<HAR>()
 val harFileNameRegex = """^(?:(.+) )?(\S+) ([\d-]+T[\d:]+(?:\.\d+)?Z(?:[\d+:.-]+)?)$""".toRegex()
 private fun parseHarPath(path: Path, archived: Boolean): HarEntry {
-    val fileSize = path.fileSize().let { HumanReadable.fileSize(it, decimals = 1) }
+    val fileSize = FileSize(path.fileSize())
     
     val name = path.nameWithoutExtension
     val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived, fileSize)
