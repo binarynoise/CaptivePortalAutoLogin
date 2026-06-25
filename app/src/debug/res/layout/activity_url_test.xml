@@ -14,7 +14,7 @@
         style="@style/CaptivePortalAutoLogin.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Test now!"
+        android:text="@string/debug_url_test"
         android:textAppearance="@style/CaptivePortalAutoLogin.Text"
         />
     

@@ -7,35 +7,35 @@
     <item
         android:id="@+id/action_upload"
         android:icon="@drawable/cloud_upload"
-        android:title="Upload HAR"
+        android:title="@string/gecko_upload_har"
         app:showAsAction="always"
         />
     
     <item
         android:id="@+id/action_reload_page"
         android:icon="@drawable/reload"
-        android:title="Reload page"
+        android:title="@string/gecko_reload_page"
         app:showAsAction="always"
         />
     
     <item
         android:id="@+id/action_restart"
         android:icon="@drawable/restart"
-        android:title="Restart"
+        android:title="@string/gecko_restart"
         app:showAsAction="ifRoom"
         />
     
     <item
         android:id="@+id/action_save"
         android:icon="@drawable/content_save"
-        android:title="Save HAR"
+        android:title="@string/gecko_save"
         app:showAsAction="ifRoom"
         />
     
     <item
         android:id="@+id/action_share"
         android:icon="@drawable/share_variant"
-        android:title="Share HAR"
+        android:title="@string/gecko_share"
         app:showAsAction="ifRoom"
         />
 </menu>

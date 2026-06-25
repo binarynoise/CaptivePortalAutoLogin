@@ -17,27 +17,21 @@ import de.binarynoise.liberator.cast
 
 @Suppress("ANNOTATION_WILL_BE_APPLIED_ALSO_TO_PROPERTY_OR_FIELD")
 class Permission private constructor(
-    val name: String?,
-    @StringRes val nameRes: Int?,
-    val description: String?,
-    @StringRes val descriptionRes: Int?,
+    @StringRes val nameRes: Int,
+    @StringRes val descriptionRes: Int,
     val granted: (Context) -> Boolean,
     val request: (ComponentActivity) -> Unit,
     val enabled: (Context) -> Boolean,
 ) {
-    private constructor(
-        name: String?,
-        @StringRes nameRes: Int?,
-        description: String?,
-        @StringRes descriptionRes: Int?,
+    constructor(
+        @StringRes nameRes: Int,
+        @StringRes descriptionRes: Int,
         granted: (Context) -> Boolean,
         request: (ComponentActivity) -> Unit,
         enabled: (Context) -> Boolean = { true },
         minSdk: Int = 0,
     ) : this(
-        name,
         nameRes,
-        description,
         descriptionRes,
         if (minSdk == 0) granted else { context -> (Build.VERSION.SDK_INT < minSdk) || granted(context) },
         if (minSdk == 0) request else { componentActivity ->
@@ -45,24 +39,6 @@ class Permission private constructor(
         },
         if (minSdk == 0) enabled else { context -> (Build.VERSION.SDK_INT >= minSdk) && enabled(context) },
     )
-    
-    constructor(
-        name: String,
-        description: String,
-        granted: (Context) -> Boolean,
-        request: (ComponentActivity) -> Unit,
-        enabled: (Context) -> Boolean = { true },
-        minSdk: Int = 0,
-    ) : this(name, null, description, null, granted, request, enabled, minSdk)
-    
-    constructor(
-        nameRes: Int,
-        descriptionRes: Int,
-        granted: (Context) -> Boolean,
-        request: (ComponentActivity) -> Unit,
-        enabled: (Context) -> Boolean = { true },
-        minSdk: Int = 0,
-    ) : this(null, nameRes, null, descriptionRes, granted, request, enabled, minSdk)
 }
 
 private val allPermissions = mutableSetOf<Permission>()
@@ -72,8 +48,8 @@ object Permissions : Set<Permission> by allPermissions {
     val locationPermissions = mutableSetOf<Permission>()
     
     val notifications = Permission(
-        "Send Notifications",
-        "Show a persistent status notification and show little messages at the bottom of the screen",
+        R.string.preference_permission_notifications,
+        R.string.preference_permission_notifications_description,
         { context ->
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.POST_NOTIFICATIONS
@@ -86,8 +62,8 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val fineLocation = Permission(
-        "Fine Location",
-        "Collect the SSID of Portals. Required for the background service",
+        R.string.preference_permission_fine_location,
+        R.string.preference_permission_fine_location_description,
         { context ->
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -100,8 +76,8 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val backgroundLocation = Permission(
-        "Background Location",
-        "Collect the SSID of Portals. Required for the background service",
+        R.string.preference_permission_background_location,
+        R.string.preference_permission_background_location_description,
         { context ->
             ContextCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -119,8 +95,8 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val locationEnabled = Permission(
-        "Location Enabled",
-        "Collect the SSID of Portals. Required for the background service",
+        R.string.preference_permission_location,
+        R.string.preference_permission_location_description,
         { context ->
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             locationManager.isLocationEnabled

@@ -10,6 +10,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import de.binarynoise.captiveportalautologin.Permission
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.util.startActivity
 
 class PermissionsFragment(
@@ -20,13 +21,13 @@ class PermissionsFragment(
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
-            title = "Permissions"
+            titleRes = R.string.preference_permissions
             
             addPreference(PreferenceCategory(ctx)) {
                 permissions.forEach { permission ->
                     addPreference(CheckBoxPreference(ctx)) {
-                        title = permission.name
-                        summary = permission.description
+                        titleRes = permission.nameRes
+                        summaryRes = permission.descriptionRes
                         
                         setOnPreferenceChangeListener { _, _ ->
                             permission.request(requireActivity())
@@ -51,8 +52,8 @@ class PermissionsFragment(
             }
             
             if (includeOpenSettingsLink) addPreference(Preference(ctx)) {
-                title = "Open Settings"
-                summary = "Click to open the app settings"
+                titleRes = R.string.preference_open_app_info
+                summaryRes = R.string.preference_open_app_info_description
                 setOnPreferenceClickListener { _ ->
                     ctx.startActivity {
                         action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS

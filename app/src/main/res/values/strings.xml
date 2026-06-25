@@ -40,4 +40,83 @@
         \nThe data is completely anonymized and can\'t be linked back to your device or identity at all.
         This is also why we can\'t fulfill data deletion requests.
     </string>
+    <string name="status">Status</string>
+    <string name="capture_captive_portal">Capture Captive Portal Login</string>
+    <string name="capture_captive_portal_short">Capture Portal</string>
+    <string name="capture_captive_portal_description">Log in to a Captive Portal manually and share the capture to improve the Liberator</string>
+    <string name="preference_network_suggestions">Network Suggestions</string>
+    <string name="preference_network_suggestions_description">Suggest automatic connection for supported networks to the OS.</string>
+    <string name="preference_network_suggestions_disconnect_on_Q">\nNote: You may experience short disconnections while the suggestions are updated in the background.</string>
+    <string name="preference_network_suggestions_mac_randomization">Non-persistent MAC randomization</string>
+    <string name="preference_network_suggestions_mac_randomization_description">
+        For suggested networks, the MAC address will be randomized periodically. 
+        This will lead to more anonymity, but also requires liberation for most connection attempts.
+    </string>
+    <string name="preference_network_suggestions_change_mac_now">Change MAC-Address now</string>
+    <string name="preference_network_suggestions_change_mac_now_description">For suggested networks, immediately disconnect and resuggest with a different MAC-Address</string>
+    <string name="preference_advanced_settings">Advanced Settings</string>
+    <string name="service_status">Service Status</string>
+    <string name="network_status">Network Status</string>
+    <string name="not_connected_to_network">Not connected to Network</string>
+    <string name="liberator_status">Liberator Status</string>
+    <string name="preferences_automatically_liberating_captive_portals_description_on">Automatically liberating Captive Portals</string>
+    <string name="preferences_automatically_liberating_captive_portals_description_off">Not automatically liberating Captive Portals</string>
+    <string name="liberate_now">Liberate me now</string>
+    <string name="liberate_now_description">Liberate the current Captive Portal now.\nUse this after network errors or when automatic liberating is disabled.</string>
+    <string name="request_reevaluation">Request Re-evaluation</string>
+    <string name="request_reevaluation_description">Ask android to re-evaluate the current Captive Portal.</string>
+    <string name="capture_captive_portal_dev">Capture Captive Portal Login (dev)</string>
+    <string name="capture_captive_portal_dev_description">Advanced Captive Portal Recording for developers</string>
+    <string name="preference_permissions">Permissions</string>
+    <string name="preference_permissions_description_granted">All permissions granted 😊</string>
+    <string name="preference_permissions_description_not_granted">Please grant all permissions to use the app</string>
+    <string name="preference_enable_experimental_portalliberators">Enable Experimental PortalLiberators</string>
+    <string name="preference_enable_experimental_portalliberators_description_always_enabled_on_debugging_builds">Always enabled on debugging builds.</string>
+    <string name="preference_enable_experimental_portalliberators_description" />
+    <string name="preference_captive_test_url">Captive Portal Test Backend</string>
+    <string name="preference_user_agent">User Agent</string>
+    <string name="preference_send_statistics">Send Statistics</string>
+    <string name="preference_send_statistics_description">Send a small ping after successfully liberating a Captive Portal and collect errors to improve the Liberator</string>
+    <string name="preference_send_statistics_description_off">Do not send a small ping after successfully liberating a Captive Portal and keep errors for yourself so we can\'t fix the problems</string>
+    <string name="invalid_url">Invalid URL</string>
+    <string name="preference_api_base">api base</string>
+    <string name="preference_export_logs">Export Logs</string>
+    <string name="preference_debug_activities">Debug Activities</string>
+    <string name="error_failed_to_share_file">Failed to share file: </string>
+    <string name="share_log">Share log</string>
+    <string name="saving">Saving…</string>
+    <string name="saved">Saved</string>
+    <string name="please_try_again">Please try again.</string>
+    <string name="preference_open_app_info">Open Settings</string>
+    <string name="preference_open_app_info_description">Click to open the app settings</string>
+    <string name="notification_service_title">Captive Portal detection</string>
+    <string name="notification_service_description">Running in background</string>
+    <string name="liberating">Trying to liberate</string>
+    <string name="not_connected">Not connected to network</string>
+    <string name="not_in_portal">Not in captive portal</string>
+    <string name="already_liberating">Already liberating</string>
+    <string name="liberate_failed_no_portal">Failed to liberate: not caught in portal</string>
+    <string name="liberate_success">Free at last!</string>
+    <string name="liberate_failed">Failed to liberate: </string>
+    <string name="timeout">timeout</string>
+    <string name="unknown_portal">unknown portal</string>
+    <string name="still_captured">still captured</string>
+    <string name="liberate_result_unsupported_portal">Portal will not be supported</string>
+    <string name="no_error_message">no error message</string>
+    <string name="service_start_missing_permissions">"Tried to start service with missing permission: "</string>
+    <string name="requested_reevaluation">Requested Re-evaluation</string>
+    <string name="preference_permission_notifications">Send Notifications</string>
+    <string name="preference_permission_notifications_description">Show a persistent status notification and show little messages at the bottom of the screen</string>
+    <string name="preference_permission_fine_location">Fine Location</string>
+    <string name="preference_permission_fine_location_description">Collect the SSID of Portals. Required for the background service</string>
+    <string name="preference_permission_background_location">Background Location</string>
+    <string name="preference_permission_background_location_description">Collect the SSID of Portals. Required for the background service</string>
+    <string name="preference_permission_location">Location Enabled</string>
+    <string name="preference_permission_location_description">Collect the SSID of Portals. Required for the background service</string>
+    <string name="submit_portal">Submit recording?</string>
+    <string name="submit_portal_description">Do you want to submit the recording of this captive portal? \nPlease do not share this network if you entered any kind of personal data or passwords.</string>
+    <string name="submit_portal_confirmed">Thanks for contributing :)</string>
+    <string name="submit_portal_aborted">Discarded recorded data :(</string>
+    <string name="exception_occurred">"Exception occurred: "</string>
+    <string name="loading">Loading…</string>
 </resources>

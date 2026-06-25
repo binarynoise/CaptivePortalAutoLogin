@@ -22,7 +22,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
             addPreference(PreferenceCategory(ctx)) {
-                title = "Export Logs"
+                titleRes = R.string.preference_export_logs
                 
                 lifecycleScope.launch {
                     repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -37,13 +37,13 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                         lifecycleScope.launch {
                                             try {
                                                 withContext(Dispatchers.IO) {
-                                                    shareFile(file, "Share log")
+                                                    shareFile(file, getString(R.string.share_log))
                                                 }
                                             } catch (e: Exception) {
                                                 if (e is CancellationException) throw e
                                                 Toast.makeText(
                                                     view.context,
-                                                    "Failed to share file: ${e.message}",
+                                                    getString(R.string.error_failed_to_share_file) + e.message,
                                                     Toast.LENGTH_LONG
                                                 ).show()
                                                 log("Error sharing file (${file.name})", e)
@@ -53,8 +53,9 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                     copyToSdButton.setOnClickListener {
                                         lifecycleScope.launch {
                                             try {
-                                                val toast =
-                                                    Toast.makeText(view.context, "Saving...", Toast.LENGTH_SHORT)
+                                                val toast = Toast.makeText(
+                                                    view.context, R.string.saving, Toast.LENGTH_SHORT
+                                                )
                                                 toast.show()
                                                 
                                                 withContext(Dispatchers.IO) {
@@ -62,12 +63,14 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                                 }
                                                 
                                                 toast.cancel()
-                                                Toast.makeText(view.context, "Saved", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    view.context, getString(R.string.saved), Toast.LENGTH_SHORT
+                                                ).show()
                                             } catch (e: Exception) {
                                                 if (e is CancellationException) throw e
                                                 Toast.makeText(
                                                     view.context,
-                                                    e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.",
+                                                    e::class.java.simpleName + ": " + e.message + "\n" + getString(R.string.please_try_again),
                                                     Toast.LENGTH_SHORT,
                                                 ).show()
                                                 log("Error saving file", e)

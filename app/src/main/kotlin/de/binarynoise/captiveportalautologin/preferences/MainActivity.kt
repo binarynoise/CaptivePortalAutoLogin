@@ -12,7 +12,10 @@ import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.preferences.onboarding.WelcomeFragment
 
+const val EXTRA_START_SERVICE = "startService"
+
 class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fragment_container)
@@ -20,7 +23,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 if (Permissions.any { !it.granted(this@MainActivity) }) {
-                    intent.putExtra("startService", false)
+                    intent.putExtra(EXTRA_START_SERVICE, false)
                     replace(R.id.fragmentContainerView, WelcomeFragment())
                 } else {
                     replace(R.id.fragmentContainerView, MainFragment())
@@ -45,9 +48,9 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
             actionBar.subtitle = BuildConfig.VERSION_NAME
         }
         
-        if (intent.getBooleanExtra("startService", true)) {
+        if (intent.getBooleanExtra(EXTRA_START_SERVICE, true)) {
             ConnectivityChangeListenerService.start()
-            intent.putExtra("startService", false)
+            intent.putExtra(EXTRA_START_SERVICE, false)
         }
     }
     

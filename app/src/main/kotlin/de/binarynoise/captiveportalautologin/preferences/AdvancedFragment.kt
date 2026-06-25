@@ -25,6 +25,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.Permissions
+import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
 import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
@@ -75,7 +76,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
         preferenceScreen.apply {
             // TODO: add switch to disable service auto-start (and then disable manual start/stop)
             addPreference(SwitchPreference(ctx)) {
-                title = "Service Status"
+                titleRes = R.string.service_status
                 
                 setOnPreferenceChangeListener { _, _ ->
                     if (serviceStateLock.read { serviceState.running }) {
@@ -93,30 +94,27 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(Preference(ctx)) {
-                title = "Network Status"
+                titleRes = R.string.network_status
                 isSelectable = false
                 serviceStateListeners.add {
                     isEnabled = it.running
                 }
                 networkStateListeners.add {
-                    summary = it?.toString() ?: "Not connected to Network"
+                    summary = it?.toString() ?: getString(R.string.not_connected_to_network)
                 }
             }
             
             addPreference(SwitchPreference(ctx)) {
                 key = SharedPreferences.liberator_automatically_liberate.sharedPreferencesKey
-                title = "Liberator Status"
-                summaryOn = "Automatically liberating Captive Portals"
-                summaryOff = "Not automatically liberating Captive Portals"
+                titleRes = R.string.liberator_status
+                setSummaryOn(R.string.preferences_automatically_liberating_captive_portals_description_on)
+                setSummaryOff(R.string.preferences_automatically_liberating_captive_portals_description_off)
                 setDefaultValue(SharedPreferences.liberator_automatically_liberate.defaultValue)
             }
             
             addPreference(Preference(ctx)) {
-                title = "Liberate me now"
-                summary = """
-                    Liberate the current Captive Portal now.
-                    Use this after network errors or when automatic liberating is disabled.
-                """.trimIndent()
+                titleRes = R.string.liberate_now
+                summaryRes = R.string.liberate_now_description
                 
                 setOnPreferenceClickListener {
                     ConnectivityChangeListenerService.retry()
@@ -129,8 +127,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(Preference(ctx)) {
-                title = "Request Re-evaluation"
-                summary = "Ask android to re-evaluate the current Captive Portal."
+                titleRes = R.string.request_reevaluation
+                summaryRes = R.string.request_reevaluation_description
                 setOnPreferenceClickListener {
                     ConnectivityChangeListenerService.reportNetworkConnectivity()
                     true
@@ -141,8 +139,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             }
             
             addPreference(Preference(ctx)) {
-                title = "Capture Captive Portal Login"
-                summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
+                titleRes = R.string.capture_captive_portal
+                summaryRes = R.string.capture_captive_portal_description
                 setOnPreferenceClickListener {
                     val networkState = networkStateLock.read { networkState }
                     if (networkState == null) return@setOnPreferenceClickListener false
@@ -158,14 +156,14 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             
             if (BuildConfig.DEBUG) {
                 addPreference(Preference(ctx)) {
-                    title = "Capture Captive Portal Login (dev)"
-                    summary = "Advanced Captive Portal Recording for developers"
+                    titleRes = R.string.capture_captive_portal_dev
+                    summaryRes = R.string.capture_captive_portal_dev_description
                     intent = Intent(ctx, GeckoViewActivity::class.java)
                 }
             }
             
             addPreference(CheckBoxPreference(ctx)) {
-                title = "Permissions"
+                titleRes = R.string.preference_permissions
                 fragment = PermissionsFragment::class.qualifiedName
                 setOnPreferenceChangeListener { _, _ -> false }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -173,14 +171,14 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         isChecked = Permissions.all { it.granted(context) }
                     }
                 })
-                summaryOn = "All permissions granted \uD83D\uDE0A"
-                summaryOff = "Please grant all permissions to use the app"
+                setSummaryOn(R.string.preference_permissions_description_granted)
+                setSummaryOff(R.string.preference_permissions_description_not_granted)
             }
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 addPreference(SwitchPreference(ctx)) {
-                    title = "Network Suggestions"
-                    summary = "Suggest automatic connection for supported networks to the OS."
+                    titleRes = R.string.preference_network_suggestions
+                    summaryRes = R.string.preference_network_suggestions_description
                     setOnPreferenceChangeListener { _, _ ->
                         if (isChecked) removeNetworkSuggestions()
                         else sendNetworkSuggestions()
@@ -188,7 +186,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                     key = SharedPreferences.network_suggestions.sharedPreferencesKey
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =
-                            "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
+                            summary.toString() + getString(R.string.preference_network_suggestions_disconnect_on_Q)
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
@@ -210,9 +208,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 if (isMacRandomizationSupported) {
                     addPreference(SwitchPreference(ctx)) {
                         key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
-                        title = "Non-persistent MAC randomization"
-                        summary = "For suggested networks, the MAC address will be randomized periodically. " + //
-                            "This will lead to more anonymity, but also requires liberation for most connection attempts."
+                        titleRes = R.string.preference_network_suggestions_mac_randomization
+                        summaryRes = R.string.preference_network_suggestions_mac_randomization_description
                         setOnPreferenceChangeListener { _, _ ->
                             updateNetworkSuggestions()
                         }
@@ -247,9 +244,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                     }
                     
                     addPreference(Preference(ctx)) {
-                        title = "Change MAC-Address now"
-                        summary =
-                            "For suggested networks, immediately disconnect and resuggest with a different MAC-Address"
+                        titleRes = R.string.preference_network_suggestions_change_mac_now
+                        summaryRes = R.string.preference_network_suggestions_change_mac_now_description
                         setOnPreferenceClickListener {
                             val networkState = networkStateLock.read { networkState }
                             if (networkState == null) return@setOnPreferenceClickListener false
@@ -265,30 +261,28 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             
             addPreference(SwitchPreference(ctx)) {
                 if (!BuildConfig.DEBUG) key = SharedPreferences.liberator_experimental_enabled_sharedPreferencesKey
-                title = "Enable Experimental PortalLiberators"
+                titleRes = R.string.preference_enable_experimental_portalliberators
                 if (BuildConfig.DEBUG) {
                     isEnabled = false
                     isChecked = true
-                    summary = ""
-                    summaryOn = "Always enabled on debugging builds."
+                    summaryRes = R.string.preference_enable_experimental_portalliberators_description
+                    setSummaryOn(R.string.preference_enable_experimental_portalliberators_description_always_enabled_on_debugging_builds)
                 }
             }
             
             addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url)) {
-                title = "Captive Portal Test Backend"
+                titleRes = R.string.preference_captive_test_url
             }
             
             addPreference(DropDownPreference(ctx, SharedPreferences.liberator_user_agent)) {
-                title = "User Agent"
+                titleRes = R.string.preference_user_agent
             }
             
             addPreference(SwitchPreference(ctx)) {
                 key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
-                title = "Send Statistics"
-                summaryOn =
-                    "Send a small ping after successfully liberating a Captive Portal and collect errors to improve the Liberator"
-                summaryOff =
-                    "Do not send a small ping after successfully liberating a Captive Portal and keep errors for yourself so I can't fix the problems"
+                titleRes = R.string.preference_send_statistics
+                summaryRes = R.string.preference_send_statistics_description
+                summaryOff = getString(R.string.preference_send_statistics_description_off)
                 isChecked = true
                 isEnabled = false
             }
@@ -308,25 +302,25 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             SharedPreferences.api_base.set(url.toString())
                             editText.error = null
                         } catch (e: IllegalArgumentException) {
-                            editText.error = e.message ?: "Invalid URL"
+                            editText.error = e.message ?: getString(R.string.invalid_url)
                         }
                     },
                 ) {
                     key = SharedPreferences.api_base.sharedPreferencesKey
-                    title = "api base"
+                    titleRes = R.string.preference_api_base
                 }
             } else {
                 SharedPreferences.api_base.set("")
             }
             
             addPreference(Preference(ctx)) {
-                title = "Export Logs"
+                titleRes = R.string.preference_export_logs
                 fragment = LogsFragment::class.qualifiedName
             }
             
             if (BuildConfig.DEBUG) {
                 addPreference(Preference(ctx)) {
-                    title = "Debug Activities"
+                    titleRes = R.string.preference_debug_activities
                     fragment = DebugShortcutsFragment::class.qualifiedName
                 }
             }

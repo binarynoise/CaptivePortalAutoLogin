@@ -130,7 +130,7 @@ class GeckoViewActivity : ComponentActivity() {
     }
     
     fun onExtensionDelegateError(exception: Throwable?) {
-        Toast.makeText(this, "error occured: $exception", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.exception_occurred) + exception, Toast.LENGTH_LONG).show()
         finish()
     }
     
@@ -150,7 +150,7 @@ class GeckoViewActivity : ComponentActivity() {
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.gecko, menu)
-        menu.add("Request Re-evaluation").also { menuItem ->
+        menu.add(R.string.request_reevaluation).also { menuItem ->
             menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
             menuItem.setOnMenuItemClickListener {
                 reportNetworkConnectivity()
@@ -213,7 +213,7 @@ class GeckoViewActivity : ComponentActivity() {
         
         R.id.action_save -> {
             backgroundHandler.post {
-                val toast = Toast.makeText(this, "Saving...", Toast.LENGTH_SHORT).apply { show() }
+                val toast = Toast.makeText(this, R.string.saving, Toast.LENGTH_SHORT).apply { show() }
                 
                 val (name, har) = createFinalizedHar()
                 val fileName = "${name}.har"
@@ -223,11 +223,11 @@ class GeckoViewActivity : ComponentActivity() {
                     saveTextToSd(json, fileName, "application/har+json", this)
                     
                     toast.cancel()
-                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.saved, Toast.LENGTH_SHORT).show()
                 } catch (e: Exception) {
                     Toast.makeText(
                         this,
-                        e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.",
+                        e::class.java.simpleName + ": " + e.message + "\n" + getString(R.string.please_try_again),
                         Toast.LENGTH_SHORT
                     ).show()
                     log("Error saving file", e)
@@ -240,9 +240,10 @@ class GeckoViewActivity : ComponentActivity() {
             val fileName = "${name}.har"
             try {
                 val json = har.toJson()
-                FileUtils.shareTextAsFile(json, fileName, "Share captured Portal", this, this)
+                FileUtils.shareTextAsFile(json, fileName, getString(R.string.submit_portal_share_title), this, this)
             } catch (e: Exception) {
-                Toast.makeText(this, "Failed to share file: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.error_failed_to_share_file) + e.message, Toast.LENGTH_LONG)
+                    .show()
                 log("Error sharing file $fileName", e)
             }
             true
@@ -251,7 +252,7 @@ class GeckoViewActivity : ComponentActivity() {
             try {
                 val (name, har) = createFinalizedHar()
                 Stats.har.submitHar(name, har)
-                Toast.makeText(this, "HAR scheduled for upload", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.submit_portal_scheduled), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 log("Error uploading file", e)
                 Toast.makeText(

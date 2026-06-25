@@ -21,6 +21,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
+import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
@@ -68,7 +69,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
         preferenceScreen.apply {
             addPreference(Preference(ctx)) {
-                title = "Status"
+                titleRes = R.string.status
                 
                 setOnPreferenceClickListener {
                     ConnectivityChangeListenerService.start(silent = false)
@@ -82,8 +83,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             
             
             addPreference(Preference(ctx)) {
-                title = "Capture Captive Portal Login"
-                summary = "Log in to a Captive Portal manually and share the capture to improve the Liberator"
+                titleRes = R.string.capture_captive_portal
+                summaryRes = R.string.capture_captive_portal_description
                 setOnPreferenceClickListener {
                     val networkState = networkStateLock.read { networkState }
                     if (networkState == null) return@setOnPreferenceClickListener false
@@ -100,8 +101,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 addPreference(SwitchPreference(ctx)) {
-                    title = "Network Suggestions"
-                    summary = "Suggest automatic connection for supported networks to the OS."
+                    titleRes = R.string.preference_network_suggestions
+                    summaryRes = R.string.preference_network_suggestions_description
                     setOnPreferenceChangeListener { _, _ ->
                         if (isChecked) removeNetworkSuggestions()
                         else sendNetworkSuggestions()
@@ -109,7 +110,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     key = SharedPreferences.network_suggestions.sharedPreferencesKey
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =
-                            "$summary\nNote: You may experience short disconnections while the suggestions are updated in the background."
+                            summary.toString() + getString(R.string.preference_network_suggestions_disconnect_on_Q)
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
@@ -131,9 +132,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 if (isMacRandomizationSupported) {
                     addPreference(SwitchPreference(ctx)) {
                         key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
-                        title = "Non-persistent MAC randomization"
-                        summary = "For suggested networks, the MAC address will be randomized periodically. " + //
-                            "This will lead to more anonymity, but also requires liberation for most connection attempts."
+                        titleRes = R.string.preference_network_suggestions_mac_randomization
+                        summaryRes = R.string.preference_network_suggestions_mac_randomization_description
                         setOnPreferenceChangeListener { _, _ ->
                             updateNetworkSuggestions()
                         }
@@ -168,9 +168,8 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                     }
                     
                     addPreference(Preference(ctx)) {
-                        title = "Change MAC-Address now"
-                        summary =
-                            "For suggested networks, immediately disconnect and resuggest with a different MAC-Address"
+                        titleRes = R.string.preference_network_suggestions_change_mac_now
+                        summaryRes = R.string.preference_network_suggestions_change_mac_now_description
                         setOnPreferenceClickListener {
                             val networkState = networkStateLock.read { networkState }
                             if (networkState == null) return@setOnPreferenceClickListener false
@@ -186,7 +185,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             
             
             addPreference(Preference(ctx)) {
-                title = "Advanced Settings"
+                titleRes = R.string.preference_advanced_settings
                 fragment = AdvancedFragment::class.qualifiedName
             }
             

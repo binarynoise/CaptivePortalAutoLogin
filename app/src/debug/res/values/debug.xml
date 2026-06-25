@@ -5,4 +5,17 @@
     <string name="work_shortcut_short">Work</string>
     <string name="urltest_shortcut_long">Url Test Activity</string>
     <string name="urltest_shortcut_short">Url Test</string>
+    <string name="submit_portal_share_title">Share captured Portal</string>
+    <string name="submit_portal_scheduled">HAR scheduled for upload</string>
+    <string name="gecko_upload_har">Upload HAR</string>
+    <string name="gecko_reload_page">Reload page</string>
+    <string name="gecko_restart">Restart</string>
+    <string name="gecko_save">Save HAR</string>
+    <string name="gecko_share">Share HAR</string>
+    <string name="gecko_not_connected">Not connected to any network. You may need to disable mobile data and try again.</string>
+    <string name="gecko_no_portal">Captive Portal not detected. If you just liberated the network, save the capture now.</string>
+    <string name="gecko_no_service">Service is not running. Enable the Service and try again.</string>
+    <string name="gecko_browser_failure">Error setting up the browser. Please Force Close the app and try again.</string>
+    <string name="debug_url_test">Test now!</string>
+    <string name="debug_schedule_upload">Schedule everything for upload</string>
 </resources>

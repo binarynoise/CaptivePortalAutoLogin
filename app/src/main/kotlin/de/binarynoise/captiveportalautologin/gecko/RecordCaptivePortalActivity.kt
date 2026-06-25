@@ -26,6 +26,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkRequest
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.Stats
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePortalBinding
@@ -160,7 +161,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     }
     
     fun onExtensionDelegateError(exception: Throwable?) {
-        Toast.makeText(this, "Exception occured: $exception", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.exception_occurred) + exception, Toast.LENGTH_LONG).show()
         finishAndRemoveTask()
     }
     
@@ -189,14 +190,14 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     
     fun success() {
         if (!networkHasPortal) return dismiss()
-        AlertDialog.Builder(this).setTitle("Submit recording?").setMessage(
-            "Do you want to submit the recording of this captive portal? \n" + "Please do not share this network if you entered any kind of personal data or passwords."
-        ).setPositiveButton("Yes") { _, _ ->
+        AlertDialog.Builder(this).setTitle(R.string.submit_portal).setMessage(
+            getString(R.string.submit_portal_description)
+        ).setPositiveButton(android.R.string.yes) { _, _ ->
             val (name, har) = createFinalizedHar()
             Stats.har.submitHar(name, har)
-            Toast.makeText(this, "Thanks for contributing :)", Toast.LENGTH_SHORT).show()
-        }.setNegativeButton("No") { _, _ ->
-            Toast.makeText(this, "Discarded recorded data :(", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.submit_portal_confirmed, Toast.LENGTH_SHORT).show()
+        }.setNegativeButton(android.R.string.no) { _, _ ->
+            Toast.makeText(this, R.string.submit_portal_aborted, Toast.LENGTH_SHORT).show()
         }.setCancelable(false).setOnDismissListener {
             dismiss()
         }.show()

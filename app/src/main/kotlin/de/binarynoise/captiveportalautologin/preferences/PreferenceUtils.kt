@@ -143,3 +143,7 @@ fun EditTextPreference(
 var Preference.titleRes: Int
     get() = 0
     set(value) = this.setTitle(value)
+
+var Preference.summaryRes: Int
+    get() = 0
+    set(value) = this.setSummary(value)

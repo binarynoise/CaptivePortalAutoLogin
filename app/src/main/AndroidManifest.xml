@@ -40,7 +40,8 @@
         <activity
             android:name=".gecko.RecordCaptivePortalActivity"
             android:exported="true"
-            android:label="Capture Captive Portal"
+            android:label="@string/capture_captive_portal"
+            android:description="@string/capture_captive_portal_description"
             android:theme="@style/CaptivePortalAutoLogin.NoBlur"
             android:windowSoftInputMode="adjustResize"
             >

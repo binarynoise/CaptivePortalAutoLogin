@@ -129,8 +129,8 @@ class ConnectivityChangeListenerService : Service() {
             notificationManager.createNotificationChannel(serviceChannel)
         }
         notification = NotificationCompat.Builder(this, channelId).let { builder ->
-            builder.setContentTitle("Captive Portal detection")
-            builder.setContentText("Running in background")
+            builder.setContentTitle(getString(R.string.notification_service_title))
+            builder.setContentText(getString(R.string.notification_service_description))
             builder.setSmallIcon(R.drawable.wifi_lock_open)
             builder.setStyle(NotificationCompat.BigTextStyle())
             
@@ -149,12 +149,20 @@ class ConnectivityChangeListenerService : Service() {
             retryIntent.putExtra("retry", true)
             val pendingRetryIntent =
                 PendingIntent.getService(this, 0, retryIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            builder.addAction(NotificationCompat.Action.Builder(null, "Liberate now", pendingRetryIntent).build())
+            builder.addAction(
+                NotificationCompat.Action.Builder(
+                    null, getString(R.string.liberate_now), pendingRetryIntent
+                ).build()
+            )
             
             val captureIntent = Intent(this, GeckoViewActivity::class.java)
             val pendingCaptureIntent =
                 PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
-            builder.addAction(NotificationCompat.Action.Builder(null, "Capture portal", pendingCaptureIntent).build())
+            builder.addAction(
+                NotificationCompat.Action.Builder(
+                    null, getString(R.string.capture_captive_portal_short), pendingCaptureIntent
+                ).build()
+            )
             
             builder.setOnlyAlertOnce(true)
         }.build()
@@ -315,12 +323,12 @@ class ConnectivityChangeListenerService : Service() {
             val state = networkState
             if (state == null) {
                 log("no network")
-                Toast.makeText(applicationContext, "Not connected to network", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, R.string.not_connected, Toast.LENGTH_SHORT).show()
                 return
             }
             if (!state.hasPortal) {
                 log("no portal")
-                Toast.makeText(applicationContext, "Not in captive portal", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, R.string.not_in_portal, Toast.LENGTH_SHORT).show()
                 return
             }
             if (state.liberated) {
@@ -329,14 +337,14 @@ class ConnectivityChangeListenerService : Service() {
             }
             if (state.liberating) {
                 log("already liberating")
-                Toast.makeText(applicationContext, "Already liberating", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, R.string.already_liberating, Toast.LENGTH_SHORT).show()
                 return
             }
             networkState = state.copy(liberating = true)
             state.network to state.ssid
         }
         
-        val t = Toast.makeText(applicationContext, "Trying to liberate", Toast.LENGTH_SHORT)
+        val t = Toast.makeText(applicationContext, R.string.liberating, Toast.LENGTH_SHORT)
         t.show()
         
         try {
@@ -356,14 +364,13 @@ class ConnectivityChangeListenerService : Service() {
             when (liberationResult) {
                 Liberator.LiberationResult.NotCaught -> {
                     log("not caught in portal")
-                    Toast.makeText(applicationContext, "Failed to liberate: not caught in portal", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(applicationContext, R.string.liberate_failed_no_portal, Toast.LENGTH_SHORT).show()
                     reportNetworkConnectivity(network, true)
                     // no report
                 }
                 is Liberator.LiberationResult.Success -> {
                     log("broke out of the portal")
-                    Toast.makeText(applicationContext, "Free at last!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(applicationContext, R.string.liberate_success, Toast.LENGTH_SHORT).show()
                     reportNetworkConnectivity(network, true)
                     Stats.liberator.reportSuccess(
                         Success(
@@ -379,7 +386,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("failed to liberate: ${liberationResult.message}", liberationResult.exception)
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: ${liberationResult.exception::class.simpleName} - ${liberationResult.message}",
+                        getString(R.string.liberate_failed) + "${liberationResult.exception::class.simpleName} - ${liberationResult.message}",
                         Toast.LENGTH_SHORT
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -397,7 +404,11 @@ class ConnectivityChangeListenerService : Service() {
                 }
                 is Liberator.LiberationResult.Timeout -> {
                     log("failed to liberate: timeout")
-                    Toast.makeText(applicationContext, "Failed to liberate: timeout", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        applicationContext,
+                        getString(R.string.liberate_failed) + getString(R.string.timeout),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     reportNetworkConnectivity(network, false)
                     // no timeout report
                 }
@@ -405,7 +416,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("failed to liberate: unknown portal: ${liberationResult.url}")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: unknown portal ${liberationResult.url}",
+                        getString(R.string.liberate_failed) + getString(R.string.unknown_portal) + " " + liberationResult.url,
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -425,7 +436,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("failed to liberate: still captured")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: still captured ${liberationResult.url}",
+                        getString(R.string.liberate_failed) + getString(R.string.still_captured) + " " + liberationResult.url,
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -442,10 +453,10 @@ class ConnectivityChangeListenerService : Service() {
                     )
                 }
                 is Liberator.LiberationResult.UnsupportedPortal -> {
-                    log("Failed to liberate: Portal will not be supported")
+                    log("Failed to liberate: Unsupported Portal")
                     Toast.makeText(
                         applicationContext,
-                        "Failed to liberate: Portal will not be supported ${liberationResult.url}",
+                        getString(R.string.liberate_failed) + getString(R.string.liberate_result_unsupported_portal) + " " + liberationResult.url,
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
@@ -455,10 +466,10 @@ class ConnectivityChangeListenerService : Service() {
         } catch (e: Exception) {
             t.cancel()
             log("failed to liberate", e)
-            val message = e.localizedMessage ?: e.message ?: "no error message"
+            val message = e.localizedMessage ?: e.message ?: getString(R.string.no_error_message)
             Toast.makeText(
                 applicationContext,
-                "Failed to liberate: ${e::class.simpleName} - $message",
+                getString(R.string.liberate_failed) + "${e::class.simpleName} - $message",
                 Toast.LENGTH_LONG,
             ).show()
             reportNetworkConnectivity(network, false)
@@ -489,7 +500,7 @@ class ConnectivityChangeListenerService : Service() {
             }
             backgroundHandler.post(::tryLiberate)
         } else {
-            Toast.makeText(this, "Not connected to network", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.not_connected_to_network, Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -566,7 +577,7 @@ class ConnectivityChangeListenerService : Service() {
             if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
                 return ssid.substring(1, ssid.length - 1)
             }
-            return "0x" + ssid
+            return "0x$ssid"
         }
     }
     
@@ -609,11 +620,14 @@ class ConnectivityChangeListenerService : Service() {
         fun start(silent: Boolean = false): Unit = serviceStateLock.read {
             if (serviceState.running || serviceState.restart) return
             val missingPermissions = Permissions.filterNot { it.granted(applicationContext) }
-                .map { permission -> permission.name ?: applicationContext.getString(permission.nameRes ?: 0) }
+                .map { permission -> applicationContext.getString(permission.nameRes) }
             if (missingPermissions.isNotEmpty()) {
                 if (!silent) {
-                    val text = "Tried to start service with missing permission: ${missingPermissions.joinToString()}"
-                    Toast.makeText(applicationContext, text, Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        applicationContext,
+                        applicationContext.getString(R.string.service_start_missing_permissions) + missingPermissions.joinToString(),
+                        Toast.LENGTH_LONG,
+                    ).show()
                 }
                 return
             }
@@ -660,7 +674,7 @@ class ConnectivityChangeListenerService : Service() {
             val hasConnectivity = hasConnectivity ?: networkState.hasPortal
             connectivityManager.reportNetworkConnectivity(network, hasConnectivity)
             log("sent network report for $network hasConnectivity=$hasConnectivity")
-            Toast.makeText(applicationContext, "Requested Re-evaluation", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, R.string.requested_reevaluation, Toast.LENGTH_SHORT).show()
         }
         
         init {
