@@ -2,12 +2,10 @@ package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.concurrent.read
 import android.content.Intent
-import android.database.ContentObserver
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.Preference
@@ -22,16 +20,12 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.R
-import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
-import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.isNetworkSuggestion
 import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
-import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
-import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -130,43 +124,6 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
                 
                 if (isMacRandomizationSupported) {
-                    addPreference(SwitchPreference(ctx)) {
-                        key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
-                        titleRes = R.string.preference_network_suggestions_mac_randomization
-                        summaryRes = R.string.preference_network_suggestions_mac_randomization_description
-                        setOnPreferenceChangeListener { _, _ ->
-                            updateNetworkSuggestions()
-                        }
-                        
-                        val observer = object : ContentObserver(mainHandler) {
-                            override fun onChange(selfChange: Boolean) {
-                                if (isMacRandomizationForceEnabled) {
-                                    isEnabled = false
-                                    isPersistent = false
-                                    isChecked = true
-                                } else {
-                                    isChecked = SharedPreferences.network_suggestions_mac_randomization.get()
-                                    isPersistent = true
-                                    isEnabled = true
-                                }
-                            }
-                        }
-                        val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
-                        lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onStart(owner: LifecycleOwner) {
-                                ctx.contentResolver.registerContentObserver(uri, false, observer)
-                                observer.onChange(true)
-                            }
-                            
-                            override fun onStop(owner: LifecycleOwner) {
-                                ctx.contentResolver.unregisterContentObserver(observer)
-                            }
-                        })
-                        observer.onChange(true)
-                    }.apply {
-                        dependency = SharedPreferences.network_suggestions.sharedPreferencesKey
-                    }
-                    
                     addPreference(Preference(ctx)) {
                         titleRes = R.string.preference_network_suggestions_change_mac_now
                         summaryRes = R.string.preference_network_suggestions_change_mac_now_description
