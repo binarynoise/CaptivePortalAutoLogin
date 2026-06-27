@@ -9,7 +9,8 @@ interface SSIDDao {
         """
         SELECT ssid 
         FROM successes
+        LIMIT :limit
         """
     )
-    suspend fun getSSIDs(): List<String>
+    suspend fun getSSIDs(limit: Int = 1024): List<String>
 }
