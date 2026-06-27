@@ -199,8 +199,8 @@ class GeckoViewActivity : ComponentActivity() {
     
     override fun onMenuItemSelected(featureId: Int, item: MenuItem): Boolean = when (item.itemId) {
         R.id.action_restart -> {
-            startActivity(Intent(this, this::class.java))
             finish()
+            startActivity(Intent(this, this::class.java))
             true
         }
         R.id.action_reload_page -> {
