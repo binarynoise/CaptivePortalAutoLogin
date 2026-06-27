@@ -22,6 +22,8 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
+import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.filedb.FixedKeyJsonDB
@@ -30,6 +32,7 @@ import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 private val ssidJsonDB = FixedKeyJsonDB(applicationContext.noBackupFilesDir.toPath(), "NetworkSuggestionSSIDs")
@@ -71,28 +74,49 @@ val isMacRandomizationForceEnabled
         0,
     ) == 1
 
-class UpdateNetworkSuggestionSSIDsWorker(appContext: Context, workerParams: WorkerParameters) :
+class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
-        TODO("Not yet implemented")
+        
+        if (!SharedPreferences.network_suggestions.get()) {
+            dequeueUpdateNetworkSuggestionSSIDsWork(appContext)
+            return Result.success()
+        }
+        
+        val apiBaseFromPreference by SharedPreferences.api_base
+        val apiBaseUrl = (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
+        if (apiBaseUrl == null) return Result.failure()
+        val apiClient = ApiClient(apiBaseUrl)
+        
+        try {
+            updateNetworkSuggestionSSIDsFromApi(apiClient)
+        } catch (_: Exception) {
+            return Result.failure()
+        }
+        return Result.success()
     }
+}
+
+suspend fun updateNetworkSuggestionSSIDsFromApi(apiClient: ApiClient) {
+    val limit = wifiManager.maxNumberOfNetworkSuggestionsPerApp
+    ssidDb = apiClient.getSSIDs(limit, BuildConfig.VERSION_CODE)
+    sendNetworkSuggestions()
 }
 
 private val UpdateNetworkSuggestionSSIDsWorkerUUID = UUID.fromString("c7852d1f-b427-434d-8eb0-f8b1ed9176ef")
 fun enqueueUpdateNetworkSuggestionSSIDsWork(
-    context: Context,
+    context: Context = applicationContext,
     repeatInterval: Long = 7,
     repeatIntervalTimeUnit: TimeUnit = TimeUnit.DAYS,
 ) {
     val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build()
     val workRequest = PeriodicWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>(
-        repeatInterval,
-        repeatIntervalTimeUnit
+        repeatInterval, repeatIntervalTimeUnit
     ).setConstraints(constraints).setId(UpdateNetworkSuggestionSSIDsWorkerUUID).build()
     WorkManager.getInstance(context).enqueue(workRequest)
 }
 
-fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context) {
+fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context = applicationContext) {
     WorkManager.getInstance(context).cancelWorkById(UpdateNetworkSuggestionSSIDsWorkerUUID)
 }
 
