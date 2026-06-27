@@ -18,7 +18,6 @@ import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getJsonArray
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getOptJsonObject
-import de.binarynoise.util.json.getOptString
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.json.has
 import de.binarynoise.util.okhttp.decodeUrl

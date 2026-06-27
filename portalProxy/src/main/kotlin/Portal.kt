@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.portalproxy.portal
 
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.html.*
 import kotlinx.html.stream.*

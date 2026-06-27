@@ -15,8 +15,8 @@ import androidx.core.util.isEmpty
 import androidx.core.view.children
 import de.binarynoise.logger.Logger.dump
 import de.robv.android.xposed.XposedBridge
-import org.json.JSONObject as OrgJSONObject
 import org.json.JSONArray as OrgJSONArray
+import org.json.JSONObject as OrgJSONObject
 
 class PlatformImpl : Platform {
     private val TAG = "Logger"

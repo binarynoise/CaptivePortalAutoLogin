@@ -1,5 +1,7 @@
 # Zitate
 
+<!-- @formatter:off -->
+
 > Die einzige Möglichkeit, mit einer unfreien Welt umzugehen, besteht darin, so absolut frei zu werden, dass die eigene Existenz ein Akt der Rebellion ist.
 >
 > — Albert Camus

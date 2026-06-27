@@ -1,10 +1,12 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import de.binarynoise.captiveportalautologin.server.ApiServer
-import io.ktor.http.*
-import io.ktor.server.mustache.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.mustache.MustacheContent
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame

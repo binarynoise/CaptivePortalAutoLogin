@@ -5,7 +5,6 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
-import de.binarynoise.liberator.firstSuccess
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.enforceHttps
 import de.binarynoise.util.okhttp.firstPathSegment

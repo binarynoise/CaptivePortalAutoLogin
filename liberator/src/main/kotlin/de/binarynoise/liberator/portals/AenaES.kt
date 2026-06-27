@@ -1,6 +1,6 @@
 package de.binarynoise.liberator.portals
 
-import java.util.*
+import java.util.UUID
 import kotlin.time.Clock
 import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras

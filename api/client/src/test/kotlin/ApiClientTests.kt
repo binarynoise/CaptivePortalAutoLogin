@@ -19,7 +19,7 @@ import de.binarynoise.captiveportalautologin.server.createServer
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
-import io.ktor.server.engine.*
+import io.ktor.server.engine.EmbeddedServer
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient

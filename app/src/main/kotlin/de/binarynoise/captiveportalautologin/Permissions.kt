@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin
 
-import java.util.function.*
+import java.util.function.IntFunction
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context

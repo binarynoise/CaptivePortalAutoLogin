@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin
 
-import java.util.concurrent.TimeUnit.*
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
 import kotlin.system.exitProcess

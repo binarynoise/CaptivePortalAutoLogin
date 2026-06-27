@@ -1,9 +1,12 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
-import io.ktor.http.*
-import io.ktor.server.mustache.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.mustache.MustacheContent
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 
 fun Routing.stats() {
     get("stats") {

@@ -9,7 +9,6 @@ import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.randomEmail
 import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.followRedirects
-import de.binarynoise.util.okhttp.origin
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submit

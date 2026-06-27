@@ -1,13 +1,15 @@
 package de.binarynoise.util.okhttp
 
-import java.util.concurrent.*
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.JsonArray
 import de.binarynoise.util.json.JsonObject
 import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Request

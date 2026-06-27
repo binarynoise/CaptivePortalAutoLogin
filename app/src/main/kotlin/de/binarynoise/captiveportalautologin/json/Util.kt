@@ -7,8 +7,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonUnquotedLiteral
 import kotlinx.serialization.json.buildJsonObject
-import org.json.JSONObject as OrgJSONObject
 import org.json.JSONArray as OrgJSONArray
+import org.json.JSONObject as OrgJSONObject
 
 fun String.looksLikeBinaryData(threshold: Double): Boolean {
     val totalChars = length

@@ -3,7 +3,7 @@ package de.binarynoise.captiveportalautologin.util
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicBoolean
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent

@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
-import java.util.Comparator.*
+import java.util.Comparator.comparingInt
 import io.netty.util.NetUtil
 
 object Comparators {

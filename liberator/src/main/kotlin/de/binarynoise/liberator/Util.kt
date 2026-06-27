@@ -100,7 +100,7 @@ fun Base64.decodeString(
  * [Base64] encoding compliant with `btoa` from javascript
  */
 @Suppress("SpellCheckingInspection")
-fun btoa(source:String) : String{
+fun btoa(source: String): String {
     return Base64.UrlSafe.encode(source)
 }
 
@@ -108,7 +108,7 @@ fun btoa(source:String) : String{
  * [Base64] decoding compliant with `atob` from javascript
  */
 @Suppress("SpellCheckingInspection")
-fun atob(encoded: String) : String {
+fun atob(encoded: String): String {
     return Base64.UrlSafe.decodeString(encoded)
 }
 

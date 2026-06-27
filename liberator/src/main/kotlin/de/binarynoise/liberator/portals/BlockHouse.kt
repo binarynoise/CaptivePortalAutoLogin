@@ -1,6 +1,6 @@
 package de.binarynoise.liberator.portals
 
-import java.util.*
+import java.util.Date
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID

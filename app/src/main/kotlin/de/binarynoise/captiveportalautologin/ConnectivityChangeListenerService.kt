@@ -1,8 +1,8 @@
 package de.binarynoise.captiveportalautologin
 
-import java.util.*
-import java.util.concurrent.locks.*
-import java.util.function.*
+import java.util.Collections
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.function.Consumer
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.properties.Delegates

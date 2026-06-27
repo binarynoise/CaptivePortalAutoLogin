@@ -22,8 +22,8 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 val supportedSSIDs: List<String> =
     allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }.flatMap { portalLiberator ->
-            portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
-        }
+        portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
+    }
 
 @SuppressLint("InlinedApi")
 val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->

@@ -3,11 +3,14 @@ package de.binarynoise.captiveportalautologin.server.routes
 import de.binarynoise.captiveportalautologin.server.routes.api.api
 import de.binarynoise.captiveportalautologin.server.routes.stats.stats
 import de.binarynoise.logger.Logger.log
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.http.content.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.http.content.staticResources
+import io.ktor.server.response.header
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.getAllRoutes
+import io.ktor.server.routing.routing
 
 
 fun Application.configureRouting() {

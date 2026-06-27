@@ -11,7 +11,7 @@ export class HarUploader {
      * @param {string} options.selectButtonId - ID of the select button
      * @param {string} options.messagesId - ID of the messages container
      */
-    constructor({dropAreaId, fileInputId, selectButtonId, messagesId}) {
+    constructor({ dropAreaId, fileInputId, selectButtonId, messagesId }) {
         this.dropArea = document.getElementById(dropAreaId);
         this.fileInput = document.getElementById(fileInputId);
         this.selectButton = document.getElementById(selectButtonId);
@@ -73,7 +73,7 @@ export class HarUploader {
      * @param {Event} event
      */
     handleFileSelect(event) {
-        const {files} = event.target;
+        const { files } = event.target;
         if (files?.length) {
             this.handleFiles(files);
         }

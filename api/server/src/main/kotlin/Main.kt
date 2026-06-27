@@ -13,16 +13,19 @@ import de.binarynoise.captiveportalautologin.server.ApiServer.Companion.api
 import de.binarynoise.captiveportalautologin.server.routes.configureRouting
 import de.binarynoise.logger.Logger.log
 import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.mustache.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.engine.EmbeddedServer
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.mustache.Mustache
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.uri
+import io.ktor.server.response.respondText
 
 val hostname = Path("/proc/sys/kernel/hostname").takeIf { it.exists() }?.readText()?.trim()
 val isDevelopment = hostname != "captiveportalautologin"

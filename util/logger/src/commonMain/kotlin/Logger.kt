@@ -11,7 +11,8 @@ import java.net.SocketException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Arrays
+import java.util.Locale
 import kotlin.reflect.KClass
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -176,7 +177,7 @@ object Logger {
         val nextIndent = indent + 1
         print("$tabs$name ")
         
-        when(this) {
+        when (this) {
             null -> {
                 println("-> null")
                 return

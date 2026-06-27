@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin
 
-import java.util.concurrent.*
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy

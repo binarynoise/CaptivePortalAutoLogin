@@ -166,7 +166,7 @@ class Liberator(
                 redirectedResponse = redirectedResponseHttps
                 if (httpsIsInPortal) continue
             } catch (e: Exception) {
-                if(e is SSLException || e is CertPathValidatorException) {
+                if (e is SSLException || e is CertPathValidatorException) {
                     // HTTPS errors mean we're (still) in the portal but it allows the http request to pass through anyway
                     redirectedResponse = null
                     continue

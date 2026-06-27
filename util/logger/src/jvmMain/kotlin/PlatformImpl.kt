@@ -1,6 +1,7 @@
 package de.binarynoise.logger
 
-import java.util.concurrent.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
 class PlatformImpl : Platform {

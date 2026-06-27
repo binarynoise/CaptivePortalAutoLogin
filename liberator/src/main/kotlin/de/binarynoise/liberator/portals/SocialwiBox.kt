@@ -44,7 +44,8 @@ object SocialwiBox : PortalLiberator {
         val data = match.groups[2]?.value ?: error("no data in match")
         val json = JsonObject(data)
         
-        val response4 = client.postForm(response2.requestUrl, url, json.toMapDeep().mapValues { (_, v) -> v.toString() })
+        val response4 =
+            client.postForm(response2.requestUrl, url, json.toMapDeep().mapValues { (_, v) -> v.toString() })
         val html4 = response4.parseHtml()
         val form4 = html4.getElementsByTag("form").singleOrNull() ?: error("no form4")
         val location4 = form4.attr("action")

@@ -18,18 +18,18 @@
         />
     
     <TextView
+        android:id="@+id/counters"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/counters"
-        tools:text="Queued: 0\nFailed: 0\nSuccess: 0"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView"
+        tools:text="Queued: 0\nFailed: 0\nSuccess: 0"
         />
     
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:background="?android:attr/colorAccent"
         android:layout_marginVertical="@dimen/padding"
+        android:background="?android:attr/colorAccent"
         />
     
     <ScrollView

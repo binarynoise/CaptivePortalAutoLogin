@@ -4,7 +4,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Properties
 import buildlogic.git.getCommitCount
 import buildlogic.git.getCommitHash
 import buildlogic.git.getWorkingTreeClean
