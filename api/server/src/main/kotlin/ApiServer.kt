@@ -87,11 +87,13 @@ class ApiServer(root: Path = Path(".")) : Api {
         limit: Int?,
         majorVersion: Int?,
         since: Instant?,
+        minimum: Int?,
     ): List<String> {
         return database.SSIDDao().getSSIDs(
             limit = limit ?: 1024,
             majorVersion = majorVersion ?: Int.MAX_VALUE,
             since = since ?: (Clock.System.now() - 365.25.days),
+            minimum = minimum ?: 0,
         )
     }
 }

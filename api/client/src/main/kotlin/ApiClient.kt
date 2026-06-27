@@ -44,6 +44,7 @@ class ApiClient(private val base: HttpUrl) : Api {
         limit: Int?,
         majorVersion: Int?,
         since: Instant?,
+        minimum: Int?,
     ): List<String> {
         return serializer.decodeFromString(
             httpClient.get(
@@ -53,7 +54,8 @@ class ApiClient(private val base: HttpUrl) : Api {
                     "limit" to limit,
                     "majorVersion" to majorVersion,
                     "since" to since,
-                ).filterNot { it.value == null }.mapValues { it.toString() },
+                    "minimum" to minimum,
+                ).filterNot { it.value == null }.mapValues { it.value.toString() },
             ).readText()
         )
     }

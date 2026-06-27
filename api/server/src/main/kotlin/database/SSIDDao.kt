@@ -14,6 +14,7 @@ interface SSIDDao {
         AND CAST(SUBSTR(version, 1, INSTR(version, '-') - 1) AS INTEGER) <= :majorVersion
         AND timestamp >= :since
         GROUP BY ssid
+        HAVING COUNT(*) >= :minimum
         ORDER BY COUNT(*) DESC
         LIMIT :limit
         """
@@ -22,5 +23,6 @@ interface SSIDDao {
         limit: Int,
         majorVersion: Int,
         since: Instant,
+        minimum: Int,
     ): List<String>
 }

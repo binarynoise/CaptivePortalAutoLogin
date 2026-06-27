@@ -46,5 +46,6 @@ interface Api {
         limit: Int? = null,
         majorVersion: Int? = null,
         since: Instant? = null,
+        minimum: Int? = null,
     ): List<String>
 }

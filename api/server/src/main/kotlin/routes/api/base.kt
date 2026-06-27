@@ -42,7 +42,8 @@ fun Routing.api() {
                 ApiServer.api.getSSIDs(
                     limit = call.queryParameters["limit"]?.toInt(),
                     majorVersion = call.queryParameters["majorVersion"]?.toInt(),
-                    since = call.queryParameters["since"]?.let { Instant.parse(it) }
+                    since = call.queryParameters["since"]?.let { Instant.parse(it) },
+                    minimum = call.queryParameters["minimum"]?.toInt(),
                 )
             )
         }
