@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  * @param headers List of header objects.
  * @param query List of query parameter objects.
  * @param postData Posted data info.
- * @param bodySize Total number of bytes from the start of the HTTP request message until (and including) the double CRLF before the body.
- * @param headersSize Size of the request body (POST data payload) in bytes.
+ * @param headersSize Total number of bytes from the start of the HTTP request message until (and including) the double CRLF before the body.
+ * @param bodySize Size of the request body (POST data payload) in bytes.
  */
 @Serializable
 data class Request(
