@@ -161,6 +161,13 @@ fun EditTextPreference(
     layoutResource = R.layout.preference_horizontal
 }
 
+fun <V : Any> DropDownPreference(
+    context: Context,
+    sharedPreference: MappedPreferencePropertyDelegate<V>,
+): DropDownPreference {
+    return DropDownPreference(context).apply(sharedPreference::setupPreference)
+}
+
 var Preference.titleRes: Int
     get() = 0
     set(value) = this.setTitle(value)

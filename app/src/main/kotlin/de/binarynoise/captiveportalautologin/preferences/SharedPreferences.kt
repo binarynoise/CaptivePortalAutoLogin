@@ -152,10 +152,3 @@ class MappedPreferencePropertyDelegate<V : Any>(
         preference.setDefaultValue(defaultKey)
     }
 }
-
-fun <V : Any> DropDownPreference(
-    context: Context,
-    sharedPreference: MappedPreferencePropertyDelegate<V>,
-): DropDownPreference {
-    return DropDownPreference(context).apply(sharedPreference::setupPreference)
-}
