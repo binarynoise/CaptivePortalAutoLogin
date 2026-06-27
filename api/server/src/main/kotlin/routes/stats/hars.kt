@@ -1,17 +1,16 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import java.nio.file.Path
-import kotlin.io.path.createDirectories
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.exists
 import kotlin.io.path.fileSize
-import kotlin.io.path.listDirectoryEntries
-import kotlin.io.path.moveTo
 import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
-import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.json.har.parseHarFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
+import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.ARCHIVED
+import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.ERROR
+import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.REGULAR
+import de.binarynoise.filedb.FileDB
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import de.binarynoise.logger.Logger.log
 import io.ktor.http.ContentDisposition
@@ -22,7 +21,7 @@ import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.request.header
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondFile
+import io.ktor.server.response.respondPath
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -40,9 +39,42 @@ data class HarEntry(
     val ssid: String,
     val domain: String,
     val timestamp: String,
-    val archived: Boolean,
+    val type: HarType,
     val fileSize: FileSize,
 )
+
+enum class HarType {
+    REGULAR, ARCHIVED, ERROR;
+    
+    val db: FileDB
+        get() = when (this) {
+            REGULAR -> ApiServer.api.harDB
+            ARCHIVED -> ApiServer.api.harDBArchived
+            ERROR -> ApiServer.api.harDBError
+        }
+    
+    override fun toString(): String = this.name.lowercase()
+    
+    companion object {
+        fun fromString(type: String): HarType {
+            return valueOf(type.uppercase())
+        }
+    }
+}
+
+
+class FileSize(val value: Long) : Comparable<FileSize> {
+    override fun toString(): String = HumanReadable.fileSize(value, decimals = 1)
+    override fun compareTo(other: FileSize): Int = value.compareTo(other.value)
+}
+
+private fun parseHarPath(path: Path, type: HarType): HarEntry {
+    val fileSize = FileSize(path.fileSize())
+    val name = path.nameWithoutExtension
+    val (ssid, domain, timestamp) = parseHarFileName(name) ?: return HarEntry(name, "", "", "", type, fileSize)
+    return HarEntry(name, ssid, domain, timestamp, type, fileSize)
+}
+
 
 internal fun Route.harRoutes() {
     get("hars") {
@@ -58,25 +90,28 @@ internal fun Route.harRoutes() {
                 ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
                 ColumnDefinition("name", "Name", Comparators.RegularComparator),
                 ColumnDefinition("fileSize", "File Size", Comparators.RegularComparator),
-                ColumnDefinition("archived", "Archived", Comparators.RegularComparator),
+                ColumnDefinition("type", "Type", Comparators.RegularComparator),
             )
             val actionColumnDefinitions: DataFrame<ActionColumnDefinition> = dataFrameOf(
-                ActionColumnDefinition("download", "Download", listOf("name")),
-                ActionColumnDefinition("archive", "Archive", listOf("name", "archived")),
-                ActionColumnDefinition("delete", "Delete", listOf("name", "archived")),
+                ActionColumnDefinition("download", "Download", listOf("name", "type")),
+                ActionColumnDefinition("archive", "Archive", listOf("name", "type")),
+                ActionColumnDefinition("delete", "Delete", listOf("name", "type")),
             )
             val defaultGroups: Set<String> = setOf("domain")
             val defaultSort = "domain-asc"
             
             val preFilterDefinitions: List<PreFilterDefinition> = listOf(
                 PreFilterDefinition("all", "All") {
-                    loadHarEntries(includeRegular = true, includeArchived = true)
+                    loadHarEntries(includeRegular = true, includeArchived = true, includeError = true)
                 },
                 PreFilterDefinition("regular", "Regular") {
-                    loadHarEntries(includeRegular = true, includeArchived = false)
+                    loadHarEntries(includeRegular = true)
                 },
                 PreFilterDefinition("archived", "Archived") {
-                    loadHarEntries(includeRegular = false, includeArchived = true)
+                    loadHarEntries(includeArchived = true)
+                },
+                PreFilterDefinition("error", "Error") {
+                    loadHarEntries(includeError = true)
                 },
             )
             
@@ -102,44 +137,34 @@ internal fun Route.harRoutes() {
         
         get("download/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val archived = "archived" in call.request.queryParameters && call.request.queryParameters.get("archived")
-                ?.takeIf { it.isNotBlank() }
-                ?.toBooleanStrict() ?: true
+            val type = HarType.fromString(call.parameters["type"] ?: missingParameter("type"))
+            val db = type.db
             
-            if (!archived) {
-                val path = harBase.resolve(id)
-                if (path.exists()) {
-                    call.respondPath(path)
-                    return@get
-                }
-            } else {
-                val path = harBase.resolve("archived").resolve(id)
-                if (path.exists()) {
-                    call.respondPath(path)
-                    return@get
-                }
+            if (db.exists(id)) {
+                call.respondPathWithContentDisposition(db.file(id))
+                return@get
             }
             
-            log("file not found: id=$id, archived=$archived")
+            log("file not found: id=$id, type=$type")
             call.respondStatus(HttpStatusCode.NotFound)
         }
         
         post("archive/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val src = harBase.resolve(id)
-            if (!src.exists()) {
-                log("archive: file not found: $src")
+            
+            if (!REGULAR.db.exists(id)) {
+                log("archive: file not found: $id")
                 call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
-            val archiveDir = harBase.resolve("archived").apply { createDirectories() }
-            val dest = archiveDir.resolve(id)
-            if (dest.exists()) {
-                log("archive: file already exists: $dest")
+            
+            if (ARCHIVED.db.exists(id)) {
+                log("archive: file already exists: $id")
                 call.respond(HttpStatusCode.Conflict, "Archived file already exists")
                 return@post
             }
-            src.moveTo(dest)
+            
+            REGULAR.db.moveTo(ARCHIVED.db, id)
             log("archive: moved: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
             call.respondStatus(HttpStatusCode.SeeOther)
@@ -147,19 +172,20 @@ internal fun Route.harRoutes() {
         
         post("unarchive/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val src = harBase.resolve("archived").resolve(id)
-            if (!src.exists()) {
-                log("unarchive: file not found: $src")
+            
+            if (!ARCHIVED.db.exists(id)) {
+                log("unarchive: file not found: $id")
                 call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
-            val dest = harBase.resolve(id)
-            if (dest.exists()) {
-                log("unarchive: file already exists: $dest")
+            
+            if (REGULAR.db.exists(id)) {
+                log("unarchive: file already exists: $id")
                 call.respond(HttpStatusCode.Conflict, "Unarchived file already exists")
                 return@post
             }
-            src.moveTo(dest)
+            
+            ARCHIVED.db.moveTo(REGULAR.db, id)
             log("unarchive: moved: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
             call.respondStatus(HttpStatusCode.SeeOther)
@@ -167,14 +193,16 @@ internal fun Route.harRoutes() {
         
         post("delete/{id}") {
             val id = call.parameters["id"] ?: missingParameter("id")
-            val archived = call.parameters["archived"] == "true"
-            val file = harBase.resolve(if (archived) "archived" else "").resolve(id)
-            if (!file.exists()) {
-                log("delete: file not found: $file")
+            val type = HarType.fromString(call.parameters["type"] ?: missingParameter("type"))
+            val db = type.db
+            
+            if (!db.exists(id)) {
+                log("delete: file not found: $id")
                 call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
-            file.deleteExisting()
+            
+            db.delete(id)
             log("delete: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
             call.respondStatus(HttpStatusCode.SeeOther)
@@ -193,63 +221,52 @@ internal fun Route.harRoutes() {
     }
 }
 
-private fun loadHarEntries(includeRegular: Boolean, includeArchived: Boolean): DataFrame<*> {
+private fun loadHarEntries(
+    includeRegular: Boolean = false,
+    includeArchived: Boolean = false,
+    includeError: Boolean = false,
+): DataFrame<*> {
     val entries = mutableListOf<HarEntry>()
     
     if (includeRegular) {
-        val regular = harBase.listDirectoryEntries("*.har")
-        entries.addAll(regular.map { parseHarPath(it, archived = false) })
+        val regular = REGULAR.db.listAllFiles()
+        entries.addAll(regular.map { parseHarPath(it, REGULAR) })
     }
     
     if (includeArchived) {
-        val archivedDir = harBase.resolve("archived")
-        if (archivedDir.exists()) {
-            val archived = archivedDir.listDirectoryEntries("*.har")
-            entries.addAll(archived.map { parseHarPath(it, archived = true) })
-        }
+        val archived = ARCHIVED.db.listAllFiles()
+        entries.addAll(archived.map { parseHarPath(it, ARCHIVED) })
+    }
+    
+    if (includeError) {
+        val error = ERROR.db.listAllFiles()
+        entries.addAll(error.map { parseHarPath(it, ERROR) })
     }
     
     val dataFrame = entries.toDataFrame() //
         .add("download") {
             ActionColumnAction(
                 "Download",
-                "download/${it.name}.har${if (it.archived) "?archived" else ""}",
+                "download/${it.name}?type=${it.type}",
                 "get",
             )
         }.add("archive") {
-            if (it.archived) ActionColumnAction("Unarchive", "unarchive/${it.name}.har", "post")
-            else ActionColumnAction("Archive", "archive/${it.name}.har", "post")
+            when (it.type) {
+                REGULAR -> ActionColumnAction("Archive", "archive/${it.name}", "post")
+                ARCHIVED -> ActionColumnAction("Unarchive", "unarchive/${it.name}", "post")
+                else -> null
+            }
         }.add("delete") {
-            ActionColumnAction("Delete", "delete/${it.name}.har?archived=${it.archived}", "post")
+            ActionColumnAction("Delete", "delete/${it.name}?type=${it.type}", "post")
         }
     
     return dataFrame
 }
 
-
-class FileSize(val value: Long) : Comparable<FileSize> {
-    override fun toString(): String = HumanReadable.fileSize(value, decimals = 1)
-    override fun compareTo(other: FileSize): Int = value.compareTo(other.value)
-}
-
-private val harBase: Path = ApiServer.api.jsonDb.base<HAR>()
-val harFileNameRegex = """^(?:(.+) )?(\S+) ([\d-]+T[\d:]+(?:\.\d+)?Z(?:[\d+:.-]+)?)$""".toRegex()
-private fun parseHarPath(path: Path, archived: Boolean): HarEntry {
-    val fileSize = FileSize(path.fileSize())
-    
-    val name = path.nameWithoutExtension
-    val match = harFileNameRegex.matchEntire(name.trim()) ?: return HarEntry(name, "", "", "", archived, fileSize)
-    val ssid = match.groupValues[1]
-    val domain = match.groupValues[2]
-    val timestamp = match.groupValues[3]
-    
-    return HarEntry(name, ssid, domain, timestamp, archived, fileSize)
-}
-
-private suspend fun ApplicationCall.respondPath(path: Path) {
+private suspend fun ApplicationCall.respondPathWithContentDisposition(path: Path) {
     response.header(
         HttpHeaders.ContentDisposition,
         ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, path.name).toString(),
     )
-    respondFile(path.toFile())
+    respondPath(path)
 }

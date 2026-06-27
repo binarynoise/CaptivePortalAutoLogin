@@ -98,3 +98,9 @@ fun HttpUrl.relativeTo(base: HttpUrl): HttpUrl {
     require(this.encodedPath.startsWith(base.encodedPath)) { "$this is not based on $base" }
     return this.newBuilder().encodedPath(this.encodedPath.removePrefix(base.encodedPath)).build()
 }
+
+fun HttpUrl.queryEntries(): Map<String, String> {
+    return (0 until this.querySize).associate {
+        this.queryParameterName(it) to (this.queryParameterValue(it) ?: "")
+    }
+}

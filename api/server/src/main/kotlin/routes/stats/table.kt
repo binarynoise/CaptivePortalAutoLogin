@@ -56,7 +56,7 @@ data class ActionColumnDefinition(
 
 data class ActionButtonData(
     val displayName: String,
-    val url: String,
+    val url: String?,
     val method: String,
     val isGet: Boolean = method.equals("get", ignoreCase = true),
 ) : MappableData

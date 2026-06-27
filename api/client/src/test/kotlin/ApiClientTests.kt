@@ -17,6 +17,7 @@ import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.createServer
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.serializer
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.engine.EmbeddedServer
@@ -80,7 +81,7 @@ class ApiClientTests {
         fun submitHar() {
             val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
             client.har.submitHar("test", har)
-            assertEquals(har, server.jsonDb.load<HAR>("test", "har"))
+            assertEquals(har, serializer.decodeFromString(server.harDB.load("test")))
         }
     }
     
@@ -101,13 +102,14 @@ class ApiClientTests {
         fun reportError() {
             client.liberator.reportError(
                 Api.Liberator.Error(
-                    "test version",
-                    System.currentTimeMillis(),
-                    "test ssid",
-                    "test url",
-                    "test error",
-                    "test solver",
-                    "test stack trace",
+                    version = "test version",
+                    timestamp = System.currentTimeMillis(),
+                    ssid = "test ssid",
+                    url = "test url",
+                    message = "test error",
+                    solver = "test solver",
+                    stackTrace = "test stack trace",
+                    har = null,
                 )
             )
         }
@@ -116,11 +118,11 @@ class ApiClientTests {
         fun reportSuccess() {
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
-                    "test version",
-                    System.currentTimeMillis(),
-                    "test ssid",
-                    "test url",
-                    "test solver",
+                    version = "test version",
+                    timestamp = System.currentTimeMillis(),
+                    ssid = "test ssid",
+                    url = "test url",
+                    solver = "test solver",
                 )
             )
         }
@@ -128,11 +130,11 @@ class ApiClientTests {
         @Test
         fun `reportSuccess - count`() {
             val success = Api.Liberator.Success(
-                "test version",
-                System.currentTimeMillis(),
-                "test ssid",
-                "test url",
-                "test solver",
+                version = "test version",
+                timestamp = System.currentTimeMillis(),
+                ssid = "test ssid",
+                url = "test url",
+                solver = "test solver",
             )
             
             client.liberator.reportSuccess(success)

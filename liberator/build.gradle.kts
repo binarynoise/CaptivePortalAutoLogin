@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation(projects.api)
     implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
     implementation(projects.util.okhttpKts)
@@ -13,6 +14,7 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)
+    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     
     // KSP processor for generating PortalLiberator list

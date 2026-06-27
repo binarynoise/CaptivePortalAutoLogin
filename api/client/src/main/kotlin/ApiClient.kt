@@ -1,11 +1,12 @@
 package de.binarynoise.captiveportalautologin.client
 
 import kotlin.time.Instant
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.util.json.prettyPrinter
+import de.binarynoise.util.json.serializer
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postJson
@@ -19,7 +20,7 @@ class ApiClient(private val base: HttpUrl) : Api {
     
     override val har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {
-            put("har/$name", har.toJson())
+            put("har/$name", har.toJsonElement())
         }
     }
     override val liberator = object : Api.Liberator {
@@ -69,10 +70,5 @@ class ApiClient(private val base: HttpUrl) : Api {
     }
 }
 
-fun HAR.toJson(): JsonElement = serializer.encodeToJsonElement(this)
-
-val serializer = Json {
-    encodeDefaults = false
-    explicitNulls = false
-    prettyPrint = false
-}
+fun HAR.toJsonElement(): JsonElement = serializer.encodeToJsonElement(this)
+fun HAR.toJson(): String = prettyPrinter.encodeToString(this)

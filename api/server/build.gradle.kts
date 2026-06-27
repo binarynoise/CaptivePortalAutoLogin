@@ -13,6 +13,7 @@ plugins {
 dependencies {
     implementation(projects.api)
     implementation(projects.util.fileDB)
+    implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
     
     implementation(libs.kotlin.reflect)

@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Content(
-    @SerialName("size") var size: Int,
+    @SerialName("size") var size: Long,
     @SerialName("mimeType") var mimeType: String,
     @SerialName("text") var text: String?,
     @SerialName("encoding") var encoding: String?,

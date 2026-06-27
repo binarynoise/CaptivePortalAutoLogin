@@ -8,8 +8,8 @@ import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
+import de.binarynoise.util.okhttp.queryEntries
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -17,12 +17,6 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("Nordsee Gast")
 object Nordsee : PortalLiberator {
-    fun HttpUrl.queryEntries(): Map<String, String> {
-        return (0 until this.querySize).associate {
-            this.queryParameterName(it) to (this.queryParameterValue(it) ?: "")
-        }
-    }
-    
     override fun canSolve(response: Response): Boolean {
         return "guests.nordsee.com" == response.requestUrl.host
     }

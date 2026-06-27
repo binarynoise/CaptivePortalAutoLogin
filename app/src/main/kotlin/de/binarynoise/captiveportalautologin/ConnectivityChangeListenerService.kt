@@ -372,6 +372,8 @@ class ConnectivityChangeListenerService : Service() {
                 userAgent,
                 ssid,
                 experimental = SharedPreferences.liberator_experimental_enabled,
+                appVersion = BuildConfig.VERSION_NAME,
+                liberatorVersion = "",
             ).liberate()
             
             t.cancel()
@@ -389,11 +391,11 @@ class ConnectivityChangeListenerService : Service() {
                     reportNetworkConnectivity(network, true)
                     Stats.liberator.reportSuccess(
                         Success(
-                            BuildConfig.VERSION_NAME,
-                            System.currentTimeMillis(),
-                            networkStateLock.read { networkState?.ssid.toString() },
-                            liberationResult.url,
-                            liberationResult.solvers,
+                            version = BuildConfig.VERSION_NAME,
+                            timestamp = System.currentTimeMillis(),
+                            ssid = ssid,
+                            url = liberationResult.url,
+                            solver = liberationResult.solvers,
                         )
                     )
                 }
@@ -405,15 +407,17 @@ class ConnectivityChangeListenerService : Service() {
                         Toast.LENGTH_SHORT
                     ).show()
                     reportNetworkConnectivity(network, false)
+                    liberationResult.har.comment = ssid
                     Stats.liberator.reportError(
                         Error(
-                            BuildConfig.VERSION_NAME,
-                            System.currentTimeMillis(),
-                            networkState?.ssid.toString(),
-                            liberationResult.url,
-                            liberationResult.message,
-                            liberationResult.solvers,
-                            liberationResult.exception.stackTraceToString(),
+                            version = BuildConfig.VERSION_NAME,
+                            timestamp = System.currentTimeMillis(),
+                            ssid = ssid,
+                            url = liberationResult.url,
+                            message = liberationResult.message,
+                            solver = liberationResult.solvers,
+                            stackTrace = liberationResult.exception.stackTraceToString(),
+                            har = liberationResult.har,
                         )
                     )
                 }
@@ -437,13 +441,14 @@ class ConnectivityChangeListenerService : Service() {
                     reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
                         Error(
-                            BuildConfig.VERSION_NAME,
-                            System.currentTimeMillis(),
-                            networkState?.ssid.toString(),
-                            liberationResult.url,
-                            "unknown portal",
-                            "",
-                            "",
+                            version = BuildConfig.VERSION_NAME,
+                            timestamp = System.currentTimeMillis(),
+                            ssid = ssid,
+                            url = liberationResult.url,
+                            message = "unknown portal",
+                            solver = "",
+                            stackTrace = "",
+                            har = null,
                         )
                     )
                 }
@@ -457,13 +462,14 @@ class ConnectivityChangeListenerService : Service() {
                     reportNetworkConnectivity(network, false)
                     Stats.liberator.reportError(
                         Error(
-                            BuildConfig.VERSION_NAME,
-                            System.currentTimeMillis(),
-                            networkState?.ssid.toString(),
-                            liberationResult.url,
-                            "still captured",
-                            liberationResult.solvers,
-                            "",
+                            version = BuildConfig.VERSION_NAME,
+                            timestamp = System.currentTimeMillis(),
+                            ssid = ssid,
+                            url = liberationResult.url,
+                            message = "still captured",
+                            solver = liberationResult.solvers,
+                            stackTrace = "",
+                            har = liberationResult.har,
                         )
                     )
                 }
@@ -490,13 +496,14 @@ class ConnectivityChangeListenerService : Service() {
             reportNetworkConnectivity(network, false)
             Stats.liberator.reportError(
                 Error(
-                    BuildConfig.VERSION_NAME,
-                    System.currentTimeMillis(),
-                    networkState?.ssid.toString(),
-                    "",
-                    message,
-                    "",
-                    e.stackTraceToString(),
+                    version = BuildConfig.VERSION_NAME,
+                    timestamp = System.currentTimeMillis(),
+                    ssid = ssid,
+                    url = "",
+                    message = message,
+                    solver = "",
+                    stackTrace = e.stackTraceToString(),
+                    har = null,
                 )
             )
         } finally {

@@ -28,8 +28,8 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.S
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.Stats
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.client.toJson
 import de.binarynoise.captiveportalautologin.databinding.ActivityGeckoviewBinding
-import de.binarynoise.captiveportalautologin.json.toJson
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.FileUtils
 import de.binarynoise.captiveportalautologin.util.FileUtils.saveTextToSd

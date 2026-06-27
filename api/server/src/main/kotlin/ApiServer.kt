@@ -6,14 +6,16 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.json.har.generateHarFileName
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
 import de.binarynoise.captiveportalautologin.server.database.ErrorEntity
 import de.binarynoise.captiveportalautologin.server.database.SuccessEntity
-import de.binarynoise.filedb.JsonDB
+import de.binarynoise.filedb.FileDB
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.prettyPrinter
+import io.ktor.http.Url
 
 class ApiServer(root: Path = Path(".")) : Api {
     
@@ -21,11 +23,9 @@ class ApiServer(root: Path = Path(".")) : Api {
         lateinit var api: ApiServer
     }
     
-    val jsonDb = JsonDB(root, Json {
-        encodeDefaults = false
-        explicitNulls = false
-        prettyPrint = true
-    })
+    val harDB = FileDB(root, "HAR", "har")
+    val harDBArchived = FileDB(root, "HAR/archived", "har")
+    val harDBError = FileDB(root, "HAR/error", "har")
     
     val database = AppDatabase.createDatabase(root)
     
@@ -38,7 +38,7 @@ class ApiServer(root: Path = Path(".")) : Api {
     
     override val har: Api.Har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {
-            jsonDb.store(name, har, "har")
+            harDB.store(name, prettyPrinter.encodeToString(har))
             log("stored har $name")
         }
     }
@@ -53,15 +53,28 @@ class ApiServer(root: Path = Path(".")) : Api {
         }
         
         override fun reportError(error: Api.Liberator.Error) {
+            val timestamp = Instant.fromEpochMilliseconds(error.timestamp)
+            
+            val har: HAR? = error.har
+            val harName = if (har == null) {
+                null
+            } else with(error) {
+                val host = Url(url).host
+                val name = generateHarFileName(ssid, host, timestamp)
+                harDBError.store(name, prettyPrinter.encodeToString(har))
+                name
+            }
+            
             runBlocking {
                 val errorEntity = ErrorEntity(
                     version = error.version,
-                    timestamp = Instant.fromEpochMilliseconds(error.timestamp),
+                    timestamp = timestamp,
                     ssid = error.ssid,
                     url = error.url,
                     message = error.message,
                     solver = error.solver.orEmpty(),
-                    stackTrace = error.stackTrace.orEmpty()
+                    stackTrace = error.stackTrace.orEmpty(),
+                    harName = harName,
                 )
                 database.errorDao().insert(errorEntity)
             }

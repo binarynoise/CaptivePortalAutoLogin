@@ -26,6 +26,7 @@ interface Api {
             // TODO: eventually remove nullable
             val solver: String?,
             val stackTrace: String?,
+            val har: HAR?,
         )
         
         @Serializable
