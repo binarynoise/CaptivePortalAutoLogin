@@ -43,7 +43,7 @@ fun Request(onBeforeRequestDetails: OnBeforeRequestDetails) = Request(
     "",
     cookies = mutableSetOf(),
     headers = mutableSetOf(),
-    query = mutableListOf(),
+    queryString = mutableListOf(),
     postData = null,
     0,
     0,

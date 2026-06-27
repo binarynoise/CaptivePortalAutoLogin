@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  * @param httpVersion Request HTTP Version.
  * @param cookies List of cookie objects.
  * @param headers List of header objects.
- * @param query List of query parameter objects.
+ * @param queryString List of query parameter objects.
  * @param postData Posted data info.
  * @param headersSize Total number of bytes from the start of the HTTP request message until (and including) the double CRLF before the body.
  * @param bodySize Size of the request body (POST data payload) in bytes.
@@ -21,7 +21,7 @@ data class Request(
     @SerialName("httpVersion") var httpVersion: String,
     @SerialName("cookies") var cookies: MutableSet<Cookie>,
     @SerialName("headers") var headers: MutableSet<Header>,
-    @SerialName("queryString") var query: MutableList<Query>,
+    @SerialName("queryString") var queryString: MutableList<Query>,
     @SerialName("postData") var postData: PostData?,
     @SerialName("headersSize") var headersSize: Int,
     @SerialName("bodySize") var bodySize: Int,
