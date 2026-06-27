@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.client
 
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -42,6 +43,7 @@ class ApiClient(private val base: HttpUrl) : Api {
     override suspend fun getSSIDs(
         limit: Int?,
         majorVersion: Int?,
+        since: Instant?,
     ): List<String> {
         return serializer.decodeFromString(
             httpClient.get(
@@ -50,6 +52,7 @@ class ApiClient(private val base: HttpUrl) : Api {
                 queryParameters = mapOf(
                     "limit" to limit,
                     "majorVersion" to majorVersion,
+                    "since" to since,
                 ).filterNot { it.value == null }.mapValues { it.toString() },
             ).readText()
         )

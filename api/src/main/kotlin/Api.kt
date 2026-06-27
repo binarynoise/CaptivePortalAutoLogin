@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.api
 
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 
@@ -42,7 +43,8 @@ interface Api {
     }
     
     suspend fun getSSIDs(
-        limit: Int?,
-        majorVersion: Int?,
+        limit: Int? = null,
+        majorVersion: Int? = null,
+        since: Instant? = null,
     ): List<String>
 }

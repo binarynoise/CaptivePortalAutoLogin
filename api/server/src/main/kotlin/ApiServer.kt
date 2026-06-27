@@ -84,10 +84,12 @@ class ApiServer(root: Path = Path(".")) : Api {
     override suspend fun getSSIDs(
         limit: Int?,
         majorVersion: Int?,
+        since: Instant?,
     ): List<String> {
         return database.SSIDDao().getSSIDs(
             limit = limit ?: 1024,
             majorVersion = majorVersion ?: Int.MAX_VALUE,
+            since = since ?: Instant.DISTANT_PAST,
         )
     }
 }
