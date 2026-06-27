@@ -86,7 +86,8 @@ class ApiServer(root: Path = Path(".")) : Api {
         majorVersion: Int?,
     ): List<String> {
         return database.SSIDDao().getSSIDs(
-            limit = limit ?: 1024, majorVersion = majorVersion ?: Int.MAX_VALUE
+            limit = limit ?: 1024,
+            majorVersion = majorVersion ?: Int.MAX_VALUE,
         )
     }
 }

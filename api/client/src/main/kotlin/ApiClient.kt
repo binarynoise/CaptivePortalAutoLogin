@@ -48,9 +48,9 @@ class ApiClient(private val base: HttpUrl) : Api {
                 base,
                 "api/ssid",
                 queryParameters = mapOf(
-                    "limit" to (limit?.toString() ?: ""),
-                    "majorVersion" to (majorVersion?.toString() ?: "")
-                )
+                    "limit" to limit,
+                    "majorVersion" to majorVersion,
+                ).filterNot { it.value == null }.mapValues { it.toString() }
             ).readText()
         )
     }

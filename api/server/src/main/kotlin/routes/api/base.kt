@@ -36,11 +36,11 @@ fun Routing.api() {
                 call.respond(HttpStatusCode.Created)
             }
         }
-get("/ssid") {
+        get("/ssid") {
             call.respond(
                 ApiServer.api.getSSIDs(
-                    limit = call.queryParameters["limit"]?.toIntOrNull(),
-                    majorVersion = call.queryParameters["majorVersion"]?.toIntOrNull(),
+                    limit = call.queryParameters["limit"]?.toInt(),
+                    majorVersion = call.queryParameters["majorVersion"]?.toInt(),
                 )
             )
         }
