@@ -1,5 +1,7 @@
 package de.binarynoise.captiveportalautologin
 
+import android.os.Build
+import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.logger.Logger
 
 open class Application : android.app.Application() {
@@ -14,6 +16,10 @@ open class Application : android.app.Application() {
         }
         
         setupUncaughtExceptionHandler()
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && SharedPreferences.network_suggestions.get()) {
+            enqueueUpdateNetworkSuggestionSSIDsWork(this)
+        }
     }
     
     /**

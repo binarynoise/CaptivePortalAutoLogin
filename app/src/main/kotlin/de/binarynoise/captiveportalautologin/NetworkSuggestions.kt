@@ -3,7 +3,10 @@
 package de.binarynoise.captiveportalautologin
 
 import java.lang.reflect.Field
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
@@ -11,8 +14,17 @@ import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.preference.Preference
+import androidx.preference.TwoStatePreference
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
@@ -20,26 +32,32 @@ import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-val supportedSSIDs: List<String> =
-    allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }.flatMap { portalLiberator ->
-        portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
-    }
+private val ssidJsonDB = FixedKeyJsonDB(applicationContext.noBackupFilesDir.toPath(), "NetworkSuggestionSSIDs")
+var ssidDb: List<String>?
+    get() = ssidJsonDB.loadOrNull()
+    set(value) = ssidJsonDB.storeOrDelete(value)
 
-@SuppressLint("InlinedApi")
-val supportedSSIDSuggestions = supportedSSIDs.map { ssid ->
-    val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
-    val macRandomizationSetting =
-        if (SharedPreferences.network_suggestions_mac_randomization.get() || isMacRandomizationForceEnabled) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
-        else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(macRandomizationSetting)
+val supportedSSIDs: List<String>
+    get() = ssidDb ?: allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }
+        .flatMap { portalLiberator ->
+            portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
+        }
+
+val supportedSSIDSuggestions
+    @SuppressLint("InlinedApi") get() = supportedSSIDs.map { ssid ->
+        val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
+        val macRandomizationSetting =
+            if (SharedPreferences.network_suggestions_mac_randomization.get() || isMacRandomizationForceEnabled) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
+            else WifiNetworkSuggestion.RANDOMIZATION_PERSISTENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setIsInitialAutojoinEnabled(true).setMacRandomizationSetting(macRandomizationSetting)
+        }
+        val suggestion = builder.build()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            suggestion.setMacRandomizationSetting(macRandomizationSetting)
+        }
+        return@map suggestion
     }
-    val suggestion = builder.build()
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-        suggestion.setMacRandomizationSetting(macRandomizationSetting)
-    }
-    return@map suggestion
-}
 
 val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
 
@@ -53,6 +71,41 @@ val isMacRandomizationForceEnabled
         0,
     ) == 1
 
+class UpdateNetworkSuggestionSSIDsWorker(appContext: Context, workerParams: WorkerParameters) :
+    CoroutineWorker(appContext, workerParams) {
+    override suspend fun doWork(): Result {
+        TODO("Not yet implemented")
+    }
+}
+
+private val UpdateNetworkSuggestionSSIDsWorkerUUID = UUID.fromString("c7852d1f-b427-434d-8eb0-f8b1ed9176ef")
+fun enqueueUpdateNetworkSuggestionSSIDsWork(
+    context: Context,
+    repeatInterval: Long = 7,
+    repeatIntervalTimeUnit: TimeUnit = TimeUnit.DAYS,
+) {
+    val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build()
+    val workRequest = PeriodicWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>(
+        repeatInterval,
+        repeatIntervalTimeUnit
+    ).setConstraints(constraints).setId(UpdateNetworkSuggestionSSIDsWorkerUUID).build()
+    WorkManager.getInstance(context).enqueue(workRequest)
+}
+
+fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context) {
+    WorkManager.getInstance(context).cancelWorkById(UpdateNetworkSuggestionSSIDsWorkerUUID)
+}
+
+val NetworkSuggestionOnPreferenceChangeListener: Preference.OnPreferenceChangeListener = { preference, value ->
+    require(preference is TwoStatePreference) { "preference is not TwoStatePreference" }
+    if (preference.isChecked) {
+        enqueueUpdateNetworkSuggestionSSIDsWork(preference.context)
+        removeNetworkSuggestions()
+    } else {
+        dequeueUpdateNetworkSuggestionSSIDsWork(preference.context)
+        sendNetworkSuggestions()
+    }
+}
 
 fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
     log("getNetworkSuggestions: limit is ${wifiManager.maxNumberOfNetworkSuggestionsPerApp}")

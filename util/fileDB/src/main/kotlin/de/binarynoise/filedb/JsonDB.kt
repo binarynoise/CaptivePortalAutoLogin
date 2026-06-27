@@ -40,6 +40,11 @@ class JsonDB(
         log("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
     }
     
+    inline fun <reified T: Any> storeOrDelete(key: String, value: T?, extension: String = DEFAULT_EXTENSION) {
+        if (value == null) return delete<T>(key, extension)
+        return store(key, value, extension)
+    }
+    
     inline fun <reified T : Any> load(key: String, extension: String = DEFAULT_EXTENSION): T {
         val file = file<T>(key, extension)
         if (!file.exists()) {
@@ -49,6 +54,14 @@ class JsonDB(
         val decoded = serializer.decodeFromString<T>(json)
         log("loaded ${T::class.simpleName} with key $key from ${file.absolutePathString()}")
         return decoded
+    }
+    
+    inline fun <reified T : Any> loadOrNull(key: String, extension: String = DEFAULT_EXTENSION): T? {
+        return try {
+            load(key, extension)
+        } catch (_: FileNotFoundException) {
+            null
+        }
     }
     
     inline fun <reified T : Any> delete(key: String, extension: String = DEFAULT_EXTENSION) {
