@@ -44,6 +44,5 @@ interface Api {
     suspend fun getSSIDs(
         limit: Int?,
         majorVersion: Int?,
-    ) : List<String>
-    
+    ): List<String>
 }

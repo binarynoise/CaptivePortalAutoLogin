@@ -38,7 +38,7 @@ class ApiClient(private val base: HttpUrl) : Api {
             put("liberator/success", serializer.encodeToJsonElement(success))
         }
     }
-
+    
     override suspend fun getSSIDs(
         limit: Int?,
         majorVersion: Int?,
@@ -50,7 +50,7 @@ class ApiClient(private val base: HttpUrl) : Api {
                 queryParameters = mapOf(
                     "limit" to limit,
                     "majorVersion" to majorVersion,
-                ).filterNot { it.value == null }.mapValues { it.toString() }
+                ).filterNot { it.value == null }.mapValues { it.toString() },
             ).readText()
         )
     }
