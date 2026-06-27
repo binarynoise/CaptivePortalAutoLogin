@@ -5,12 +5,15 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.portals.NetworkAuth.isNetworkAuthDomain
 import de.binarynoise.liberator.portals.NetworkAuth.isNetworkAuthGrantUrl
+import de.binarynoise.liberator.tryOrIgnore
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocationUrl
+import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -41,7 +44,14 @@ object NetworkAuth : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        client.get(response.requestUrl, "grant").followRedirects(client) { it.isNetworkAuthDomain() }.checkSuccess()
+        val grant = client.get(response.requestUrl, "grant").followRedirects(client) { it.isNetworkAuthDomain() }
+        tryOrIgnore {
+            if (!grant.isSuccessful && response.parseHtml()
+                    .select("#signin_form")
+                    .isNotEmpty()
+            ) throw UnsupportedPortalException("login credentials required")
+        }
+        grant.checkSuccess()
     }
 }
 
