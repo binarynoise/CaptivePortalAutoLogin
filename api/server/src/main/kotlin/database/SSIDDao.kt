@@ -9,6 +9,8 @@ interface SSIDDao {
         """
         SELECT ssid 
         FROM successes
+        GROUP BY ssid
+        ORDER BY COUNT(*) DESC
         LIMIT :limit
         """
     )
