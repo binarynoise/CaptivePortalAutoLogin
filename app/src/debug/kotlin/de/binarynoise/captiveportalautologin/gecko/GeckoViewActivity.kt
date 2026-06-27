@@ -63,17 +63,14 @@ class GeckoViewActivity : ComponentActivity() {
     
     val progressDelegate = object : GeckoSession.ProgressDelegate {
         override fun onPageStop(session: GeckoSession, success: Boolean) {
-            log("onPageStop")
             binding.progress.isVisible = false
         }
         
         override fun onProgressChange(session: GeckoSession, progress: Int) {
-            log("onProgressChange")
             binding.progress.progress = progress
         }
         
         override fun onPageStart(session: GeckoSession, url: String) {
-            log("onPageStart")
             binding.progress.isVisible = true
         }
     }
