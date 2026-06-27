@@ -37,7 +37,12 @@ fun Routing.api() {
             }
         }
 get("/ssid") {
-            call.respond(ApiServer.api.getSSIDs())
+            call.respond(
+                ApiServer.api.getSSIDs(
+                    limit = call.queryParameters["limit"]?.toIntOrNull(),
+                    majorVersion = call.queryParameters["majorVersion"]?.toIntOrNull(),
+                )
+            )
         }
     }
 }

@@ -80,8 +80,13 @@ class ApiServer(root: Path = Path(".")) : Api {
             log("Stored Api.Liberator.Success: $success")
         }
     }
-
-    override suspend fun getSSIDs(): List<String> {
-        return database.SSIDDao().getSSIDs()
+    
+    override suspend fun getSSIDs(
+        limit: Int?,
+        majorVersion: Int?,
+    ): List<String> {
+        return database.SSIDDao().getSSIDs(
+            limit = limit ?: 1024, majorVersion = majorVersion ?: Int.MAX_VALUE
+        )
     }
 }

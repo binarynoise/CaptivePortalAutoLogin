@@ -17,7 +17,7 @@ interface SSIDDao {
         """
     )
     suspend fun getSSIDs(
-        limit: Int = 1024,
-        majorVersion: Int = Int.MAX_VALUE,
+        limit: Int,
+        majorVersion: Int,
     ): List<String>
 }

@@ -39,8 +39,20 @@ class ApiClient(private val base: HttpUrl) : Api {
         }
     }
 
-    override suspend fun getSSIDs(): List<String> {
-        return serializer.decodeFromString(httpClient.get(base, "api/ssid").readText())
+    override suspend fun getSSIDs(
+        limit: Int?,
+        majorVersion: Int?,
+    ): List<String> {
+        return serializer.decodeFromString(
+            httpClient.get(
+                base,
+                "api/ssid",
+                queryParameters = mapOf(
+                    "limit" to (limit?.toString() ?: ""),
+                    "majorVersion" to (majorVersion?.toString() ?: "")
+                )
+            ).readText()
+        )
     }
     
     private fun post(url: String, json: JsonElement) {
