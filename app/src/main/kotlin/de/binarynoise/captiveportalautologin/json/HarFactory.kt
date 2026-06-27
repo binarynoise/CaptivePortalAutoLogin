@@ -8,7 +8,6 @@ import kotlinx.datetime.toLocalDateTime
 import android.os.Build
 import de.binarynoise.captiveportalautologin.api.json.har.Content
 import de.binarynoise.captiveportalautologin.api.json.har.Cookie
-import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.Header
 import de.binarynoise.captiveportalautologin.api.json.har.PostData
 import de.binarynoise.captiveportalautologin.api.json.har.PostParam
@@ -21,7 +20,6 @@ import de.binarynoise.captiveportalautologin.json.webRequest.OnErrorOccurredDeta
 import de.binarynoise.captiveportalautologin.json.webRequest.OnHeadersReceivedDetails
 import de.binarynoise.captiveportalautologin.json.webRequest.RequestBody
 import de.binarynoise.logger.Logger.log
-import de.binarynoise.util.json.prettyPrinter
 
 fun Header(httpHeader: HttpHeader): Header = Header(httpHeader.name, httpHeader.value.orEmpty())
 
@@ -34,8 +32,6 @@ fun Cookie(cookie: HttpCookie): Cookie = Cookie(
     httpOnly = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) cookie.isHttpOnly else false,
     secure = cookie.secure
 )
-
-fun HAR.toJson(): String = prettyPrinter.encodeToString(this)
 
 fun Request(onBeforeRequestDetails: OnBeforeRequestDetails) = Request(
     onBeforeRequestDetails.method,
@@ -250,7 +246,7 @@ fun Response.setContent(contentString: String) {
     }
     
     content = Content(
-        contentString.length,
+        contentString.length.toLong(),
         mimeType,
         encodedContent,
         encoding,

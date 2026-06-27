@@ -19,6 +19,7 @@ open class ErrorEntity(
     val message: String,
     val solver: String,
     val stackTrace: String,
+    val harName: String?,
 ) {
     fun toExtendedErrorEntity() = ExtendedErrorEntity(
         id = id,
@@ -29,6 +30,7 @@ open class ErrorEntity(
         message = message,
         solver = solver,
         stackTrace = stackTrace,
+        harName = harName,
     )
 }
 
@@ -42,7 +44,8 @@ class ExtendedErrorEntity(
     message: String,
     solver: String,
     stackTrace: String,
-) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace) {
+    harName: String?,
+) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace, harName) {
     val domain = url.getUrlDomain()
     val majorVersion = version.getMajorVersion()
     private val localDateTime = timestamp.toLocalDateTime(UTC)

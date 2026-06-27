@@ -1,6 +1,6 @@
 package de.binarynoise.captiveportalautologin.gecko
 
-import java.time.format.DateTimeFormatter
+import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -23,6 +23,7 @@ import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.api.json.har.Request
 import de.binarynoise.captiveportalautologin.api.json.har.Response
 import de.binarynoise.captiveportalautologin.api.json.har.Timings
+import de.binarynoise.captiveportalautologin.api.json.har.generateHarFileName
 import de.binarynoise.captiveportalautologin.json.Request
 import de.binarynoise.captiveportalautologin.json.Response
 import de.binarynoise.captiveportalautologin.json.filter.FilterOnStopDetails
@@ -373,9 +374,8 @@ class ExtensionDelegate(
         val host =
             har.log.entries.asSequence().map { it.request.url.toHttpUrl().host }.firstOrNull { it != portalTestHost }
                 ?: portalTestHost
-        val timestamp = java.time.Instant.now().let(DateTimeFormatter.ISO_INSTANT::format)
-        val harName = "$ssid $host $timestamp"
-        
+        val timestamp = Clock.System.now()
+        val harName = generateHarFileName(ssid, host, timestamp)
         
         return harName to har
     }

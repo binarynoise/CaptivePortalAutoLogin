@@ -5,6 +5,8 @@ plugins {
 dependencies {
     api(projects.api)
     api(projects.util.okhttpKts)
+    implementation(projects.util.jsonKts)
+    implementation(projects.util.logger)
     
     implementation(libs.kotlinx.serialization.json)
     
@@ -13,7 +15,6 @@ dependencies {
     
     testImplementation(projects.api.server)
     testImplementation(projects.util.fileDB)
-    testImplementation(projects.util.logger)
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.ktor.bom))
     testImplementation(platform(libs.netty.bom))

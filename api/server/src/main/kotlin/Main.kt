@@ -5,13 +5,13 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.reflect.jvm.javaMethod
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.json.Json
 import com.github.mustachejava.DefaultMustacheFactory
 import com.github.mustachejava.FragmentKey
 import com.github.mustachejava.Mustache
 import de.binarynoise.captiveportalautologin.server.ApiServer.Companion.api
 import de.binarynoise.captiveportalautologin.server.routes.configureRouting
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.util.json.serializer
 import dev.reformator.stacktracedecoroutinator.jvm.DecoroutinatorJvmApi
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -84,11 +84,7 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
         }
     }
     install(ContentNegotiation) {
-        json(json = Json {
-            encodeDefaults = false
-            explicitNulls = false
-            prettyPrint = false
-        })
+        json(json = serializer)
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->

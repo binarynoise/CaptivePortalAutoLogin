@@ -9,6 +9,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import org.jetbrains.kotlinx.dataframe.DataFrame
+import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.dataFrameOf
 import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 
@@ -32,18 +33,53 @@ internal fun Route.errorRoutes() {
             ColumnDefinition("message", "Message", Comparators.RegularComparator),
             ColumnDefinition("solver", "Solver", Comparators.RegularComparator),
             ColumnDefinition("stackTrace", "Stack Trace", Comparators.RegularComparator),
+            ColumnDefinition("harName", "Har Name", Comparators.RegularComparator),
         )
         val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "message")
         
+        val actionColumnDefinitions = dataFrameOf(
+            ActionColumnDefinition("download", "Download Error HAR", listOf("harName"))
+        )
+        
         val preFilterDefinitions: List<PreFilterDefinition> = listOf(
             PreFilterDefinition("all", "All") {
-                ApiServer.api.database.errorDao().getAll().map { it.toExtendedErrorEntity() }.toDataFrame()
+                ApiServer.api.database.errorDao()
+                    .getAll()
+                    .map { it.toExtendedErrorEntity() }
+                    .toDataFrame()
+                    .add("download") {
+                        ActionColumnAction(
+                            "Download",
+                            if (it.harName != null) "../hars/download/${it.harName}?type=${HarType.ERROR}" else null,
+                            "get"
+                        )
+                    }
             },
             PreFilterDefinition("unknown", "Unknown Portals") {
-                ApiServer.api.database.errorDao().getUnknownPortals().map { it.toExtendedErrorEntity() }.toDataFrame()
+                ApiServer.api.database.errorDao()
+                    .getUnknownPortals()
+                    .map { it.toExtendedErrorEntity() }
+                    .toDataFrame()
+                    .add("download") {
+                        ActionColumnAction(
+                            "Download",
+                            if (it.harName != null) "../hars/download/${it.harName}?type=${HarType.ERROR}" else null,
+                            "get"
+                        )
+                    }
             },
             PreFilterDefinition("no_noise", "No Noise") {
-                ApiServer.api.database.errorDao().getNoNoise().map { it.toExtendedErrorEntity() }.toDataFrame()
+                ApiServer.api.database.errorDao()
+                    .getNoNoise()
+                    .map { it.toExtendedErrorEntity() }
+                    .toDataFrame()
+                    .add("download") {
+                        ActionColumnAction(
+                            "Download",
+                            if (it.harName != null) "../hars/download/${it.harName}?type=${HarType.ERROR}" else null,
+                            "get"
+                        )
+                    }
             },
         )
         
@@ -53,6 +89,7 @@ internal fun Route.errorRoutes() {
             preFilterDefinitions,
             defaultGroups = defaultGroups,
             defaultPreFilter = "no_noise",
+            actionColumnDefinitions = actionColumnDefinitions,
         )
         
         call.respond(

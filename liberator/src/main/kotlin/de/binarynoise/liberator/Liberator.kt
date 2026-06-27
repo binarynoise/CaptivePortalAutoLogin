@@ -1,25 +1,29 @@
 package de.binarynoise.liberator
 
 import java.security.cert.CertPathValidatorException
-import java.util.concurrent.TimeUnit.*
+import java.util.concurrent.TimeUnit.MINUTES
 import javax.net.ssl.SSLException
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import de.binarynoise.captiveportalautologin.api.json.har.Browser
+import de.binarynoise.captiveportalautologin.api.json.har.Cache
+import de.binarynoise.captiveportalautologin.api.json.har.Creator
+import de.binarynoise.captiveportalautologin.api.json.har.Entry
+import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.json.har.Log
+import de.binarynoise.captiveportalautologin.api.json.har.Timings
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.portals.allPortalRedirectors
 import de.binarynoise.logger.Logger.log
-import de.binarynoise.util.json.JsonObject
-import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getLocation
-import de.binarynoise.util.okhttp.readText
 import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.Cookie
-import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Response
-import org.jsoup.Jsoup
 
 class Liberator(
     private val clientInit: (OkHttpClient.Builder) -> Unit,
@@ -27,9 +31,20 @@ class Liberator(
     private val userAgent: String,
     private val ssid: String?,
     private val experimental: Boolean = false,
+    appVersion: String = "",
+    liberatorVersion: String = "",
 ) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
+    
+    private val creator = Creator("CaptivePortalAutoLogin", appVersion)
+    private val browser = Browser("Liberator", liberatorVersion)
+    
+    private val entries = mutableListOf<Entry>()
+    
+    private val log = Log("1.2", creator, browser, mutableListOf(), entries)
+    private val har = HAR(log)
+    
     
     private val client = OkHttpClient.Builder().apply {
         cache(null)
@@ -48,14 +63,17 @@ class Liberator(
      * - log request details and POST request body,
      * - proceed with the request,
      * - log the response details and body,
-     * - save cookies
+     * - save cookies,
+     * - record HAR entries
      */
     private fun interceptRequest(chain: Interceptor.Chain): Response {
+        val startTime = Clock.System.now()
+        
         val originalRequest = chain.request()
+        val cookiesToSend = cookies.filter { it.matches(originalRequest.url) }
         val newRequest = originalRequest.newBuilder().apply {
             header("User-Agent", userAgent)
             header("Connection", "Keep-Alive")
-            val cookiesToSend = cookies.filter { it.matches(originalRequest.url) }
             log("Loading cookies for ${originalRequest.url}: ${cookiesToSend.joinToString { "${it.name}=${it.value}" }}")
             if (cookiesToSend.isNotEmpty()) {
                 val cookieHeader = cookiesToSend.joinToString(separator = "; ") { "${it.name}=${it.value}" }
@@ -63,65 +81,25 @@ class Liberator(
             }
         }.build()
         
-        log("> ${newRequest.method} ${newRequest.url}")
-        newRequest.headers.forEach { (name, value) ->
-            log("> $name: $value")
-        }
-        if (newRequest.method == "POST") {
-            when (val body = newRequest.body) {
-                null -> {
-                }
-                is FormBody -> {
-                    for (i in 0..<body.size) {
-                        val name = body.name(i)
-                        val value = body.value(i)
-                        log("> $name=$value")
-                    }
-                }
-                is MultipartBody -> {
-                    log("> Content-Type: ${body.contentType()}")
-                    body.parts.forEach {
-                        log("> ${it.body.contentType() ?: it.headers?.get("Content-Disposition")} (${it.body.contentLength()} bytes)")
-                        log(it.body.readText())
-                    }
-                }
-                else -> {
-                    log("> Content-Type: ${body.contentType()} (${body.contentLength()} bytes)")
-                    log(body.readText())
-                }
-            }
-        }
+        val harRequest = Request(newRequest, cookiesToSend)
         
+        val startedDateTime = startTime.toLocalDateTime(TimeZone.currentSystemDefault())
         val response = chain.proceed(newRequest)
         
-        log("< ${response.code} ${response.message}")
-        response.headers.forEach { (name, value) ->
-            log("< $name: $value")
-        }
-        var text = response.readText(skipStatusCheck = true)
+        val harResponse = parseResponse(response, cookies)
         
-        val newCookies = Cookie.parseAll(newRequest.url, response.headers)
-        if (newCookies.isNotEmpty()) {
-            log("Saving cookies for ${newRequest.url}: ${newCookies.joinToString { "${it.name}=${it.value}" }}")
-            newCookies.forEach { new ->
-                val old = cookies.find { old -> old.name == new.name }
-                if (old != null) {
-                    cookies -= old
-                }
-                cookies += new
-            }
-            log("All cookies now: ${cookies.joinToString { "${it.name}=${it.value}" }}")
-        }
-        
-        // prettify text if html, xml or json
-        val contentType = response.header("Content-Type")
-        if (contentType != null) when {
-            contentType.startsWith("text/html") -> text = Jsoup.parse(text).html()
-            contentType.startsWith("text/xml") -> text = Jsoup.parse(text).body().html()
-            contentType.startsWith("application/json") -> text = prettyPrinter.encodeToString(JsonObject(text))
-        }
-        
-        log(text)
+        entries.add(
+            Entry(
+                null,
+                startedDateTime,
+                harRequest,
+                harResponse,
+                Cache(),
+                Timings(),
+                null,
+                null,
+            )
+        )
         
         return response
     }
@@ -135,7 +113,7 @@ class Liberator(
             return LiberationResult.NotCaught
         } else if (portalResponsePre == null) {
             log("unknown captive portal redirection")
-            return LiberationResult.UnknownPortal(portalResponsePre?.requestUrl.toString())
+            return LiberationResult.UnknownPortal(null.toString())
         }
         
         val liberationResult = recurse(portalResponsePre, 0)
@@ -148,7 +126,7 @@ class Liberator(
         if (!isInPortalPost) {
             return liberationResult
         }
-        return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), liberationResult.solvers)
+        return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), liberationResult.solvers, har)
     }
     
     private fun isCaughtInPortal(maxTries: Int = 1): Pair<Boolean, Response?> {
@@ -233,6 +211,7 @@ class Liberator(
                     message.orEmpty(),
                     solvers.joinToString { it::class.simpleName.orEmpty() },
                     throwable,
+                    har,
                 )
             }.forEach {
                 log("liberated by ${it::class.simpleName}")
@@ -242,7 +221,7 @@ class Liberator(
                 solvers.joinToString { it::class.simpleName.orEmpty() },
             )
         } catch (e: Exception) {
-            return LiberationResult.Error(response.requestUrl.toString(), e.message.orEmpty(), "", e)
+            return LiberationResult.Error(response.requestUrl.toString(), e.message.orEmpty(), "", e, har)
         }
     }
     
@@ -276,11 +255,16 @@ class Liberator(
         
         data class Success(val url: String, val solvers: String) : LiberationResult()
         data class Timeout(val url: String) : LiberationResult()
-        data class Error(val url: String, val message: String, val solvers: String, val exception: Throwable) :
-            LiberationResult()
+        data class Error(
+            val url: String,
+            val message: String,
+            val solvers: String,
+            val exception: Throwable,
+            val har: HAR,
+        ) : LiberationResult()
         
         data class UnknownPortal(val url: String) : LiberationResult()
-        data class StillCaptured(val url: String, val solvers: String) : LiberationResult()
+        data class StillCaptured(val url: String, val solvers: String, val har: HAR) : LiberationResult()
         data class UnsupportedPortal(val url: String) : LiberationResult()
     }
 }
