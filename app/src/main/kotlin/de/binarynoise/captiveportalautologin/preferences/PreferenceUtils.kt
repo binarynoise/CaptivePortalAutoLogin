@@ -6,13 +6,17 @@ import kotlin.contracts.contract
 import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.annotation.LayoutRes
 import androidx.core.content.getSystemService
+import androidx.core.view.SoftwareKeyboardControllerCompat
 import androidx.core.view.get
+import androidx.preference.DropDownPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
@@ -118,7 +122,7 @@ fun EditTextPreference(
 ): WidgetPreference = WidgetPreference(ctx, R.layout.item_inline_edit_text_preference) {
     val binding = ItemInlineEditTextPreferenceBinding.bind(it)
     with(binding) {
-        editText.setText(defaultValue)
+        editText.setText(sharedPreferences!!.getString(key, defaultValue))
         editText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -131,8 +135,25 @@ fun EditTextPreference(
         editText.setOnClickListener { }
         setOnPreferenceClickListener { _ ->
             editText.requestFocus()
-            context.getSystemService<InputMethodManager>()?.showSoftInput(editText, 0)
+            SoftwareKeyboardControllerCompat(editText).show()
             true
+        }
+        editText.setOnEditorActionListener { view, actionId, event ->
+            val isImeDone = actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO
+            val isEnterKeyPressed =
+                event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN
+            
+            if (isImeDone || isEnterKeyPressed) {
+                editText.clearFocus()
+                true
+            } else {
+                false
+            }
+        }
+        editText.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                SoftwareKeyboardControllerCompat(editText).hide()
+            }
         }
         editText.setHint(hint)
     }
