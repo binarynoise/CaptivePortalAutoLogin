@@ -12,7 +12,6 @@ import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID(
     "pap_guest",
 )

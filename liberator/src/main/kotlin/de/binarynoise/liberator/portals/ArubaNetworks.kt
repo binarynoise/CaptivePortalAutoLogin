@@ -28,6 +28,7 @@ import okhttp3.Response
     "H&M Free WiFi",
     "IKEA WiFi",
     "LEVIS GUEST",
+    "Peters-WLAN",
 )
 object ArubaNetworks : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
