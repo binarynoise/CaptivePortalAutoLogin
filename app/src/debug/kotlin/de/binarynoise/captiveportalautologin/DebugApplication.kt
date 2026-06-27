@@ -2,12 +2,14 @@ package de.binarynoise.captiveportalautologin
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import android.os.strictmode.DiskReadViolation
 import android.os.strictmode.UntaggedSocketViolation
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import de.binarynoise.logger.Logger.log
 
 class DebugApplication : Application() {
@@ -56,5 +58,12 @@ class DebugApplication : Application() {
             }
         }.build())
         */
+        
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(::onSharedPreferenceChanged)
+    }
+    
+    fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String?) {
+        log("SharedPreferences updated: $key -> ${sharedPreferences.all[key]}")
     }
 }
