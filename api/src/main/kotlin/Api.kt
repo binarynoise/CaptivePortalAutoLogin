@@ -40,4 +40,7 @@ interface Api {
         fun reportError(error: Error)
         fun reportSuccess(success: Success)
     }
+    
+    suspend fun getSSIDs() : List<String>
+    
 }

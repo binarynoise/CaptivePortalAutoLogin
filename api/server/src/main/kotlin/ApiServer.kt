@@ -80,4 +80,8 @@ class ApiServer(root: Path = Path(".")) : Api {
             log("Stored Api.Liberator.Success: $success")
         }
     }
+
+    override suspend fun getSSIDs(): List<String> {
+        return database.SSIDDao().getSSIDs()
+    }
 }

@@ -36,5 +36,8 @@ fun Routing.api() {
                 call.respond(HttpStatusCode.Created)
             }
         }
+get("/ssid") {
+            call.respond(ApiServer.api.getSSIDs())
+        }
     }
 }
