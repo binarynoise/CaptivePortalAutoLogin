@@ -20,8 +20,6 @@ import okhttp3.Response
 @SSID(
     "BACK-FACTORY Besucher",
     "MEET ME @ STARBUCKS",
-    "CLIENTES.LME",
-    "Free Wifi Ris8tto",
     "JD-Gast-WiFi",
     "DrMartens",
     "P&C Hotspot",

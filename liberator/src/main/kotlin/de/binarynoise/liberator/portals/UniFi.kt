@@ -25,12 +25,7 @@ import okhttp3.Response
 @Experimental
 @SSID(
     "Baeckerhaus Veit",
-    "CS-Gastzugang",
-    "CS-Studenten",
-    "CVS-Gastzugang",
-    "GLÜCKSBRINGER",
     "Henri Willig GUEST",
-    "Hyperlocal",
     "KaptenAndSon_Gast",
     "Kesselwirt Stuttgart Gäste",
     "L’Osteria",

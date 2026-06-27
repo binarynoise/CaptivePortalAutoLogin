@@ -27,11 +27,8 @@ fun HttpUrl.isEricssonSuccess(): Boolean {
 }
 
 @SSID(
-    "Bogestra",
     "KampsHotspot",
     "WIFI@DB",
-    "WLAN@MainzerMobilität",
-    "WLAN@RMV S-BAHN",
 )
 object Hotsplots : PortalLiberator {
     override fun canSolve(response: Response): Boolean {

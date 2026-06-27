@@ -24,7 +24,6 @@ import okhttp3.Response
 @SSID(
     "GERBER-FreeWifi",
     "HUGO-BOSS-WIFI",
-    "WiFi Darmstadt",
     "_BUCHERER Free WiFi_",
     "mycloud",
     "o2 free Wifi",

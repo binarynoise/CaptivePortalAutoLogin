@@ -36,11 +36,9 @@ import okhttp3.Response
 @Experimental
 @SSID(
     "Cotidiano-Gast",
-    "FreeWiFi 24 Autohof Mühldorf",
     "FreeWiFi Burger King",
     "FreeWiFi Teufel",
     "FreeWiFi Wenkers am Markt",
-    "WienerRiesenrad",
 )
 object SocialWave : PortalLiberator {
     val SOCIALWAVE_DOMAINS = listOf(
