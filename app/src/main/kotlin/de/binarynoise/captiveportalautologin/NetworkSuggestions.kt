@@ -19,6 +19,7 @@ import androidx.preference.TwoStatePreference
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.NetworkType
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -88,19 +89,11 @@ class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: 
         if (apiBaseUrl == null) return Result.failure()
         val apiClient = ApiClient(apiBaseUrl)
         
-        try {
-            updateNetworkSuggestionSSIDsFromApi(apiClient)
-        } catch (_: Exception) {
-            return Result.failure()
-        }
+        val limit = wifiManager.maxNumberOfNetworkSuggestionsPerApp
+        ssidDb = apiClient.getSSIDs(limit, BuildConfig.VERSION_CODE)
+        sendNetworkSuggestions()
         return Result.success()
     }
-}
-
-suspend fun updateNetworkSuggestionSSIDsFromApi(apiClient: ApiClient) {
-    val limit = wifiManager.maxNumberOfNetworkSuggestionsPerApp
-    ssidDb = apiClient.getSSIDs(limit, BuildConfig.VERSION_CODE)
-    sendNetworkSuggestions()
 }
 
 private val UpdateNetworkSuggestionSSIDsWorkerUUID = UUID.fromString("c7852d1f-b427-434d-8eb0-f8b1ed9176ef")
@@ -108,11 +101,15 @@ fun enqueueUpdateNetworkSuggestionSSIDsWork(
     context: Context = applicationContext,
     repeatInterval: Long = 7,
     repeatIntervalTimeUnit: TimeUnit = TimeUnit.DAYS,
+    expedited: Boolean = false
 ) {
     val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.UNMETERED).build()
-    val workRequest = PeriodicWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>(
-        repeatInterval, repeatIntervalTimeUnit
-    ).setConstraints(constraints).setId(UpdateNetworkSuggestionSSIDsWorkerUUID).build()
+    val workRequest =
+        PeriodicWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>(repeatInterval, repeatIntervalTimeUnit).apply {
+            setConstraints(constraints)
+            setId(UpdateNetworkSuggestionSSIDsWorkerUUID)
+            if (expedited) setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+        }.build()
     WorkManager.getInstance(context).enqueue(workRequest)
 }
 
@@ -123,7 +120,7 @@ fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context = applicationContex
 val NetworkSuggestionOnPreferenceChangeListener: Preference.OnPreferenceChangeListener = { preference, value ->
     require(preference is TwoStatePreference) { "preference is not TwoStatePreference" }
     if (preference.isChecked) {
-        enqueueUpdateNetworkSuggestionSSIDsWork(preference.context)
+        enqueueUpdateNetworkSuggestionSSIDsWork(preference.context, expedited = true)
         removeNetworkSuggestions()
     } else {
         dequeueUpdateNetworkSuggestionSSIDsWork(preference.context)
