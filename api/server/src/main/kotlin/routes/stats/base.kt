@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
+import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.response.header
@@ -11,7 +12,7 @@ import io.ktor.server.routing.route
 fun Routing.stats() {
     get("stats") {
         call.response.header("Location", "stats/")
-        call.respond(HttpStatusCode.MovedPermanently)
+        call.respondStatus(HttpStatusCode.MovedPermanently)
     }
     
     route("stats/") {

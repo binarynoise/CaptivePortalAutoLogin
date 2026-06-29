@@ -4,7 +4,10 @@ import java.time.LocalDate
 import kotlin.time.toKotlinInstant
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toJavaZoneId
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
 import io.ktor.server.routing.HttpMethodRouteSelector
+import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.TrailingSlashRouteSelector
 
@@ -22,4 +25,8 @@ internal fun RoutingNode.toLogString(): String {
         is TrailingSlashRouteSelector -> "$parentLogString|/"
         else -> "$parentLogString|$routeSelector"
     }
+}
+
+suspend fun RoutingCall.respondStatus(httpStatusCode: HttpStatusCode) {
+    this.respond(httpStatusCode, httpStatusCode.description)
 }

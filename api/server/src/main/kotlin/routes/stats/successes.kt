@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import de.binarynoise.captiveportalautologin.server.ApiServer
+import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.response.header
@@ -14,7 +15,7 @@ import org.jetbrains.kotlinx.dataframe.api.toDataFrame
 internal fun Route.successRoutes() {
     get("successes") {
         call.response.header("Location", "successes/")
-        call.respond(HttpStatusCode.MovedPermanently)
+        call.respondStatus(HttpStatusCode.MovedPermanently)
     }
     
     get("successes/") {

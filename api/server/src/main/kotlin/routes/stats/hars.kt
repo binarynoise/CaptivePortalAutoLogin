@@ -12,6 +12,7 @@ import kotlin.io.path.nameWithoutExtension
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
+import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import de.binarynoise.logger.Logger.log
 import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
@@ -46,7 +47,7 @@ data class HarEntry(
 internal fun Route.harRoutes() {
     get("hars") {
         call.response.header("Location", "hars/")
-        call.respond(HttpStatusCode.MovedPermanently)
+        call.respondStatus(HttpStatusCode.MovedPermanently)
     }
     
     route("hars/") {
@@ -120,7 +121,7 @@ internal fun Route.harRoutes() {
             }
             
             log("file not found: id=$id, archived=$archived")
-            call.respond(HttpStatusCode.NotFound)
+            call.respondStatus(HttpStatusCode.NotFound)
         }
         
         post("archive/{id}") {
@@ -128,7 +129,7 @@ internal fun Route.harRoutes() {
             val src = harBase.resolve(id)
             if (!src.exists()) {
                 log("archive: file not found: $src")
-                call.respond(HttpStatusCode.NotFound)
+                call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
             val archiveDir = harBase.resolve("archived").apply { createDirectories() }
@@ -141,7 +142,7 @@ internal fun Route.harRoutes() {
             src.moveTo(dest)
             log("archive: moved: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
-            call.respond(HttpStatusCode.SeeOther)
+            call.respondStatus(HttpStatusCode.SeeOther)
         }
         
         post("unarchive/{id}") {
@@ -149,7 +150,7 @@ internal fun Route.harRoutes() {
             val src = harBase.resolve("archived").resolve(id)
             if (!src.exists()) {
                 log("unarchive: file not found: $src")
-                call.respond(HttpStatusCode.NotFound)
+                call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
             val dest = harBase.resolve(id)
@@ -161,7 +162,7 @@ internal fun Route.harRoutes() {
             src.moveTo(dest)
             log("unarchive: moved: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
-            call.respond(HttpStatusCode.SeeOther)
+            call.respondStatus(HttpStatusCode.SeeOther)
         }
         
         post("delete/{id}") {
@@ -170,13 +171,13 @@ internal fun Route.harRoutes() {
             val file = harBase.resolve(if (archived) "archived" else "").resolve(id)
             if (!file.exists()) {
                 log("delete: file not found: $file")
-                call.respond(HttpStatusCode.NotFound)
+                call.respondStatus(HttpStatusCode.NotFound)
                 return@post
             }
             file.deleteExisting()
             log("delete: $id")
             call.response.header("Location", call.request.header(HttpHeaders.Referrer) ?: "./")
-            call.respond(HttpStatusCode.SeeOther)
+            call.respondStatus(HttpStatusCode.SeeOther)
         }
         
         get("har-upload") {

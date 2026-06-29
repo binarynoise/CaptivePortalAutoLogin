@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.response.header
-import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.getAllRoutes
 import io.ktor.server.routing.routing
@@ -23,11 +22,11 @@ fun Application.configureRouting() {
         if (!developmentMode) {
             get("/") {
                 call.response.header("Location", "https://github.com/binarynoise/CaptivePortalAutoLogin")
-                call.respond(HttpStatusCode.TemporaryRedirect)
+                call.respondStatus(HttpStatusCode.TemporaryRedirect)
             }
         } else {
             get("/favicon.ico") {
-                call.respond(HttpStatusCode.NoContent)
+                call.respondStatus(HttpStatusCode.NoContent)
             }
         }
     }
