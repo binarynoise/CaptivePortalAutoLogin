@@ -48,8 +48,9 @@ val supportedSSIDs: List<String>
             portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
         }
 
+@get:SuppressLint("InlinedApi")
 val supportedSSIDSuggestions
-    @SuppressLint("InlinedApi") get() = supportedSSIDs.map { ssid ->
+    get() = supportedSSIDs.map { ssid ->
         val builder = WifiNetworkSuggestion.Builder().setSsid(ssid).setIsMetered(false)
         val macRandomizationSetting =
             if (SharedPreferences.network_suggestions_mac_randomization.get() || isMacRandomizationForceEnabled) WifiNetworkSuggestion.RANDOMIZATION_NON_PERSISTENT
