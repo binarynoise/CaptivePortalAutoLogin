@@ -119,4 +119,8 @@
     <string name="submit_portal_aborted">Discarded recorded data :(</string>
     <string name="exception_occurred">"Exception occurred: "</string>
     <string name="loading">Loading…</string>
+    <string name="upload_scheduled">Upload scheduled</string>
+    <string name="share">Share</string>
+    <string name="upload">Upload</string>
+    <string name="save_to_storage">Save to SD</string>
 </resources>

@@ -84,11 +84,6 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                     uploadButton.setOnClickListener {
                                         lifecycleScope.launch {
                                             try {
-                                                val toast = Toast.makeText(
-                                                    view.context, "Preparing upload...", Toast.LENGTH_SHORT
-                                                )
-                                                toast.show()
-                                                
                                                 withContext(Dispatchers.IO) {
                                                     val timestamp = Instant.fromEpochMilliseconds(file.lastModified())
                                                     val version = BuildConfig.VERSION_NAME
@@ -97,13 +92,15 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                                     Stats.log.submitLog(name, content)
                                                 }
                                                 
-                                                toast.cancel()
-                                                Toast.makeText(view.context, "Upload scheduled", Toast.LENGTH_SHORT)
-                                                    .show()
+                                                Toast.makeText(
+                                                    view.context,
+                                                    R.string.upload_scheduled,
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
                                             } catch (e: Exception) {
                                                 Toast.makeText(
                                                     view.context,
-                                                    e::class.java.simpleName + ": " + e.message + "\n" + "Please try again.",
+                                                    e::class.java.simpleName + ": " + e.message + "\n" + getString(R.string.please_try_again),
                                                     Toast.LENGTH_SHORT,
                                                 ).show()
                                                 log("Error scheduling upload", e)
