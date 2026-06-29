@@ -295,6 +295,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             editText.error = null
                         } else try {
                             val url = s.trim().toHttpUrl()
+                            require(url.pathSegments.takeLast(2) == listOf("api", "")) { "URL must end with /api/" }
                             SharedPreferences.api_base.set(url.toString())
                             editText.error = null
                         } catch (e: IllegalArgumentException) {
