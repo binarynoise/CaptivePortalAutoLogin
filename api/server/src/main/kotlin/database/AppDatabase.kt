@@ -23,6 +23,7 @@ import de.binarynoise.logger.Logger.log
 abstract class AppDatabase : RoomDatabase() {
     abstract fun errorDao(): ErrorDao
     abstract fun successDao(): SuccessDao
+    abstract fun SSIDDao(): SSIDDao
     
     companion object {
         fun createDatabase(root: Path): AppDatabase {

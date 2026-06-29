@@ -24,6 +24,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
+import de.binarynoise.captiveportalautologin.NetworkSuggestionOnPreferenceChangeListener
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
@@ -32,9 +33,7 @@ import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.isNetworkSuggestion
-import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
-import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
@@ -179,10 +178,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 addPreference(SwitchPreference(ctx)) {
                     titleRes = R.string.preference_network_suggestions
                     summaryRes = R.string.preference_network_suggestions_description
-                    setOnPreferenceChangeListener { _, _ ->
-                        if (isChecked) removeNetworkSuggestions()
-                        else sendNetworkSuggestions()
-                    }
+                    onPreferenceChangeListener = NetworkSuggestionOnPreferenceChangeListener
                     key = SharedPreferences.network_suggestions.sharedPreferencesKey
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =

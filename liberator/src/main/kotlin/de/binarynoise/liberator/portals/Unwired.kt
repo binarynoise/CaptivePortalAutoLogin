@@ -19,10 +19,7 @@ import kotlin.random.Random as random
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID(
-    "VIAS Free WiFi",
     "arverio_freewifi",
-    "DonauparkCamping",
-    "Regio-S-Bahn WLAN",
     "WestfalenBahn",
     "/WLAN@RB\\s[0-9]+/",
 )

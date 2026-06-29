@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.api
 
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 
@@ -40,4 +41,11 @@ interface Api {
         fun reportError(error: Error)
         fun reportSuccess(success: Success)
     }
+    
+    suspend fun getSSIDs(
+        limit: Int? = null,
+        majorVersion: Int? = null,
+        since: Instant? = null,
+        minimum: Int? = null,
+    ): List<String>
 }

@@ -1,13 +1,16 @@
 package de.binarynoise.captiveportalautologin.client
 
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.okhttp.checkSuccess
+import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.putJson
+import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 
@@ -35,6 +38,26 @@ class ApiClient(private val base: HttpUrl) : Api {
         override fun reportSuccess(success: Api.Liberator.Success) {
             put("liberator/success", serializer.encodeToJsonElement(success))
         }
+    }
+    
+    override suspend fun getSSIDs(
+        limit: Int?,
+        majorVersion: Int?,
+        since: Instant?,
+        minimum: Int?,
+    ): List<String> {
+        return serializer.decodeFromString(
+            httpClient.get(
+                base,
+                "api/ssid",
+                queryParameters = mapOf(
+                    "limit" to limit,
+                    "majorVersion" to majorVersion,
+                    "since" to since,
+                    "minimum" to minimum,
+                ).filterNot { it.value == null }.mapValues { it.value.toString() },
+            ).readText()
+        )
     }
     
     private fun post(url: String, json: JsonElement) {

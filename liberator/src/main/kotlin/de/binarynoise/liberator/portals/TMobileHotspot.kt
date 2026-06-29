@@ -13,9 +13,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @SSID(
-    "Telekom_free",
-    "Airport-Frankfurt",
-    "AIRPORT-FREE-WIFI",
     "Telekom",
     "LHS-FREE",
     "Galeria Kunden-WLAN",

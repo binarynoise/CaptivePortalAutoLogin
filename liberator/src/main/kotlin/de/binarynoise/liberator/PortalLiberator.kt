@@ -99,7 +99,7 @@ fun PortalHandler.ssidMatches(ssid: String): Boolean = this::class.java.annotati
     }
 
 /**
- * Annotation to specify which Wi-Fi networks (SSIDs) a portal liberator is designed for.
+ * Annotation to specify which Wi-Fi networks (SSIDs) a [PortalLiberator] is implemented from.
  *
  * This annotation is either informational ([mustMatch] is false, default)
  * or used to restrict portal liberator selection

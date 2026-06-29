@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.server.routes.api
 
+import kotlin.time.Instant
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.ApiServer
@@ -35,6 +36,16 @@ fun Routing.api() {
                 ApiServer.api.liberator.reportSuccess(it)
                 call.respond(HttpStatusCode.Created)
             }
+        }
+        get("/ssid") {
+            call.respond(
+                ApiServer.api.getSSIDs(
+                    limit = call.queryParameters["limit"]?.toInt(),
+                    majorVersion = call.queryParameters["majorVersion"]?.toInt(),
+                    since = call.queryParameters["since"]?.let { Instant.parse(it) },
+                    minimum = call.queryParameters["minimum"]?.toInt(),
+                )
+            )
         }
     }
 }

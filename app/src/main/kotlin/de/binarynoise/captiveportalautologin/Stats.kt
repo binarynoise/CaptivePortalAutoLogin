@@ -118,7 +118,6 @@ object Stats : Api {
     override val har: Har = Har()
     override val liberator: Liberator = Liberator()
     
-    
     class Har : Api.Har {
         override fun submitHar(name: String, har: HAR) {
             val key = name
@@ -184,5 +183,11 @@ object Stats : Api {
         } catch (e: Exception) {
             log("Failed to schedule everything for upload", e)
         }
+    }
+    
+    override suspend fun getSSIDs(
+        limit: Int?, majorVersion: Int?, since: Instant?, minimum: Int?
+    ): List<String> {
+        throw NotImplementedError("use apiclient directly")
     }
 }

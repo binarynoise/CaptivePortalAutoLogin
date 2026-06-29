@@ -19,13 +19,12 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
+import de.binarynoise.captiveportalautologin.NetworkSuggestionOnPreferenceChangeListener
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.isNetworkSuggestion
-import de.binarynoise.captiveportalautologin.removeNetworkSuggestions
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
-import de.binarynoise.captiveportalautologin.sendNetworkSuggestions
 import de.binarynoise.captiveportalautologin.wifiManager
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -97,10 +96,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 addPreference(SwitchPreference(ctx)) {
                     titleRes = R.string.preference_network_suggestions
                     summaryRes = R.string.preference_network_suggestions_description
-                    setOnPreferenceChangeListener { _, _ ->
-                        if (isChecked) removeNetworkSuggestions()
-                        else sendNetworkSuggestions()
-                    }
+                    onPreferenceChangeListener = NetworkSuggestionOnPreferenceChangeListener
                     key = SharedPreferences.network_suggestions.sharedPreferencesKey
                     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                         summaryOn =

@@ -2,6 +2,8 @@ package de.binarynoise.captiveportalautologin.server
 
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -79,5 +81,19 @@ class ApiServer(root: Path = Path(".")) : Api {
             }
             log("Stored Api.Liberator.Success: $success")
         }
+    }
+    
+    override suspend fun getSSIDs(
+        limit: Int?,
+        majorVersion: Int?,
+        since: Instant?,
+        minimum: Int?,
+    ): List<String> {
+        return database.SSIDDao().getSSIDs(
+            limit = limit ?: 1024,
+            majorVersion = majorVersion ?: Int.MAX_VALUE,
+            since = since ?: (Clock.System.now() - 365.25.days),
+            minimum = minimum ?: 0,
+        )
     }
 }
