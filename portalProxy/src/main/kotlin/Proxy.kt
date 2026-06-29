@@ -5,8 +5,8 @@ package de.binarynoise.captiveportalautologin.portalproxy.proxy
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CancellationException
-import de.binarynoise.captiveportalautologin.portalproxy.portal.checkCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.friendlyHost
+import de.binarynoise.captiveportalautologin.portalproxy.portal.getCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
 import io.netty.handler.codec.http.HttpResponseStatus
@@ -21,7 +21,7 @@ private val allowlistPort = System.getenv("PROXY_ALLOWLIST_PORT")?.split(",")?.m
 val proxyPort = System.getenv("PROXY_PORT")?.toInt() ?: 8000
 
 fun forward(request: HttpServerRequest) {
-    if ((friendlyHost != null && request.authority()?.host() == friendlyHost) || checkCaptured(request)) {
+    if ((friendlyHost != null && request.authority()?.host() == friendlyHost) || getCaptured(request)) {
         redirect(request)
         return
     }
@@ -37,7 +37,7 @@ fun forward(request: HttpServerRequest) {
 
 suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
     try {
-        if (checkCaptured(request)) {
+        if (getCaptured(request)) {
             log("captured")
             redirect(request)
             return

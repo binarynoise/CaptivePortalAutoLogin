@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.portalproxy
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import de.binarynoise.captiveportalautologin.portalproxy.portal.friendlyHost
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalPort
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalRouter
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.forward
@@ -98,6 +99,10 @@ class MainVerticle : CoroutineVerticle() {
             .listen(portalPort, "0.0.0.0")
             .coAwait()
         log("Started portal server on port " + portalServer.actualPort())
+        
+        if (friendlyHost != null) {
+            log("Friendly host: $friendlyHost")
+        }
     }
 }
 
