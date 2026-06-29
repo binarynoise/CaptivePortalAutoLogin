@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,7 +14,7 @@ import androidx.preference.PreferenceCategory
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.Stats
-import de.binarynoise.captiveportalautologin.api.json.LOG
+import de.binarynoise.captiveportalautologin.api.generateLogFileName
 import de.binarynoise.captiveportalautologin.databinding.ItemLogExportBinding
 import de.binarynoise.captiveportalautologin.util.FileUtils
 import de.binarynoise.captiveportalautologin.util.FileUtils.shareFile
@@ -89,16 +90,11 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                                 toast.show()
                                                 
                                                 withContext(Dispatchers.IO) {
-                                                    val timestamp = file.name.removeSuffix(".log")
+                                                    val timestamp = Instant.fromEpochMilliseconds(file.lastModified())
                                                     val version = BuildConfig.VERSION_NAME
-                                                    val name = "$timestamp $version"
-                                                    val log = LOG(
-                                                        name,
-                                                        timestamp,
-                                                        version,
-                                                        file.readText(),
-                                                    )
-                                                    Stats.log.submitLog(name, log)
+                                                    val content = file.readText()
+                                                    val name = generateLogFileName(timestamp, version, content)
+                                                    Stats.log.submitLog(name, content)
                                                 }
                                                 
                                                 toast.cancel()

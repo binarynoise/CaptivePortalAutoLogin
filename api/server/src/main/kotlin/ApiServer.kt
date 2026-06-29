@@ -7,7 +7,6 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import de.binarynoise.captiveportalautologin.api.Api
-import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.generateHarFileName
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
@@ -27,6 +26,8 @@ class ApiServer(root: Path = Path(".")) : Api {
     val harDB = FileDB(root, "HAR", "har")
     val harDBArchived = FileDB(root, "HAR/archived", "har")
     val harDBError = FileDB(root, "HAR/error", "har")
+    val logDB = FileDB(root, "LOG", "log")
+    val logDBArchived = FileDB(root, "LOG/archived", "log")
     
     val database = AppDatabase.createDatabase(root)
     
@@ -45,8 +46,8 @@ class ApiServer(root: Path = Path(".")) : Api {
     }
     
     override val log: Api.Log = object : Api.Log {
-        override fun submitLog(name: String, log: LOG) {
-            jsonDb.store(name, log, "log")
+        override fun submitLog(name: String, log: String) {
+            logDB.store(name, log)
             log("stored log $name")
         }
     }

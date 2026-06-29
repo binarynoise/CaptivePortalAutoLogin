@@ -1,12 +1,9 @@
 package de.binarynoise.captiveportalautologin.server.routes.api
 
-import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.api.Api
-import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
@@ -18,8 +15,6 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-
-private fun dateTime() = Clock.System.now().toLocalDateTime(TimeZone.UTC)
 
 fun Routing.api() {
     route("/api") {
@@ -36,8 +31,13 @@ fun Routing.api() {
         }
         route("/log") {
             put("/{name}") {
-                val file = call.receive<LOG>()
-                val name = dateTime().toString()
+                val name = call.parameters["name"] ?: missingParameter("name")
+                try {
+                    parseLogFileName(name)
+                } catch (e: IllegalStateException) {
+                    return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+                val file = call.receive<String>()
                 ApiServer.api.log.submitLog(name, file)
                 call.respond(HttpStatusCode.Created)
             }

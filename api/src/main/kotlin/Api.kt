@@ -2,7 +2,6 @@ package de.binarynoise.captiveportalautologin.api
 
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
-import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 
 interface Api {
@@ -15,7 +14,7 @@ interface Api {
     }
     
     interface Log {
-        fun submitLog(name: String, log: LOG)
+        fun submitLog(name: String, log: String)
     }
     
     interface Liberator {

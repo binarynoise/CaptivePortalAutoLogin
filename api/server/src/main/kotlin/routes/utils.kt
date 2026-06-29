@@ -1,15 +1,23 @@
 package de.binarynoise.captiveportalautologin.server.routes
 
+import java.nio.file.Path
 import java.time.LocalDate
+import kotlin.io.path.name
 import kotlin.time.toKotlinInstant
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toJavaZoneId
+import io.ktor.http.ContentDisposition
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.response.header
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondPath
 import io.ktor.server.routing.HttpMethodRouteSelector
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.TrailingSlashRouteSelector
+import nl.jacobras.humanreadable.HumanReadable
 
 
 internal fun LocalDate.toInstant() = this.atStartOfDay(UTC.toJavaZoneId()).toInstant().toKotlinInstant()
@@ -29,4 +37,22 @@ internal fun RoutingNode.toLogString(): String {
 
 suspend fun RoutingCall.respondStatus(httpStatusCode: HttpStatusCode) {
     this.respond(httpStatusCode, httpStatusCode.description)
+}
+
+class FileSize(val value: Long) : Comparable<FileSize> {
+    override fun toString(): String = HumanReadable.fileSize(value, decimals = 1)
+    override fun compareTo(other: FileSize): Int = value.compareTo(other.value)
+}
+
+suspend fun ApplicationCall.respondPathWithContentDisposition(path: Path, inline: Boolean = false) {
+    val contentDisposition = if (inline) {
+        ContentDisposition.Inline
+    } else {
+        ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, path.name)
+    }
+    response.header(
+        HttpHeaders.ContentDisposition,
+        contentDisposition.toString(),
+    )
+    respondPath(path)
 }

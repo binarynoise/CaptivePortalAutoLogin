@@ -17,7 +17,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.api.Api
-import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
@@ -69,9 +68,9 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
                     log("Uploaded HAR $key")
                 }
                 "log" -> {
-                    val log = jsonDB.load<LOG>(key, "log")
+                    val log = jsonDB.load<String>(key, "log")
                     apiClient.log.submitLog(key, log)
-                    jsonDB.delete<LOG>(key, "log")
+                    jsonDB.delete<String>(key, "log")
                     log("Uploaded log $key")
                 }
                 "error" -> {
@@ -135,10 +134,9 @@ object Stats : Api {
     }
     
     class Log : Api.Log {
-        override fun submitLog(name: String, log: LOG) {
-            val key = name
-            jsonDB.store(key, log, "log")
-            scheduleUpload("log", key)
+        override fun submitLog(name: String, log: String) {
+            jsonDB.store(name, log, "log")
+            scheduleUpload("log", name)
         }
     }
     

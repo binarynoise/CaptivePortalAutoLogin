@@ -4,7 +4,6 @@ import kotlin.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
-import de.binarynoise.captiveportalautologin.api.json.LOG
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.json.serializer
@@ -12,6 +11,7 @@ import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.putJson
+import de.binarynoise.util.okhttp.putPlain
 import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
@@ -26,8 +26,8 @@ class ApiClient(private val base: HttpUrl) : Api {
     }
     
     override val log = object : Api.Log {
-        override fun submitLog(name: String, log: LOG) {
-            put("log/$name", log.toJson())
+        override fun submitLog(name: String, log: String) {
+            httpClient.putPlain(base, "log/$name", log).use { it.checkSuccess() }
         }
     }
     
@@ -80,4 +80,3 @@ class ApiClient(private val base: HttpUrl) : Api {
 
 fun HAR.toJsonElement(): JsonElement = serializer.encodeToJsonElement(this)
 fun HAR.toJson(): String = prettyPrinter.encodeToString(this)
-fun LOG.toJson(): String = serializer.encodeToString(this)
