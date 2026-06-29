@@ -183,23 +183,33 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         }
     }
     
+    var done = false
+    
     fun dismiss() {
+        done = true
         captivePortal?.reportCaptivePortalDismissed()
         finishAndRemoveTask()
     }
     
     fun success() {
         if (!networkHasPortal) return dismiss()
-        AlertDialog.Builder(this).setTitle(R.string.submit_portal).setMessage(
-            getString(R.string.submit_portal_description)
-        ).setPositiveButton(android.R.string.yes) { _, _ ->
-            val (name, har) = createFinalizedHar()
-            Stats.har.submitHar(name, har)
-            Toast.makeText(this, R.string.submit_portal_confirmed, Toast.LENGTH_SHORT).show()
-        }.setNegativeButton(android.R.string.no) { _, _ ->
-            Toast.makeText(this, R.string.submit_portal_aborted, Toast.LENGTH_SHORT).show()
-        }.setCancelable(false).setOnDismissListener {
-            dismiss()
-        }.show()
+        if (done) return
+        done = true
+        AlertDialog.Builder(this)
+            .setTitle(R.string.submit_portal)
+            .setMessage(getString(R.string.submit_portal_description))
+            .setPositiveButton(android.R.string.yes) { _, _ ->
+                val (name, har) = createFinalizedHar()
+                Stats.har.submitHar(name, har)
+                Toast.makeText(this, R.string.submit_portal_confirmed, Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(android.R.string.no) { _, _ ->
+                Toast.makeText(this, R.string.submit_portal_aborted, Toast.LENGTH_SHORT).show()
+            }
+            .setCancelable(false)
+            .setOnDismissListener {
+                dismiss()
+            }
+            .show()
     }
 }
