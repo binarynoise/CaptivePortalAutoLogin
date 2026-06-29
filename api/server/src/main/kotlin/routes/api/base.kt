@@ -7,6 +7,8 @@ import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDB
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDBArchived
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -36,6 +38,9 @@ fun Routing.api() {
                     parseLogFileName(name)
                 } catch (e: IllegalStateException) {
                     return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+                if (logDB.exists(name) || logDBArchived.exists(name)) {
+                    return@put call.respond(HttpStatusCode.Conflict, "file already exists")
                 }
                 val file = call.receive<String>()
                 ApiServer.api.log.submitLog(name, file)
