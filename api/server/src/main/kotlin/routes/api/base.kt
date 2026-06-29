@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.server.routes.api
 
 import kotlin.time.Instant
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.hashLogFile
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
@@ -34,7 +35,7 @@ fun Routing.api() {
         route("/log") {
             put("/{name}") {
                 val name = call.parameters["name"] ?: missingParameter("name")
-                try {
+                val parsed = try {
                     parseLogFileName(name)
                 } catch (e: IllegalStateException) {
                     return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
@@ -43,6 +44,10 @@ fun Routing.api() {
                     return@put call.respond(HttpStatusCode.Conflict, "file already exists")
                 }
                 val file = call.receive<String>()
+                val checksum = hashLogFile(file)
+                if (checksum != parsed.component3()) {
+                    return@put call.respond(HttpStatusCode.BadRequest, "hash does not match")
+                }
                 ApiServer.api.log.submitLog(name, file)
                 call.respond(HttpStatusCode.Created)
             }
