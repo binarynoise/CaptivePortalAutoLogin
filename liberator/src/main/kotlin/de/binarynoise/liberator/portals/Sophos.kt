@@ -16,7 +16,8 @@ import okhttp3.Response
 
 @Experimental
 @SSID(
-    "memox.guest"
+    "Museum",
+    "memox.guest",
 )
 object Sophos : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
