@@ -17,6 +17,7 @@ import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.json.getBoolean
 import de.binarynoise.util.json.getJsonArray
 import de.binarynoise.util.json.getJsonObject
+import de.binarynoise.util.json.getOptString
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.json.has
 import de.binarynoise.util.json.toAny
@@ -107,6 +108,12 @@ object SocialWave : PortalLiberator {
         ).parseJsonObject()
     }
     
+    fun checkApiSuccess(response: JsonObject) {
+        check(response.getBoolean("Success")) {
+            "registerEmail no success${response.getOptString("Reason")?.let { ": $it" } ?: ""}"
+        }
+    }
+    
     fun solveAnonymous(
         client: OkHttpClient,
         helloJson: JsonObject,
@@ -119,10 +126,11 @@ object SocialWave : PortalLiberator {
             SOCIALWAVE_SPLASH_API_BASE, "anonymous/login.json", mapOf(
                 "query" to res,
                 "agree_marketing" to "false",
-                "agree_terms" to "false",
+                "agree_terms" to "true",
                 "language" to "en",
             )
         ).parseJsonObject()
+        checkApiSuccess(loginJson)
         performAuth(client, helloJson, loginJson, auth, redir)
     }
     
@@ -140,10 +148,11 @@ object SocialWave : PortalLiberator {
                 "email" to randomEmail(),
                 "assigned_mac" to (extras.cookies.find { it.name == "assigned_mac" }?.value ?: ""),
                 "language" to "en",
-                "agree_terms" to "false",
+                "agree_terms" to "true",
                 "agree_marketing" to "false",
             )
         ).parseJsonObject()
+        checkApiSuccess(registerEmailJson)
         performAuth(client, helloJson, registerEmailJson, auth, redir)
     }
     
