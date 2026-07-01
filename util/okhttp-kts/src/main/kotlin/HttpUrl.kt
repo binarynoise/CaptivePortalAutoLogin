@@ -1,6 +1,7 @@
 package de.binarynoise.util.okhttp
 
 import java.net.URLDecoder
+import java.net.URLEncoder
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
@@ -11,7 +12,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
  * @return the decoded path of the HttpUrl
  */
 val HttpUrl.decodedPath: String
-    get() = URLDecoder.decode(encodedPath, "UTF-8")
+    get() = URLDecoder.decode(encodedPath, Charsets.UTF_8)
 
 /**
  * Returns the first path segment of the HttpUrl.
@@ -103,4 +104,16 @@ fun HttpUrl.queryEntries(): Map<String, String> {
     return (0 until this.querySize).associate {
         this.queryParameterName(it) to (this.queryParameterValue(it) ?: "")
     }
+}
+
+fun HttpUrl.Builder.hostAndPort(host: String): HttpUrl.Builder {
+    val portColonOffset = host.lastIndexOf(':', host.lastIndexOf(']').takeIf { it >= 0 } ?: 0)
+    host(host.substring(0, portColonOffset))
+    port(host.substring(portColonOffset + 1).toInt())
+    return this
+}
+
+fun HttpUrl.Builder.decodedPath(path: String): HttpUrl.Builder {
+    encodedPath(URLEncoder.encode(path, Charsets.UTF_8))
+    return this
 }

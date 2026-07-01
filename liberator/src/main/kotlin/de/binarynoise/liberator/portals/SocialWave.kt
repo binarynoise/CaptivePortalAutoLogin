@@ -17,14 +17,15 @@ import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.json.getBoolean
 import de.binarynoise.util.json.getJsonArray
 import de.binarynoise.util.json.getJsonObject
-import de.binarynoise.util.json.getOptString
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.json.has
 import de.binarynoise.util.json.toAny
+import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.decodedPath
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
+import de.binarynoise.util.okhttp.hostAndPort
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
@@ -64,18 +65,31 @@ object SocialWave : PortalLiberator {
         )
     }
     
+    /**
+     * check if the [response]'s `Success` [Boolean] is `true`
+     * and if not throw [IllegalStateException]
+     * 
+     * @param checkReason if not successful, this lambda is called with the reason, 
+     * so it can throw a different exception instead
+     */
+    fun checkApiSuccess(response: JsonObject, checkReason: (String) -> Unit = {}) {
+        if (!response.getBoolean("Success")) {
+            val reason = response.getString("Reason")
+            checkReason(reason)
+            throw IllegalStateException("checkApiSuccess no Success: $reason")
+        }
+    }
+    
     fun solve(client: OkHttpClient, res: String, auth: String, redir: String?, extras: LiberatorExtras) {
         val helloJson = getHelloJson(client, res)
         
-        if (!helloJson.getBoolean("Success")) {
-            val reason = helloJson.getString("Reason")
+        checkApiSuccess(helloJson) { reason ->
             if (reason == "DeactivatedLocation") throw UnsupportedPortalException("Deactivated Location")
-            throw IllegalStateException("helloJson not successful reason=$reason")
         }
         
-        if (tryOrDefault(false) {
-                helloJson.getJsonObject("Settings").getBoolean("IsCurrentlyOffBySchedule")
-            }) throw UnsupportedPortalException("Hotspot turned off by schedule")
+        if (tryOrDefault(false) { helloJson.getJsonObject("Settings").getBoolean("IsCurrentlyOffBySchedule") }) {
+            throw UnsupportedPortalException("Hotspot turned off by schedule")
+        }
         
         val authenticationMethods = helloJson.getJsonObject("Settings")
             .getJsonArray("AuthenticationMethods")
@@ -102,16 +116,12 @@ object SocialWave : PortalLiberator {
     
     fun getHelloJson(client: OkHttpClient, res: String): JsonObject {
         return client.get(
-            SOCIALWAVE_SPLASH_API_BASE, "hello.json", mapOf(
+            SOCIALWAVE_SPLASH_API_BASE,
+            "hello.json",
+            mapOf(
                 "query" to res,
-            )
+            ),
         ).parseJsonObject()
-    }
-    
-    fun checkApiSuccess(response: JsonObject) {
-        check(response.getBoolean("Success")) {
-            "registerEmail no success${response.getOptString("Reason")?.let { ": $it" } ?: ""}"
-        }
     }
     
     fun solveAnonymous(
@@ -159,25 +169,35 @@ object SocialWave : PortalLiberator {
     fun performAuth(
         client: OkHttpClient,
         helloJson: JsonObject,
-        registerJson: JsonObject,
+        loginJson: JsonObject,
         auth: String,
         redir: String?,
-    ) {
-        client.get(
-            getAuthUrl(helloJson, registerJson, auth, redir),
+    ): Response {
+        return client.get(
+            getAuthUrl(helloJson, loginJson, auth, redir),
             null,
-        )
+        ).also { it.checkSuccess() }
     }
     
-    fun getAuthUrl(helloJson: JsonObject, registerJson: JsonObject, auth: String, redir: String?): HttpUrl {
-        val token = registerJson.getString("AuthenticationToken")
+    /**
+     * get an authentication url
+     * 
+     * @param loginJson a [JsonObject] containing `username` and `password` 
+     * obtained after following the previous authentication flow
+     * @param auth content of the query parameter from initial redirection
+     * @param redir content of the query parameter from initial redirection, if present
+     */
+    fun getAuthUrl(helloJson: JsonObject, loginJson: JsonObject, auth: String, redir: String?): HttpUrl {
+        val token = loginJson.getString("AuthenticationToken")
         var redir = redir
         
-        if (!registerJson.has("Username")) {
+        if (!loginJson.has("Username")) {
             // authoriseOnRouterOpenwrt
-            if (redir == null) error("no redir token")
-            return "http://$auth/nodogsplash_auth_tok/".toHttpUrl()
-                .newBuilder()
+            require(redir != null) { "no redir token" }
+            return HttpUrl.Builder()
+                .scheme("http")
+                .hostAndPort(auth)
+                .decodedPath("/nodogsplash_auth_tok/")
                 .setQueryParameter("token", token)
                 .setQueryParameter("redir", redir)
                 .build()
@@ -190,7 +210,7 @@ object SocialWave : PortalLiberator {
         // query parameter "auth" has to be a viable URL
         return auth.toHttpUrl()
             .newBuilder()
-            .setQueryParameter("username", registerJson.getString("Username"))
+            .setQueryParameter("username", loginJson.getString("Username"))
             .setQueryParameter("password", token)
             .setQueryParameter("dst", redir)
             .build()
