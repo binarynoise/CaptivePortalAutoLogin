@@ -124,7 +124,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.json)
+    testImplementation(libs.json) // prevent `org.json.JSONObject not mocked` in the tests
 }
 
 tasks.withType<Test> {
