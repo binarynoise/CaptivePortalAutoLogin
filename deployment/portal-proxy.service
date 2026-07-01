@@ -1,0 +1,15 @@
+[Unit]
+Description=CaptivePortalAutoLogin PortalProxy Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%Y
+ExecStart=java -jar %Y/portal-proxy-shadow.jar
+Environment=PROXY_ALLOWLIST_DOMAIN=am-i-captured.binarynoise.de,www.google.com
+Environment=PROXY_ALLOWLIST_PORT=80,443
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

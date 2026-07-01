@@ -1,0 +1,13 @@
+[Unit]
+Description=CaptivePortalAutoLogin API Server Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%Y
+ExecStart=java -jar %Y/api-server-shadow.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
