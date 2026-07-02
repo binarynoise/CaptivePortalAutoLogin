@@ -19,15 +19,13 @@ fun Application.configureRouting() {
         api()
         stats()
         
-        if (!developmentMode) {
-            get("/") {
-                call.response.header("Location", "https://github.com/binarynoise/CaptivePortalAutoLogin")
-                call.respondStatus(HttpStatusCode.TemporaryRedirect)
-            }
-        } else {
-            get("/favicon.ico") {
-                call.respondStatus(HttpStatusCode.NoContent)
-            }
+        get("/") {
+            call.response.header("Location", "stats")
+            call.respondStatus(HttpStatusCode.TemporaryRedirect)
+        }
+        
+        get("/favicon.ico") {
+            call.respondStatus(HttpStatusCode.NoContent)
         }
     }
     
