@@ -239,7 +239,6 @@ private class CommonKotlin : Plugin<Project> {
             
             tasks.withType<KotlinCompile> {
                 compilerOptions {
-                    freeCompilerArgs.add("-Xcontext-parameters")
                     jvmTarget = JvmTarget.fromTarget(libs.versions.java.get())
                 }
             }
