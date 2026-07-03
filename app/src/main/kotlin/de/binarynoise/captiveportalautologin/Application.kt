@@ -1,6 +1,8 @@
 package de.binarynoise.captiveportalautologin
 
 import android.os.Build
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.logger.Logger
 
@@ -16,6 +18,9 @@ open class Application : android.app.Application() {
         }
         
         setupUncaughtExceptionHandler()
+        
+        // Ensure WorkManager is initialized before queuing any Jobs
+        WorkManager.initialize(this, Configuration.Builder().build())
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && SharedPreferences.network_suggestions.get()) {
             enqueueUpdateNetworkSuggestionSSIDsWork(this)
