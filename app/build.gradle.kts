@@ -3,6 +3,7 @@ import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     alias(libs.plugins.buildlogic.android.application)
     alias(libs.plugins.buildlogic.kotlin.android)
+    alias(libs.plugins.buildlogic.jvm.test)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.decourinator)
 }
@@ -13,7 +14,7 @@ android {
     defaultConfig {
         minSdk = 26
         //noinspection EditedTargetSdkVersion
-        targetSdk = 36
+        targetSdk = libs.versions.androidTargetSdk.get().toInt()
         multiDexEnabled = true
         
         proguardFiles(decoroutinatorAndroidProGuardRules())
@@ -59,8 +60,6 @@ android {
             isDefault = true
         }
     }
-    
-    
     defaultConfig {
         missingDimensionStrategy("abi", "universal")
     }
@@ -125,10 +124,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.json) // prevent `org.json.JSONObject not mocked` in the tests
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 configurations.all {

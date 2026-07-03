@@ -1,13 +1,12 @@
 package buildlogic.git
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOutput
 
 private fun Project.getCommitCountExec() = providers.exec {
     executable("git")
-    args("rev-list", "--count", "HEAD")
+    args("rev-list", "--count", "HEAD", "--")
     args(projectDir)
     args(rootProject.file("gradle"))
     args(rootProject.file("build-logic"))
@@ -20,7 +19,7 @@ private fun Project.getCommitCountExec() = providers.exec {
     args(rootProject.file("gradlew"))
     args(rootProject.file("gradlew.bat"))
     
-    extensions.findByType<BaseExtension>()?.let {
+    extensions.findByType(CommonExtension::class.java)?.let {
         val metadata = rootProject.file("metadata").resolve(it.namespace ?: "-")
         if (metadata.exists()) {
             args(metadata)

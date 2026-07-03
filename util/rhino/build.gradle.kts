@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.buildlogic.jvm.test)
 }
 
 dependencies {
@@ -9,11 +10,4 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.junit.jupiter.params)
     testRuntimeOnly(libs.junit.platform.launcher)
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
 }

@@ -3,10 +3,11 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.buildlogic.shadow)
+    alias(libs.plugins.buildlogic.jvm.test)
     alias(libs.plugins.kotlin.dataframe)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.room)
-    alias(libs.plugins.shadow)
 }
 
 
@@ -35,7 +36,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.sqlite.bundled)
     
-    implementation("nl.jacobras:Human-Readable:1.13.0")
+    implementation(libs.human.readable)
     
     testImplementation(kotlin("test"))
     testImplementation(libs.junit.jupiter.params)
@@ -47,13 +48,6 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-}
-
 val mainClass = "de.binarynoise.captiveportalautologin.server.MainKt"
 application.mainClass = mainClass
 tasks.withType<Jar> {
@@ -63,8 +57,6 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<ShadowJar> {
-    archiveClassifier.set("shadow")
-    mergeServiceFiles()
     minimize {
         exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
         exclude(dependency(libs.slf4j.simple.get()))
@@ -78,7 +70,6 @@ tasks.withType<ShadowJar> {
         "/*/default/linkdata/",
         "/*/default/manifest",
         "/DebugProbesKt.bin",
-        "/META-INF/**/*.kotlin_*",
         "/META-INF/**/*.pro",
         "/META-INF/**/*.version*",
         "/META-INF/**/*LICENSE*",
