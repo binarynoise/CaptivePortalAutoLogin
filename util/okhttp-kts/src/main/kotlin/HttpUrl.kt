@@ -75,10 +75,10 @@ fun HttpUrl.enforceHttps(): HttpUrl {
 }
 
 /**
- * return a new [HttpUrl] with the [HttpUrl.encodedPath] set to "`/`"
+ * return a new [HttpUrl] with the [HttpUrl.encodedPath] set to "`/`" and [HttpUrl.fragment] amd [HttpUrl.query] stripped
  */
 val HttpUrl.origin: HttpUrl
-    get() = this.newBuilder().encodedPath("/").build()
+    get() = this.newBuilder().encodedPath("/").fragment(null).query(null).build()
 
 /**
  * returns this [HttpUrl] [origin] as a [String] that can be used in the `Origin` header
