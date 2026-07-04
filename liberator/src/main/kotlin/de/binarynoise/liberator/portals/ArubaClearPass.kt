@@ -1,13 +1,14 @@
 package de.binarynoise.liberator.portals
 
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.LocationRedirector
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
+import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.util.okhttp.decodedPath
+import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.parseHtml
@@ -16,34 +17,78 @@ import de.binarynoise.util.okhttp.submitOnlyForm
 import de.binarynoise.util.okhttp.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
+import org.jsoup.nodes.FormElement
 
 abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (LocationRedirector.canRedirect(response)) return false
-        return response.requestUrl.host in hosts
+        if (hosts.isNotEmpty() && response.requestUrl.host !in hosts) return false
+        return with(response.requestUrl) {
+            queryParameter("cmd") == "login" // 
+                && queryParameter("_browser") == "1" // 
+                && firstPathSegment == "guest"
+        }
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        return solve(client, response, extras, mapOf())
+        return solveArubaClearPass(client, response, extras)
     }
     
-    fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras, formParameters: Map<String, String>) {
-        val response2 = response.submitOnlyForm(
-            client, queryParameters = mapOf(
+    fun solveArubaClearPass(
+        client: OkHttpClient,
+        response: Response,
+        extras: LiberatorExtras,
+        additionalInitialFormParameters: Map<String, String> = mapOf(),
+        additionalReceiptFormParameters: Map<String, String> = mapOf(),
+    ) {
+        val initialResponse = response.submitOnlyForm(
+            client,
+            parameters = additionalInitialFormParameters,
+            queryParameters = mapOf(
                 "_browser" to "1",
-            )
+            ),
         ).followRedirects(client)
-        val response3 = response2.submitOnlyForm(
-            client, parameters = formParameters
+        if (findWebLoginForm(initialResponse) != null) return submitWebLoginForm(client, initialResponse)
+        val receiptResponse = initialResponse.submitOnlyForm(
+            client,
+            parameters = additionalReceiptFormParameters,
         )
-        val html = response3.parseHtml()
-        val form = html.forms().single()
+        submitWebLoginForm(client, receiptResponse)
+    }
+    
+    fun findWebLoginForm(response: Response): FormElement? {
+        val html = response.parseHtml()
+        return tryOrNull { html.expectForm("form[name=weblogin_form]") }
+    }
+    
+    fun submitWebLoginForm(client: OkHttpClient, response: Response) {
+        val form = findWebLoginForm(response)
+        require(form != null) { "no weblogin_form found" }
         performArubaLogin(
             client,
-            form.attr("action").toHttpUrl(response3.requestUrl),
+            form.attr("action").toHttpUrl(response.requestUrl),
             form.getInput("user"),
             form.getInput("password"),
         )
+    }
+}
+
+/**
+ * generic [ArubaClearPassLiberator] which should activate for all ArubaClearPass portals which do not have a specific implementation
+ */
+@SSID(
+    "URBAN_GUEST_WIFI",
+    "Tally's Bunny Wifi",
+    "scandic_easy",
+    "Segmueller-Hotspot",
+)
+object ArubaClearPass : ArubaClearPassLiberator() {
+    override fun canSolve(response: Response): Boolean {
+        if (allPortalLiberators.filterIsInstance<ArubaClearPassLiberator>()
+                .filterNot { it == this }
+                .any { it.canSolve(response) }
+        ) return false
+        return super.canSolve(response)
     }
 }
 
@@ -57,26 +102,14 @@ abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberat
 object Inditex : ArubaClearPassLiberator("wifi.inditex.com") {
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         if (response.requestUrl.decodedPath.endsWith("Employees.php")) throw UnsupportedPortalException("employee portal page")
-        return super.solve(
+        return solveArubaClearPass(
             client,
             response,
             extras,
-            mapOf(
+            additionalReceiptFormParameters = mapOf(
                 // setting "visitor_name" seems to only be necessary for Stradivarius-WiFi
                 "visitor_name" to "Oscar",
             ),
         )
     }
 }
-
-@Experimental
-@SSID("URBAN_GUEST_WIFI")
-object UrbanOutfitters : ArubaClearPassLiberator("register.urbn.com")
-
-@Experimental
-@SSID("Tally's Bunny Wifi")
-object TallyWeijl : ArubaClearPassLiberator("guestportal.tally-weijl.com")
-
-@Experimental
-@SSID("scandic_easy")
-object ScandicHotels : ArubaClearPassLiberator("guestwifi.scandichotels.com")

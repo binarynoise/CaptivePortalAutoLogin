@@ -5,10 +5,8 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
-import de.binarynoise.liberator.portals.ArubaNetworks.performArubaLogin
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -32,22 +30,6 @@ object Primark : PortalLiberator {
                 "cmd" to "authenticate",
                 "email" to "Customer@wifi.primark.net",
             ),
-        )
-    }
-}
-
-@SSID("Segmueller-Hotspot")
-object Segmueller : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "hotspot.segmueller.de"
-    }
-    
-    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        performArubaLogin(
-            client,
-            "https://captiveportal-login.segmueller.de/cgi-bin/login".toHttpUrl(),
-            "SEG_Anonymous",
-            "069424",
         )
     }
 }
