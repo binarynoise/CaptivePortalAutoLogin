@@ -13,16 +13,15 @@ data class PortalTestURL(
     constructor(unifiedUrl: String) : this(unifiedUrl.toHttpUrl())
 }
 
-@Suppress("SpellCheckingInspection")
+@Suppress("HttpUrlsUsage")
 object PortalDetection {
     val backends = mapOf(
         "Binarynoise" to PortalTestURL("http://am-i-captured.binarynoise.de"),
         "Google" to PortalTestURL(
             "http://connectivitycheck.gstatic.com/generate_204",
-            "https://www.google.com/generate_204"
+            "https://www.google.com/generate_204",
         ),
         "Apple" to PortalTestURL("http://captive.apple.com/hotspot-detect.html"),
-        "Microsoft" to PortalTestURL("http://www.msftconnecttest.com/connecttest.txt"),
         "Gnome NetworkManager" to PortalTestURL("http://nmcheck.gnome.org/check_network_status.txt"),
         "KDE" to PortalTestURL("http://networkcheck.kde.org/"),
         "Fedora" to PortalTestURL("http://fedoraproject.org/static/hotspot.txt"),
