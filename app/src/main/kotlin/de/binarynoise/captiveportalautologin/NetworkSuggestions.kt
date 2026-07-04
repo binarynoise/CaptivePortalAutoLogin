@@ -94,6 +94,7 @@ class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: 
         log("obtaining ssids from api")
         val limit = wifiManager.maxNumberOfNetworkSuggestionsPerApp
         ssidDb = apiClient.getSSIDs(limit, BuildConfig.VERSION_CODE)
+        log("got ${ssidDb?.size} ssids")
         sendNetworkSuggestions()
         return Result.success()
     }
@@ -138,10 +139,10 @@ val NetworkSuggestionOnPreferenceChangeListener: Preference.OnPreferenceChangeLi
     require(preference is TwoStatePreference) { "preference is not TwoStatePreference" }
     if (newValue as Boolean) {
         enqueueUpdateNetworkSuggestionSSIDsWork(preference.context, expedited = true)
-        removeNetworkSuggestions()
+        sendNetworkSuggestions()
     } else {
         dequeueUpdateNetworkSuggestionSSIDsWork(preference.context)
-        sendNetworkSuggestions()
+        removeNetworkSuggestions()
     }
 }
 

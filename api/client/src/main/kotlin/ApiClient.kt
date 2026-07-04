@@ -50,7 +50,7 @@ class ApiClient(private val base: HttpUrl) : Api {
         return serializer.decodeFromString(
             httpClient.get(
                 base,
-                "api/ssid",
+                "ssid",
                 queryParameters = mapOf(
                     "limit" to limit,
                     "majorVersion" to majorVersion,
