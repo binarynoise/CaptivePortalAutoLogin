@@ -136,8 +136,9 @@ object SocialWave : PortalLiberator {
             SOCIALWAVE_SPLASH_API_BASE, "anonymous/login.json", mapOf(
                 "query" to res,
                 "agree_marketing" to "false",
-                "agree_terms" to "true",
+                "agree_terms" to "false",
                 "language" to "en",
+                "user_agent" to extras.userAgent,
             )
         ).parseJsonObject()
         checkApiSuccess(loginJson)
@@ -156,10 +157,10 @@ object SocialWave : PortalLiberator {
             SOCIALWAVE_SPLASH_API_BASE, "email/register.json", mapOf(
                 "query" to res,
                 "email" to randomEmail(),
-                "assigned_mac" to (extras.cookies.find { it.name == "assigned_mac" }?.value ?: ""),
                 "language" to "en",
                 "agree_terms" to "true",
                 "agree_marketing" to "false",
+                "user_agent" to extras.userAgent,
             )
         ).parseJsonObject()
         checkApiSuccess(registerEmailJson)

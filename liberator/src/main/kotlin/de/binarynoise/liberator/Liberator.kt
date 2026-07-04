@@ -195,7 +195,15 @@ class Liberator(
             solvers.map { solver ->
                 runCatching {
                     log("solver ${solver::class.simpleName}")
-                    solver.solve(client, response, LiberatorExtras(cookies = cookies, portalTestUrl = portalTestUrl))
+                    solver.solve(
+                        client,
+                        response,
+                        LiberatorExtras(
+                            cookies = cookies,
+                            portalTestUrl = portalTestUrl,
+                            userAgent = userAgent,
+                        ),
+                    )
                     log("solver ${solver::class.simpleName} finished processing")
                     return@runCatching solver
                 }
@@ -245,7 +253,15 @@ class Liberator(
         log("found ${redirectors.size} redirectors")
         return redirectors.asSequence().map { redirector ->
             runCatching {
-                redirector.redirect(client, response, LiberatorExtras(cookies = cookies, portalTestUrl = portalTestUrl))
+                redirector.redirect(
+                    client,
+                    response,
+                    LiberatorExtras(
+                        cookies = cookies,
+                        portalTestUrl = portalTestUrl,
+                        userAgent = userAgent,
+                    ),
+                )
             }
         }.firstSuccess().getOrNull()
     }
