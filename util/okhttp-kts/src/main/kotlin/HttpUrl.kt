@@ -97,7 +97,7 @@ val HttpUrl.originHeader: String
 fun HttpUrl.relativeTo(base: HttpUrl): HttpUrl {
     require(this.origin == base.origin) { "origin does not match" }
     require(this.encodedPath.startsWith(base.encodedPath)) { "$this is not based on $base" }
-    return this.newBuilder().encodedPath(this.encodedPath.removePrefix(base.encodedPath)).build()
+    return this.newBuilder().encodedPath("/" + this.encodedPath.removePrefix(base.encodedPath)).build()
 }
 
 fun HttpUrl.queryEntries(): Map<String, String> {
