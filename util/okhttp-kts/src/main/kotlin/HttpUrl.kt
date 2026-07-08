@@ -108,6 +108,7 @@ fun HttpUrl.queryEntries(): Map<String, String> {
 
 fun HttpUrl.Builder.hostAndPort(host: String): HttpUrl.Builder {
     val portColonOffset = host.lastIndexOf(':', host.lastIndexOf(']').takeIf { it >= 0 } ?: 0)
+    if (portColonOffset == -1) return host(host)
     host(host.substring(0, portColonOffset))
     port(host.substring(portColonOffset + 1).toInt())
     return this
