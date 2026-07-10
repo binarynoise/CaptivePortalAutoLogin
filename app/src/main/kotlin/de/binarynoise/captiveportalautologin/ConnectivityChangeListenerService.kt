@@ -374,6 +374,8 @@ class ConnectivityChangeListenerService : Service() {
                 experimental = SharedPreferences.liberator_experimental_enabled,
                 appVersion = BuildConfig.VERSION_NAME,
                 liberatorVersion = "",
+                requestSystemReevaluation = { reportNetworkConnectivity(hasConnectivity = true) },
+                isSystemLiberated = { networkStateLock.read { networkState?.hasPortal?.let { !it } } ?: false },
             ).liberate()
             
             t.cancel()
@@ -685,7 +687,7 @@ class ConnectivityChangeListenerService : Service() {
          * Please set both parameters if possible.
          *
          * @param network the network which the report is about, read from [networkState] if `null`
-         * @param hasConnectivity whether the [network] has connectivity or not, defaults to `true`
+         * @param hasConnectivity whether the [network] has connectivity or not, defaults to the opposite of the current state
          */
         fun reportNetworkConnectivity(
             network: Network? = null,

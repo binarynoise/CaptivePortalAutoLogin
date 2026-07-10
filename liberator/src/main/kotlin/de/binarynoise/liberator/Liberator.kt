@@ -1,5 +1,6 @@
 package de.binarynoise.liberator
 
+import java.net.ConnectException
 import java.security.cert.CertPathValidatorException
 import java.util.concurrent.TimeUnit.MINUTES
 import javax.net.ssl.SSLException
@@ -33,6 +34,8 @@ class Liberator(
     private val experimental: Boolean = false,
     appVersion: String = "",
     liberatorVersion: String = "",
+    private val requestSystemReevaluation: () -> Unit = {},
+    private val isSystemLiberated: () -> Boolean = { false },
 ) {
     
     private val cookies: MutableSet<Cookie> = mutableSetOf()
@@ -122,33 +125,34 @@ class Liberator(
             return liberationResult
         }
         
-        val (isInPortalPost, portalResponsePost) = isCaughtInPortal(3)
+        val (isInPortalPost, portalResponsePost) = isCaughtInPortal(3, true)
         if (!isInPortalPost) {
             return liberationResult
         }
         return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), liberationResult.solvers, har)
     }
     
-    private fun isCaughtInPortal(maxTries: Int = 1): Pair<Boolean, Response?> {
+    private fun isCaughtInPortal(
+        maxTries: Int = 1,
+        enableRequestSystemReevaluation: Boolean = false,
+    ): Pair<Boolean, Response?> {
         var redirectedResponse: Response? = null
         var count = 0
         while (count++ < maxTries) {
             if (count > 1) Thread.sleep(1000)
+            if (enableRequestSystemReevaluation) requestSystemReevaluation()
+            if (enableRequestSystemReevaluation && isSystemLiberated()) return Pair(false, null)
             
             val (httpIsInPortal, redirectedResponseHttp) = isInPortal(portalTestUrl.httpUrl)
             redirectedResponse = redirectedResponseHttp
-            if (httpIsInPortal) continue
             
             try {
                 val (httpsIsInPortal, redirectedResponseHttps) = isInPortal(portalTestUrl.httpsUrl)
                 redirectedResponse = redirectedResponseHttps
                 if (httpsIsInPortal) continue
             } catch (e: Exception) {
-                if (e is SSLException || e is CertPathValidatorException) {
-                    // HTTPS errors mean we're (still) in the portal but it allows the http request to pass through anyway
-                    redirectedResponse = null
-                    continue
-                }
+                // HTTPS errors mean we're (still) in the portal
+                if (e is SSLException || e is CertPathValidatorException || e is ConnectException) continue
                 throw e
             }
             
