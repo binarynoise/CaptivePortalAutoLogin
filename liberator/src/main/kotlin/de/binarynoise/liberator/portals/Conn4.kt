@@ -168,15 +168,6 @@ object Conn4 : PortalLiberator {
                 tariff.getInt("id"),
                 registerFreeParams,
             )
-            createSession(
-                client,
-                apiBase,
-                token,
-                site_id,
-                sessionToken,
-                createSessionParams,
-                checkLoggedIn = true,
-            )
         }
     }
     
