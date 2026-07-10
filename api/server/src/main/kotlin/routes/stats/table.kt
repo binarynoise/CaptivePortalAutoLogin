@@ -59,7 +59,11 @@ data class ActionButtonData(
     val url: String?,
     val method: String,
     val isGet: Boolean = method.equals("get", ignoreCase = true),
-) : MappableData
+) : MappableData {
+    companion object {
+        val NONE = ActionButtonData("", null, "get")
+    }
+}
 
 typealias ActionColumnAction = ActionButtonData
 

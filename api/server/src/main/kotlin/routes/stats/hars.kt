@@ -254,7 +254,7 @@ private fun loadHarEntries(
             when (it.type) {
                 REGULAR -> ActionColumnAction("Archive", "archive/${it.name}", "post")
                 ARCHIVED -> ActionColumnAction("Unarchive", "unarchive/${it.name}", "post")
-                else -> null
+                else -> ActionColumnAction.NONE
             }
         }.add("delete") {
             ActionColumnAction("Delete", "delete/${it.name}?type=${it.type}", "post")
