@@ -70,7 +70,7 @@ object TheCloud : PortalLiberator {
                 doRequest,
                 alreadySeenUrls + url,
             )
-        }.firstOrNull()
+        }.filterNotNull().firstOrNull()
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
@@ -95,7 +95,11 @@ object TheCloud : PortalLiberator {
                     .map { it.attr("href") }
                     .mapNotNull { it.toHttpUrlOrNull(baseUrl) }
                     .map { it.enforceHttps() }
-                    .filter { it.relativeTo(baseUrl).firstPathSegment == "url" }
+                    .filter {
+                        with(it.relativeTo(baseUrl)) {
+                            firstPathSegment == "url" || firstPathSegment == "redirect"
+                        }
+                    }
                     .toMutableList()
                     .apply {
                         // the first url on every page appears to be irrelevant for us, so we try that link last
@@ -105,7 +109,8 @@ object TheCloud : PortalLiberator {
         )
         if (crawlResponse == null) throw IllegalStateException("no crawling path led to macauthlogin")
         
-        val macAuthResponse = client.postForm(crawlResponse.requestUrl, "registration", mapOf("terms" to "true"))
+        val macAuthUrl = crawlResponse.requestUrl.newBuilder().addPathSegment("registration").build()
+        val macAuthResponse = client.postForm(macAuthUrl, null, mapOf("terms" to "true"))
         check(macAuthResponse.isRedirect) { "macAuthResponse is not a redirect" }
         if (macAuthResponse.getLocationUrl()!!.lastPathSegment == "getonline") // 
             throw IllegalStateException("macAuthResponse redirected to getonline")
