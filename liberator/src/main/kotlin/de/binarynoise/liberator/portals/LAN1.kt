@@ -28,6 +28,6 @@ object LAN1 : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val html = response.parseHtml()
         val mac = html.getInput("mac")
-        client.postForm(response.requestUrl, null, mapOf("dst" to "", "username" to "T$mac")).checkSuccess()
+        client.postForm(response.requestUrl, null, mapOf("dst" to "", "username" to "T-$mac")).checkSuccess()
     }
 }
