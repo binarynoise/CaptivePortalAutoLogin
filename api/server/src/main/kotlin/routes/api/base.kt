@@ -2,10 +2,14 @@ package de.binarynoise.captiveportalautologin.server.routes.api
 
 import kotlin.time.Instant
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.hashLogFile
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDB
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDBArchived
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -26,6 +30,26 @@ fun Routing.api() {
                 val har = call.receive<HAR>()
                 ApiServer.api.har.submitHar(name, har)
                 call.respondStatus(HttpStatusCode.Created)
+            }
+        }
+        route("/log") {
+            put("/{name}") {
+                val name = call.parameters["name"] ?: missingParameter("name")
+                val parsed = try {
+                    parseLogFileName(name)
+                } catch (e: IllegalStateException) {
+                    return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+                if (logDB.exists(name) || logDBArchived.exists(name)) {
+                    return@put call.respond(HttpStatusCode.Conflict, "file already exists")
+                }
+                val file = call.receive<String>()
+                val checksum = hashLogFile(file)
+                if (checksum != parsed.component3()) {
+                    return@put call.respond(HttpStatusCode.BadRequest, "hash does not match")
+                }
+                ApiServer.api.log.submitLog(name, file)
+                call.respond(HttpStatusCode.Created)
             }
         }
         route("/liberator") {

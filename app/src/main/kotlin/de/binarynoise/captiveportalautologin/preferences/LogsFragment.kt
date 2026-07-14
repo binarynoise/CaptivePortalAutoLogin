@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -10,7 +11,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceCategory
+import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.R
+import de.binarynoise.captiveportalautologin.Stats
+import de.binarynoise.captiveportalautologin.api.generateLogFileName
 import de.binarynoise.captiveportalautologin.databinding.ItemLogExportBinding
 import de.binarynoise.captiveportalautologin.util.FileUtils
 import de.binarynoise.captiveportalautologin.util.FileUtils.shareFile
@@ -77,9 +81,36 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                             }
                                         }
                                     }
+                                    uploadButton.setOnClickListener {
+                                        lifecycleScope.launch {
+                                            try {
+                                                withContext(Dispatchers.IO) {
+                                                    val timestamp = Instant.fromEpochMilliseconds(file.lastModified())
+                                                    val version = BuildConfig.VERSION_NAME
+                                                    val content = file.readText()
+                                                    val name = generateLogFileName(timestamp, version, content)
+                                                    Stats.log.submitLog(name, content)
+                                                }
+                                                
+                                                Toast.makeText(
+                                                    view.context,
+                                                    R.string.upload_scheduled,
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    view.context,
+                                                    e::class.java.simpleName + ": " + e.message + "\n" + getString(R.string.please_try_again),
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                                log("Error scheduling upload", e)
+                                            }
+                                        }
+                                    }
                                 }
                             }) {
                                 title = file.name
+                                isIconSpaceReserved = false
                             }
                         }
                     }

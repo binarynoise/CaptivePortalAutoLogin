@@ -22,6 +22,7 @@ import okhttp3.Response
  * Media type for JSON with UTF-8 character set for sending JSON data.
  */
 val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
+val MEDIA_TYPE_PLAIN_TEXT = "text/plain; charset=utf-8".toMediaType()
 
 
 /**
@@ -135,7 +136,7 @@ fun OkHttpClient.postJson(
 }
 
 /**
- * Sends a POST request to the specified URL using the provided OkHttpClient.
+ * Sends a PUT request to the specified URL using the provided OkHttpClient.
  *
  * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
@@ -235,6 +236,60 @@ fun OkHttpClient.postMultipartForm(
         }
         multipartBody(formBodyBuilder)
         post(formBodyBuilder.build())
+        preConnectSetup()
+    }
+}
+
+/**
+ * Sends a POST request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param content The plain text content.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the [Request.Builder] before building the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.postPlain(
+    base: HttpUrl?,
+    url: String?,
+    content: String,
+    queryParameters: Map<String, String?> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
+        post(content.toRequestBody(MEDIA_TYPE_PLAIN_TEXT))
+        preConnectSetup()
+    }
+}
+
+/**
+ * Sends a PUT request to the specified URL using the provided OkHttpClient.
+ *
+ * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
+ * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
+ * @param content The plain text content.
+ * @param queryParameters The query parameters to include in the request URL. Defaults to an empty map.
+ * @param preConnectSetup A function to customize the [Request.Builder] before building the request. Defaults to noop.
+ * @return The Response object representing the server's response to the request.
+ * @throws Error if both url and context are null.
+ */
+fun OkHttpClient.putPlain(
+    base: HttpUrl?,
+    url: String?,
+    content: String,
+    queryParameters: Map<String, String?> = emptyMap(),
+    preConnectSetup: Request.Builder.() -> Unit = {},
+): Response {
+    contract {
+        callsInPlace(preConnectSetup, InvocationKind.AT_MOST_ONCE)
+    }
+    return call(base, url, queryParameters) {
+        put(content.toRequestBody(MEDIA_TYPE_PLAIN_TEXT))
         preConnectSetup()
     }
 }

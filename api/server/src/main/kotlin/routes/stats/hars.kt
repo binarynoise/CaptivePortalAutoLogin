@@ -2,31 +2,28 @@ package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import java.nio.file.Path
 import kotlin.io.path.fileSize
-import kotlin.io.path.name
 import kotlin.io.path.nameWithoutExtension
 import de.binarynoise.captiveportalautologin.api.json.har.parseHarFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
+import de.binarynoise.captiveportalautologin.server.routes.FileSize
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
+import de.binarynoise.captiveportalautologin.server.routes.respondPathWithContentDisposition
+import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.ARCHIVED
 import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.ERROR
 import de.binarynoise.captiveportalautologin.server.routes.stats.HarType.REGULAR
 import de.binarynoise.filedb.FileDB
-import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import de.binarynoise.logger.Logger.log
-import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.mustache.MustacheContent
 import io.ktor.server.request.header
 import io.ktor.server.response.header
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondPath
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import nl.jacobras.humanreadable.HumanReadable
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.add
@@ -60,12 +57,6 @@ enum class HarType {
             return valueOf(type.uppercase())
         }
     }
-}
-
-
-class FileSize(val value: Long) : Comparable<FileSize> {
-    override fun toString(): String = HumanReadable.fileSize(value, decimals = 1)
-    override fun compareTo(other: FileSize): Int = value.compareTo(other.value)
 }
 
 private fun parseHarPath(path: Path, type: HarType): HarEntry {
@@ -261,12 +252,4 @@ private fun loadHarEntries(
         }
     
     return dataFrame
-}
-
-private suspend fun ApplicationCall.respondPathWithContentDisposition(path: Path) {
-    response.header(
-        HttpHeaders.ContentDisposition,
-        ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, path.name).toString(),
-    )
-    respondPath(path)
 }

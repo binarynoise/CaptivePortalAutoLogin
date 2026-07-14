@@ -67,6 +67,12 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
                     jsonDB.delete<HAR>(key, "har")
                     log("Uploaded HAR $key")
                 }
+                "log" -> {
+                    val log = jsonDB.load<String>(key, "log")
+                    apiClient.log.submitLog(key, log)
+                    jsonDB.delete<String>(key, "log")
+                    log("Uploaded log $key")
+                }
                 "error" -> {
                     val error = jsonDB.load<Api.Liberator.Error>(key)
                     apiClient.liberator.reportError(error)
@@ -116,6 +122,7 @@ class StatsWorker(appContext: Context, workerParams: WorkerParameters) : Corouti
 
 object Stats : Api {
     override val har: Har = Har()
+    override val log: Log = Log()
     override val liberator: Liberator = Liberator()
     
     class Har : Api.Har {
@@ -123,6 +130,13 @@ object Stats : Api {
             val key = name
             jsonDB.store(key, har, "har")
             scheduleUpload("har", key)
+        }
+    }
+    
+    class Log : Api.Log {
+        override fun submitLog(name: String, log: String) {
+            jsonDB.store(name, log, "log")
+            scheduleUpload("log", name)
         }
     }
     

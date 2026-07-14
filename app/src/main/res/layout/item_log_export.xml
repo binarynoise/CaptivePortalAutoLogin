@@ -1,38 +1,32 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    tools:layout_gravity="end"
-    >
+    tools:layout_gravity="end">
     
-    <!--
-    <TextView
-        android:id="@+id/name"
-        style="@android:style/TextAppearance.Material.Title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        tools:text="name"
-        />
-    -->
-    <Button
+    <ImageButton
         android:id="@+id/shareButton"
-        style="@style/CaptivePortalAutoLogin.Button"
+        style="@style/CaptivePortalAutoLogin.ImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="share"
-        android:textAllCaps="false"
-        />
+        android:contentDescription="@string/share"
+        android:src="@drawable/share_variant" />
     
-    <Button
+    <ImageButton
         android:id="@+id/copyToSdButton"
-        style="@style/CaptivePortalAutoLogin.Button.Accent"
+        style="@style/CaptivePortalAutoLogin.ImageButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="copy to SD"
-        android:textAllCaps="false"
-        />
+        android:contentDescription="@string/save_to_storage"
+        android:src="@drawable/content_save" />
+    
+    <ImageButton
+        android:id="@+id/uploadButton"
+        style="@style/CaptivePortalAutoLogin.ImageButton.Accent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/upload"
+        android:src="@drawable/cloud_upload" />
 
 </LinearLayout>
