@@ -46,8 +46,8 @@ class ExtendedErrorEntity(
     stackTrace: String,
     harName: String?,
 ) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace, harName) {
-    val domain = url.getUrlDomain()
-    val majorVersion = version.getMajorVersion()
+    val domain: String = url.getUrlDomain()
+    val majorVersion: Int? = version.getMajorVersion()
     private val localDateTime = timestamp.toLocalDateTime(UTC)
     val year: Int = localDateTime.year
     val month: Int = localDateTime.month.number
