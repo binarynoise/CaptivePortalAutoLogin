@@ -5,49 +5,22 @@ package de.binarynoise.liberator.portals
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
-import de.binarynoise.util.okhttp.checkSuccess
-import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.getInput
 import de.binarynoise.util.okhttp.hasQueryParameter
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.toHttpUrl
-import de.binarynoise.util.okhttp.toHttpUrlOrNull
-import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okio.Buffer
 import org.jsoup.nodes.Document
 
-fun isRubyLoginUrl(url: HttpUrl): Boolean {
-    return url.encodedPath == "/login" //
-        && url.hasQueryParameter("dst")
-}
-
-@SSID("RUBY-HOTEL")
-object RubyHotels : PortalLiberator {
-    fun isRubyHotelsLoginUrl(url: HttpUrl): Boolean {
-        return url.host == "hotspot.ruby-hotels.com" && isRubyLoginUrl(url)
-    }
-    
-    override fun canSolve(response: Response): Boolean {
-        return isRubyHotelsLoginUrl(response.requestUrl)
-    }
-    
-    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        val html = response.parseHtml()
-        val loginUrl = html.getElementsByTag("a") //
-            .filter { it.hasAttr("href") }
-            .map { it.attr("href") }
-            .mapNotNull { it.toHttpUrlOrNull(response.requestUrl) }
-            .single { isRubyHotelsLoginUrl(it) && it.hasQueryParameter("username") }
-        client.get(loginUrl, null).checkSuccess()
-    }
-}
-
-@SSID("Ruby Workspaces")
-object RubyWorkspaces : PortalLiberator {
+@SSID(
+    "RUBY-HOTEL",
+    "Ruby Workspaces",
+)
+object Ruby : PortalLiberator {
     
     fun computeCHAPHash(string: String, chapId: List<Char>, chapChallenge: List<Char>): String {
         val chapString = chapId.joinToString("") + string + chapChallenge.joinToString("")
@@ -81,7 +54,9 @@ object RubyWorkspaces : PortalLiberator {
     }
     
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host == "hotspot.ruby-workspaces.com" && isRubyLoginUrl(response.requestUrl)
+        return response.requestUrl.host == "hotspot.ruby-workspaces.com" // 
+            && response.requestUrl.encodedPath == "/login" //
+            && response.requestUrl.hasQueryParameter("dst")
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
