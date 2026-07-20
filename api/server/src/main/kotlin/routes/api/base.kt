@@ -6,6 +6,7 @@ import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
+import de.binarynoise.captiveportalautologin.server.routes.stats.Comparators
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -24,16 +25,25 @@ fun Routing.api() {
             put("/{name}") {
                 val name = call.parameters["name"] ?: missingParameter("name")
                 val har = call.receive<HAR>()
+                if (!har.log.creator.version.matches(Comparators.VersionComparator.pattern)) {
+                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
+                }
                 ApiServer.api.har.submitHar(name, har)
                 call.respondStatus(HttpStatusCode.Created)
             }
         }
         route("/liberator") {
             put<Api.Liberator.Error>("error") { it: Api.Liberator.Error ->
+                if (!it.version.matches(Comparators.VersionComparator.pattern)) {
+                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
+                }
                 ApiServer.api.liberator.reportError(it)
                 call.respondStatus(HttpStatusCode.Created)
             }
             put<Api.Liberator.Success>("success") { it: Api.Liberator.Success ->
+                if (!it.version.matches(Comparators.VersionComparator.pattern)) {
+                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
+                }
                 ApiServer.api.liberator.reportSuccess(it)
                 call.respondStatus(HttpStatusCode.Created)
             }
