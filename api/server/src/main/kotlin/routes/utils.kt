@@ -1,6 +1,9 @@
 package de.binarynoise.captiveportalautologin.server.routes
 
 import java.time.LocalDate
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
 import kotlinx.datetime.TimeZone.Companion.UTC
 import kotlinx.datetime.toJavaZoneId
@@ -29,4 +32,16 @@ internal fun RoutingNode.toLogString(): String {
 
 suspend fun RoutingCall.respondStatus(httpStatusCode: HttpStatusCode) {
     this.respond(httpStatusCode, httpStatusCode.description)
+}
+
+fun Instant.isInRelativeRange(
+    minus: Duration = Duration.INFINITE,
+    plus: Duration = Duration.ZERO,
+    base: Instant = Clock.System.now(),
+): Boolean {
+    return this > base.minus(minus) && this < base.plus(plus)
+}
+
+fun String.toDuration(): Duration {
+    return Duration.parse(this)
 }
