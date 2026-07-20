@@ -8,6 +8,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlinx.coroutines.runBlocking
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
@@ -16,8 +17,10 @@ import de.binarynoise.captiveportalautologin.api.json.har.Log
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.createServer
+import de.binarynoise.captiveportalautologin.server.routes.api.feedbackFutureAllowance
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.serializer
+import de.binarynoise.util.okhttp.HttpStatusCodeException
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import io.ktor.server.engine.EmbeddedServer
@@ -27,14 +30,18 @@ import okhttp3.OkHttpClient
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.assertThrows
 
 class ApiClientTests {
+    
+    private val validTestVersion = "1-deadbe-00000000"
     
     private lateinit var server: ApiServer
     private lateinit var client: ApiClient
     
     @BeforeTest
     fun setup() {
+        tempDirectory.deleteRecursively()
         server = ApiServer(tempDirectory)
         ApiServer.api = server
         client = ApiClient(apiBase)
@@ -79,9 +86,18 @@ class ApiClientTests {
     inner class Har {
         @Test
         fun submitHar() {
-            val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
+            val har = HAR(Log("", Creator("", validTestVersion), null, null, mutableListOf()))
             client.har.submitHar("test", har)
             assertEquals(har, serializer.decodeFromString(server.harDB.load("test")))
+        }
+        
+        @Test
+        fun submitHarWithInvalidVersion() {
+            val har = HAR(Log("", Creator("", ""), null, null, mutableListOf()))
+            assertThrows<HttpStatusCodeException> {
+                client.har.submitHar("test", har)
+            }
+            assertFalse { server.harDB.exists("test") }
         }
     }
     
@@ -102,7 +118,7 @@ class ApiClientTests {
         fun reportError() {
             client.liberator.reportError(
                 Api.Liberator.Error(
-                    version = "test version",
+                    version = validTestVersion,
                     timestamp = System.currentTimeMillis(),
                     ssid = "test ssid",
                     url = "test url",
@@ -115,10 +131,29 @@ class ApiClientTests {
         }
         
         @Test
+        fun `reportError - invalid version`() {
+            assertThrows<HttpStatusCodeException> {
+                client.liberator.reportError(
+                    Api.Liberator.Error(
+                        version = "",
+                        timestamp = System.currentTimeMillis(),
+                        ssid = "test ssid",
+                        url = "test url",
+                        message = "test error",
+                        solver = "test solver",
+                        stackTrace = "test stack trace",
+                        har = null,
+                    )
+                )
+            }
+            assert(runBlocking { server.database.errorDao().getAll().isEmpty() })
+        }
+        
+        @Test
         fun reportSuccess() {
             client.liberator.reportSuccess(
                 Api.Liberator.Success(
-                    version = "test version",
+                    version = validTestVersion,
                     timestamp = System.currentTimeMillis(),
                     ssid = "test ssid",
                     url = "test url",
@@ -128,9 +163,42 @@ class ApiClientTests {
         }
         
         @Test
+        fun `reportSuccess - invalid version`() {
+            assert(runBlocking { server.database.successDao().getAll().isEmpty() })
+            assertThrows<HttpStatusCodeException> {
+                client.liberator.reportSuccess(
+                    Api.Liberator.Success(
+                        version = "",
+                        timestamp = System.currentTimeMillis(),
+                        ssid = "test ssid",
+                        url = "test url",
+                        solver = "test solver",
+                    )
+                )
+            }
+            assert(runBlocking { server.database.successDao().getAll().isEmpty() })
+        }
+        
+        @Test
+        fun `reportSuccess - future submission`() {
+            assertThrows<HttpStatusCodeException> {
+                client.liberator.reportSuccess(
+                    Api.Liberator.Success(
+                        version = validTestVersion,
+                        timestamp = System.currentTimeMillis() + feedbackFutureAllowance.inWholeMilliseconds + 1000,
+                        ssid = "test ssid",
+                        url = "test url",
+                        solver = "test solver",
+                    )
+                )
+            }
+            assert(runBlocking { server.database.successDao().getAll().isEmpty() })
+        }
+        
+        @Test
         fun `reportSuccess - count`() {
             val success = Api.Liberator.Success(
-                version = "test version",
+                version = validTestVersion,
                 timestamp = System.currentTimeMillis(),
                 ssid = "test ssid",
                 url = "test url",

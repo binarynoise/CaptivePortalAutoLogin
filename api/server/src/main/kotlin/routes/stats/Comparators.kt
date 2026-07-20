@@ -50,7 +50,7 @@ object Comparators {
     }
     
     object VersionComparator : Comparator<String> {
-        val pattern = Regex("^(\\d+)([+-])([a-f0-9]+)(-\\d{8})(-dev)?$")
+        val pattern = Regex("^(\\d+)([+-])([a-f0-9]{6})(-\\d{8})(-dev)?$")
         
         override fun compare(o1: String, o2: String): Int {
             if (o1 == o2) return 0
