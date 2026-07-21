@@ -22,12 +22,12 @@ class QueuedWorkActivity : ComponentActivity() {
         setContentView(binding.root)
         
         binding.scheduleButton.setOnClickListener {
-            Stats.scheduleEverythingForUpload()
+            enqueueStatsUploadWork(singleShot = true)
         }
         
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                Stats.getScheduledWork().collect { workInfos ->
+                getEnqueuedStatsUploadWork().collect { workInfos ->
                     binding.counters.text = buildString {
                         append("Total: ")
                         append(workInfos.size)

@@ -1,11 +1,16 @@
 package de.binarynoise.util.okhttp
 
 import java.util.WeakHashMap
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.JsonArray
 import de.binarynoise.util.json.JsonObject
+import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
@@ -197,4 +202,21 @@ fun Response.submitOnlyForm(
     val html = this.parseHtml()
     val baseUrl = this.requestUrl
     return html.submitOnlyForm(client, baseUrl, cssQuery, parameters, queryParameters, preConnectSetup)
+}
+
+fun parseRetryAfterOrNull(headers: Headers): Duration? {
+    val retryAfter = headers["Retry-After"] ?: return null
+    val seconds = retryAfter.toLongOrNull()
+    if (seconds != null) {
+        return seconds.seconds
+    }
+    
+    try {
+        val retryAt = DateTimeComponents.Formats.RFC_1123.parse(retryAfter).toInstantUsingOffset()
+        val now = Clock.System.now()
+        return if (retryAt > now) retryAt - now else null
+    } catch (_: Exception) {
+        log("Failed to parse Retry-After: $retryAfter")
+    }
+    return null
 }
