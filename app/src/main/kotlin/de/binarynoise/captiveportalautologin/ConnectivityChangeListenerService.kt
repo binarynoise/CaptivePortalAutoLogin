@@ -391,7 +391,7 @@ class ConnectivityChangeListenerService : Service() {
                     log("broke out of the portal")
                     Toast.makeText(applicationContext, R.string.liberate_success, Toast.LENGTH_SHORT).show()
                     reportNetworkConnectivity(network, true)
-                    Stats.liberator.reportSuccess(
+                    ScheduledApiClient.liberator.reportSuccess(
                         Success(
                             version = BuildConfig.VERSION_NAME,
                             timestamp = System.currentTimeMillis(),
@@ -410,7 +410,7 @@ class ConnectivityChangeListenerService : Service() {
                     ).show()
                     reportNetworkConnectivity(network, false)
                     liberationResult.har.comment = ssid
-                    Stats.liberator.reportError(
+                    ScheduledApiClient.liberator.reportError(
                         Error(
                             version = BuildConfig.VERSION_NAME,
                             timestamp = System.currentTimeMillis(),
@@ -441,7 +441,7 @@ class ConnectivityChangeListenerService : Service() {
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
-                    Stats.liberator.reportError(
+                    ScheduledApiClient.liberator.reportError(
                         Error(
                             version = BuildConfig.VERSION_NAME,
                             timestamp = System.currentTimeMillis(),
@@ -462,7 +462,7 @@ class ConnectivityChangeListenerService : Service() {
                         Toast.LENGTH_SHORT,
                     ).show()
                     reportNetworkConnectivity(network, false)
-                    Stats.liberator.reportError(
+                    ScheduledApiClient.liberator.reportError(
                         Error(
                             version = BuildConfig.VERSION_NAME,
                             timestamp = System.currentTimeMillis(),
@@ -496,7 +496,7 @@ class ConnectivityChangeListenerService : Service() {
                 Toast.LENGTH_LONG,
             ).show()
             reportNetworkConnectivity(network, false)
-            Stats.liberator.reportError(
+            ScheduledApiClient.liberator.reportError(
                 Error(
                     version = BuildConfig.VERSION_NAME,
                     timestamp = System.currentTimeMillis(),

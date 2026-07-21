@@ -27,7 +27,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
 import de.binarynoise.captiveportalautologin.R
-import de.binarynoise.captiveportalautologin.Stats
+import de.binarynoise.captiveportalautologin.ScheduledApiClient
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePortalBinding
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
@@ -200,7 +200,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
             .setMessage(getString(R.string.submit_portal_description))
             .setPositiveButton(android.R.string.yes) { _, _ ->
                 val (name, har) = createFinalizedHar()
-                Stats.har.submitHar(name, har)
+                ScheduledApiClient.har.submitHar(name, har)
                 Toast.makeText(this, R.string.submit_portal_confirmed, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(android.R.string.no) { _, _ ->
