@@ -2,12 +2,14 @@ package de.binarynoise.liberator.portals
 
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
+import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.getString
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.followRedirects
+import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.parseJsonObject
 import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
@@ -30,7 +32,9 @@ object DBWifi : PortalLiberator {
     )
     
     override fun canSolve(response: Response): Boolean {
-        return response.requestUrl.host in domains && !response.isRedirect
+        return response.requestUrl.host in domains //
+            && !response.isRedirect //
+            && response.requestUrl.firstPathSegment in setOf("cna", "sp", "cp", "auth_login_update")
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
@@ -55,6 +59,23 @@ object DBWifi : PortalLiberator {
                 log("cp")
                 response.submitOnlyForm(client)
             }
+            "auth_login_update" -> {
+                log("auth_login_update")
+                response.submitOnlyForm(client)
+            }
         }
+    }
+}
+
+object WifiOnIceRedirector : PortalRedirector {
+    override fun canRedirect(response: Response): Boolean {
+        return response.requestUrl.host == "login.wifionice.de" //
+            && response.parseHtml(true).select("form[id=urlform]").isNotEmpty()
+    }
+    
+    override fun redirect(
+        client: OkHttpClient, response: Response, extras: LiberatorExtras
+    ): Response {
+        return response.submitOnlyForm(client, cssQuery = "form[id=urlform]")
     }
 }
