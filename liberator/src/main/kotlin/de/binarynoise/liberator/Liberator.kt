@@ -1,9 +1,8 @@
 package de.binarynoise.liberator
 
-import java.net.ConnectException
-import java.security.cert.CertPathValidatorException
+import java.io.IOException
+import java.security.GeneralSecurityException
 import java.util.concurrent.TimeUnit.MINUTES
-import javax.net.ssl.SSLException
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -152,7 +151,7 @@ class Liberator(
                 if (httpsIsInPortal) continue
             } catch (e: Exception) {
                 // HTTPS errors mean we're (still) in the portal
-                if (e is SSLException || e is CertPathValidatorException || e is ConnectException) continue
+                if (e is IOException || e is GeneralSecurityException) continue
                 throw e
             }
             
