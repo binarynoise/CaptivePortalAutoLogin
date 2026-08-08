@@ -77,10 +77,11 @@ abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberat
  * generic [ArubaClearPassLiberator] which should activate for all ArubaClearPass portals which do not have a specific implementation
  */
 @SSID(
-    "URBAN_GUEST_WIFI",
-    "Tally's Bunny Wifi",
-    "scandic_easy",
+    "KlinikumDO",
     "Segmueller-Hotspot",
+    "Tally's Bunny Wifi",
+    "URBAN_GUEST_WIFI",
+    "scandic_easy",
 )
 object ArubaClearPass : ArubaClearPassLiberator() {
     override fun canSolve(response: Response): Boolean {
