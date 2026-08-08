@@ -1,9 +1,6 @@
 package de.binarynoise.util.okhttp
 
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
+import java.util.WeakHashMap
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import de.binarynoise.logger.Logger.log
@@ -115,21 +112,13 @@ fun Response.parseJsonArray(skipStatusCheck: Boolean = false): JsonArray {
 }
 
 
-private val cache = mutableMapOf<Response, String>()
-private val executor = Executors.newSingleThreadScheduledExecutor {
-    Thread(it, "okhttp-cache-daemon").apply {
-        isDaemon = true
-    }
-}
-
-fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit, command: Runnable): ScheduledFuture<*> =
-    schedule(command, delay, unit)
+private val cache: MutableMap<Response, String> = WeakHashMap()
 
 /**
  * Reads the response body into a string.
  *
- * The string is cached for 10 seconds.
- * It may only be read again while in the cache.
+ * The string is cached for the lifetime of the response,
+ * as the underlying body can only be read once.
  *
  * @param skipStatusCheck If true, skips the check for a successful HTTP status code. Default is false.
  * @return The response body as a string.
@@ -137,11 +126,10 @@ fun ScheduledExecutorService.schedule(delay: Long, unit: TimeUnit, command: Runn
 fun Response.readText(skipStatusCheck: Boolean = false): String {
     if (!skipStatusCheck) checkSuccess()
     
-    return cache.getOrPut(this) {
-        executor.schedule(10, TimeUnit.SECONDS) {
-            cache.remove(this@readText)
+    return synchronized(this) {
+        cache.getOrPut(this) {
+            body.string()
         }
-        body.string()
     }
 }
 
