@@ -8,6 +8,7 @@ import de.binarynoise.liberator.PortalRedirector
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.FortiAuthenticator.isFortiAuthenticatorUrl
 import de.binarynoise.rhino.RhinoParser
+import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
@@ -19,8 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 /**
- * Identifies this [PortalLiberator] as a sub portal of [FortiAuthenticator],
- * which makes it eligible for solving after a [FortiAuthenticatorRedirect].
+ * Identifies this [PortalLiberator] as a sub portal of [FortiAuthenticator]
  */
 @Target(AnnotationTarget.CLASS)
 annotation class FortiAuthenticatorSubPortal
@@ -63,5 +63,17 @@ object FortiAuthenticatorRedirect : PortalRedirector {
         val assignments = RhinoParser().parseAssignments(script)
         val redirectUrl = assignments["window.location"] ?: error("no window.location")
         return client.get(response.requestUrl, redirectUrl)
+    }
+}
+
+@SSID("DeichmannGast")
+@FortiAuthenticatorSubPortal
+object DseTech : PortalLiberator {
+    override fun canSolve(response: Response): Boolean {
+        return response.requestUrl.host == "disclaimer.dse-tech.net" && !response.isRedirect
+    }
+    
+    override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
+        response.submitOnlyForm(client).checkSuccess()
     }
 }
