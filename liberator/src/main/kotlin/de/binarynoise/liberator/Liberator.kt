@@ -187,6 +187,25 @@ class Liberator(
                 val redirectedResponse = getRedirectedResponse(client, response, cookies)
                 log("redirectedResponse.requestUrl: ${redirectedResponse?.requestUrl}")
                 if (redirectedResponse == null) {
+                    if (SubmitOnlyForm.canSolve(response)) try {
+                        log("attempting to solve unknown portal with ${SubmitOnlyForm::class.simpleName}")
+                        SubmitOnlyForm.solve(
+                            client,
+                            response,
+                            LiberatorExtras(
+                                cookies = cookies,
+                                portalTestUrl = portalTestUrl,
+                                userAgent = userAgent,
+                            ),
+                        )
+                        log("solver ${SubmitOnlyForm::class.simpleName} finished processing")
+                        return LiberationResult.Success(
+                            response.requestUrl.toString(),
+                            SubmitOnlyForm::class.simpleName!!,
+                        )
+                    } catch (e: Exception) {
+                        log("solver ${SubmitOnlyForm::class.java} failed", e)
+                    }
                     return LiberationResult.UnknownPortal(response.requestUrl.toString())
                 }
                 
