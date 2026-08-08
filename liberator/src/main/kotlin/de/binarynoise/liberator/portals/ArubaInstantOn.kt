@@ -14,7 +14,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID("HfMWiFi")
 object ArubaInstantOn : PortalLiberator {
     override fun canSolve(response: Response): Boolean {

@@ -15,7 +15,6 @@ import de.binarynoise.util.okhttp.requestUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID(
     "LAN1- Jugendgästehaus",
     "Novum Hotel Boulevard",

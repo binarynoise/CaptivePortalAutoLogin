@@ -35,11 +35,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
-@Experimental
 @SSID(
     "Cotidiano-Gast",
-    "FreeWiFi Burger King",
-    "FreeWiFi Teufel",
     "FreeWiFi Wenkers am Markt",
 )
 object SocialWave : PortalLiberator {
@@ -218,8 +215,8 @@ object SocialWave : PortalLiberator {
     }
 }
 
-@Experimental
 @SSID(
+    "FreeWiFi Burger King",
     "MeinHotspot",
 )
 object MeinWlan : PortalLiberator {

@@ -23,7 +23,6 @@ import kotlin.random.Random as random
     "WestfalenBahn",
     "/WLAN@RB\\s[0-9]+/",
 )
-@Experimental
 object Unwired : PortalLiberator {
     
     // fyi graphql playground: https://wasabi-splashpage.wifi.unwired.at/api/graphql
