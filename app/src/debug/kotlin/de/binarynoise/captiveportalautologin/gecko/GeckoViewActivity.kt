@@ -26,7 +26,7 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
 import de.binarynoise.captiveportalautologin.R
-import de.binarynoise.captiveportalautologin.Stats
+import de.binarynoise.captiveportalautologin.ScheduledApiClient
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.toJson
 import de.binarynoise.captiveportalautologin.databinding.ActivityGeckoviewBinding
@@ -248,7 +248,7 @@ class GeckoViewActivity : ComponentActivity() {
         R.id.action_upload -> {
             try {
                 val (name, har) = createFinalizedHar()
-                Stats.har.submitHar(name, har)
+                ScheduledApiClient.har.submitHar(name, har)
                 Toast.makeText(this, getString(R.string.submit_portal_scheduled), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 log("Error uploading file", e)

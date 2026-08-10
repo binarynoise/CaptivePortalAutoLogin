@@ -11,5 +11,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)
     
+    compileOnly(libs.kotlinx.datetime)
+    
     testImplementation(kotlin("test"))
 }

@@ -25,6 +25,8 @@ open class Application : android.app.Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && SharedPreferences.network_suggestions.get()) {
             enqueueUpdateNetworkSuggestionSSIDsWork(this)
         }
+        
+        enqueueStatsUploadWork(this)
     }
     
     /**

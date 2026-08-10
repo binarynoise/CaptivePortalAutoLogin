@@ -3,10 +3,9 @@ package de.binarynoise.captiveportalautologin.preferences
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-import android.content.Context
+import kotlin.time.Instant
 import android.provider.Settings
 import androidx.core.content.edit
-import androidx.preference.DropDownPreference
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
 import de.binarynoise.captiveportalautologin.BuildConfig
@@ -61,7 +60,12 @@ object SharedPreferences {
     val liberator_experimental_enabled_sharedPreferencesKey: String
         get() = liberator_experimental.sharedPreferencesKey
     
-    val stats_last_retry_time by PreferenceProperty(0L)
+    fun stats_retry_after(type: String): TypeConversionPreferencePropertyDelegate<Instant, Long> =
+        TypeConversionPreferencePropertyDelegate(
+            { wrapped: Long -> Instant.fromEpochMilliseconds(wrapped) },
+            { toStore: Instant -> toStore.toEpochMilliseconds() },
+            PreferencePropertyDelegate("stats_retry_after_$type", 0L)
+        )
     
     private class PreferenceProperty<T : Any>(private val defaultValue: T) {
         operator fun getValue(parent: Any, property: KProperty<*>): PreferencePropertyDelegate<T> {
@@ -151,4 +155,34 @@ class MappedPreferencePropertyDelegate<V : Any>(
         preference.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         preference.setDefaultValue(defaultKey)
     }
+}
+
+class TypeConversionPreferencePropertyDelegate<V : Any, W : Any>(
+    val unwrap: (W) -> V,
+    val wrap: (V) -> W,
+    val wrapped: PreferencePropertyDelegate<W>,
+) : ReadWriteProperty<Any?, V> {
+    
+    val sharedPreferencesKey get() = wrapped.sharedPreferencesKey
+    val defaultValue get() = unwrap(wrapped.defaultValue)
+    
+    @JvmName("getValueNullable")
+    operator fun getValue(thisRef: Any?, property: KProperty<*>?): V {
+        return unwrap(wrapped.get())
+    }
+    
+    override operator fun getValue(thisRef: Any?, property: KProperty<*>): V {
+        return getValue(thisRef, null)
+    }
+    
+    @JvmName("setValueNullable")
+    operator fun setValue(thisRef: Any?, property: KProperty<*>?, newValue: V) {
+        wrapped.setValue(thisRef, property, wrap(newValue))
+    }
+    
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: V) {
+        setValue(thisRef, null, value)
+    }
+    
+    fun get(): V = getValue(null, null)
 }
