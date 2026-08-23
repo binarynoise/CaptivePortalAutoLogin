@@ -44,7 +44,7 @@ class ApiClientTests {
         tempDirectory.deleteRecursively()
         server = ApiServer(tempDirectory)
         ApiServer.api = server
-        client = ApiClient(apiBase)
+        client = ApiClient(apiBase, null)
     }
     
     companion object {
