@@ -1,9 +1,11 @@
 package de.binarynoise.captiveportalautologin.util
 
+import java.security.PublicKey
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -34,3 +36,7 @@ fun Context.getColorFromAttr(
     check(theme.resolveAttribute(attrColor, typedValue, resolveRefs))
     return typedValue.data
 }
+
+fun Context.getSignaturePublicKey(): PublicKey? = this.packageManager.getPackageInfo(
+    this.packageName, PackageManager.GET_SIGNING_CERTIFICATES
+).signingInfo?.publicKeys?.singleOrNull()

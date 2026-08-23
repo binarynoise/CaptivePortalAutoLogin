@@ -23,6 +23,7 @@ import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.HttpStatusCodeException
@@ -137,7 +138,7 @@ abstract class StatsWorker<T : Any>(
         val apiBaseFromPreference by SharedPreferences.api_base
         val apiBaseUrl =
             (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull() ?: return Result.failure()
-        val apiClient = ApiClient(apiBaseUrl)
+        val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
         
         var shouldRetry = false
         

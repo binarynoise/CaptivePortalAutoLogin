@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.client
 
+import java.security.PublicKey
 import kotlin.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -13,10 +14,20 @@ import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.putJson
 import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 
-class ApiClient(private val base: HttpUrl) : Api {
-    private val httpClient = OkHttpClient()
+class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : Api {
+    private val httpClient = OkHttpClient.Builder().addInterceptor(::addSignatureInterceptor).build()
+    
+    fun addSignatureInterceptor(chain: Interceptor.Chain): Response {
+        val originalRequest = chain.request()
+        if (signature == null) return chain.proceed(originalRequest)
+        val signatureAuth = signature.encoded.toHexString()
+        val newRequest = originalRequest.newBuilder().header("Authorization", "Signature $signatureAuth").build()
+        return chain.proceed(newRequest)
+    }
     
     override val har = object : Api.Har {
         override fun submitHar(name: String, har: HAR) {

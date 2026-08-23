@@ -28,6 +28,7 @@ import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.isExperimental
@@ -89,7 +90,7 @@ class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: 
         val apiBaseFromPreference by SharedPreferences.api_base
         val apiBaseUrl = (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
         if (apiBaseUrl == null) return Result.failure()
-        val apiClient = ApiClient(apiBaseUrl)
+        val apiClient = ApiClient(apiBaseUrl, appContext.getSignaturePublicKey())
         
         log("obtaining ssids from api")
         val limit = wifiManager.maxNumberOfNetworkSuggestionsPerApp
