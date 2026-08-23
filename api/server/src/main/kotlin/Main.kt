@@ -99,6 +99,7 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
     }
     
     install(LoggingPlugin)
+    install(SignatureCheckPlugin)
     
     configureRouting()
 }
