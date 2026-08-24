@@ -14,6 +14,7 @@ androidxRoom = "2.8.4"
 androidxRoomSqlite = "2.7.0"
 androidxWorkRuntimeKtx = "2.11.2"
 blockhound = "1.0.17.RELEASE"
+buildconfig = "6.0.10"
 clikt = "5.1.0"
 dataframeCore = "1.0.0-Beta5"
 decourinator = "2.6.4"
@@ -115,6 +116,7 @@ xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 androidx-room = { id = "androidx.room", version.ref = "androidxRoom" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 decourinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decourinator" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-dataframe = { id = "org.jetbrains.kotlin.plugin.dataframe", version.ref = "kotlin" }

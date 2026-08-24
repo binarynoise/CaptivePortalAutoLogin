@@ -1,3 +1,4 @@
+import buildlogic.git.getCommitInfos
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
@@ -7,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.shadow)
+    alias(libs.plugins.buildconfig)
 }
 
 
@@ -42,6 +44,9 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+buildConfig {
+    buildConfigField("GITCOMMITS", getCommitInfos())
+}
 
 room {
     schemaDirectory("$projectDir/schemas")

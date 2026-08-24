@@ -8,6 +8,7 @@ import org.gradle.process.ExecOutput
 private fun Project.getCommitCountExec() = providers.exec {
     executable("git")
     args("rev-list", "--count", "HEAD")
+    args("--")
     args(projectDir)
     args(rootProject.file("gradle"))
     args(rootProject.file("build-logic"))
@@ -32,6 +33,34 @@ private fun Project.getCommitHashExec() = providers.exec {
     executable("git")
     args("rev-parse", "--short", "HEAD")
 }
+
+/**
+ * get all commit hashes known in this git repository
+ */
+private fun Project.getAllCommitHashesExec() = providers.exec {
+    executable("git")
+    args("rev-list", "--all")
+}
+
+fun Project.getAllCommitHashes() = try {
+    getAllCommitHashesExec().standardOutput.asText.get().lines()
+} catch (e: Exception) {
+    logger.error("Failed to get commit hashes", e)
+    listOf()
+}
+
+/**
+ * get all commits with dates
+ * in ascending order, required for partial hash matching
+ */
+private fun Project.getCommitDatesExec() = providers.exec {
+    executable("git")
+    args("log", "--pretty=format:%H,%ct", "--all", "--reverse")
+}
+
+fun Project.getCommitInfos(): Map<String, Long> =
+    getCommitDatesExec().standardOutput.asText.get().lines().map { it.split(",") }.associate { it[0] to it[1].toLong() }
+
 
 private fun Project.getWorkingTreeCleanExec() = providers.exec {
     executable("git")

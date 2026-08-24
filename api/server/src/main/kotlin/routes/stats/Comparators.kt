@@ -50,7 +50,7 @@ object Comparators {
     }
     
     object VersionComparator : Comparator<String> {
-        val pattern = Regex("^(\\d+)([+-])([a-f0-9]{4,40})-(\\d{8})(-dev)?$")
+        val pattern = Regex("^(?<count>\\d+)(?<changes>[+-])(?<hash>[a-f0-9]{4,40})-(?<date>\\d{8})(?<dev>-dev)?$")
         
         override fun compare(o1: String, o2: String): Int {
             if (o1 == o2) return 0
@@ -60,10 +60,11 @@ object Comparators {
             
             if (match1 == null || match2 == null) return o1.compareTo(o2)
             
-            return comparingInt<MatchResult> { it.groupValues[1].toInt() }.thenComparing { it.groupValues[3] }
-                .thenComparing { it.groupValues[2] }
-                .thenComparing { it.groupValues[4] }
-                .thenComparing { it.groupValues[5] }
+            return comparingInt<MatchResult> { it.groups["count"]!!.value.toInt() }
+                .thenComparing { it.groups["hash"]!!.value }
+                .thenComparing { it.groups["changes"]!!.value }
+                .thenComparing { it.groups["date"]!!.value }
+                .thenComparing { it.groups["dev"]?.value.orEmpty() }
                 .compare(match1, match2)
         }
     }

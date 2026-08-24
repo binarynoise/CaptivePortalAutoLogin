@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.server.routes.api
 
 import kotlin.time.Duration
 import kotlin.time.Instant
+import CaptivePortalAutoLogin.api.server.BuildConfig
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.server.ApiServer
@@ -15,12 +16,57 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
 val feedbackPastAllowance: Duration = System.getenv("STATS_PAST_DURATION")?.toDuration() ?: Duration.INFINITE
 val feedbackFutureAllowance: Duration = System.getenv("STATS_FUTURE_DURATION")?.toDuration() ?: Duration.ZERO
+
+val feedbackVersionPastAllowance: Duration =
+    System.getenv("STATS_VERSION_PAST_DURATION")?.toDuration() ?: Duration.INFINITE
+val feedbackVersionFutureAllowance: Duration =
+    System.getenv("STATS_VERSION_FUTURE_DURATION")?.toDuration() ?: Duration.ZERO
+
+val feedbackVersionStrictMode: Boolean = System.getenv("STATS_VERSION_STRICT_MODE")?.isNotEmpty() ?: false
+
+fun getCommitByPartialHash(partialHash: String): Map.Entry<String, Long>? {
+    return BuildConfig.GITCOMMITS.entries.find { it.key.startsWith(partialHash) }
+}
+
+suspend fun enforceFeedbackLimits(call: RoutingCall, version: String?, timestamp: Long?): Boolean {
+    if (version != null) {
+        val match = Comparators.VersionComparator.pattern.matchEntire(version)
+        if (match == null) {
+            call.respondStatus(HttpStatusCode.UnprocessableEntity)
+            return false
+        }
+        val versionCommit = getCommitByPartialHash(match.groups["hash"]!!.value)
+        if (versionCommit == null && feedbackVersionStrictMode) {
+            call.respondStatus(HttpStatusCode.NotAcceptable)
+            return false
+        }
+        if (versionCommit != null) {
+            val versionTimestamp = Instant.fromEpochSeconds(versionCommit.value)
+            if (!versionTimestamp.isInRelativeRange(
+                    minus = feedbackVersionPastAllowance, plus = feedbackVersionFutureAllowance
+                )
+            ) {
+                call.respondStatus(HttpStatusCode.NotAcceptable)
+                return false
+            }
+        }
+    }
+    if (timestamp != null) {
+        val timestamp = Instant.fromEpochMilliseconds(timestamp)
+        if (!timestamp.isInRelativeRange(minus = feedbackPastAllowance, plus = feedbackFutureAllowance)) {
+            call.respondStatus(HttpStatusCode.NotAcceptable)
+            return false
+        }
+    }
+    return true
+}
 
 fun Routing.api() {
     route("/api") {
@@ -31,9 +77,7 @@ fun Routing.api() {
             put("/{name}") {
                 val name = call.parameters["name"] ?: missingParameter("name")
                 val har = call.receive<HAR>()
-                if (!har.log.creator.version.matches(Comparators.VersionComparator.pattern)) {
-                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
-                }
+                if (!enforceFeedbackLimits(call, har.log.creator.version, null)) return@put
                 if (har.log.entries.isEmpty()) {
                     return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
                 }
@@ -43,24 +87,12 @@ fun Routing.api() {
         }
         route("/liberator") {
             put<Api.Liberator.Error>("error") { it: Api.Liberator.Error ->
-                if (!it.version.matches(Comparators.VersionComparator.pattern)) {
-                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
-                }
-                val timestamp = Instant.fromEpochMilliseconds(it.timestamp)
-                if (!timestamp.isInRelativeRange(minus = feedbackPastAllowance, plus = feedbackFutureAllowance)) {
-                    return@put call.respondStatus(HttpStatusCode.NotAcceptable)
-                }
+                if (!enforceFeedbackLimits(call, it.version, it.timestamp)) return@put
                 ApiServer.api.liberator.reportError(it)
                 call.respondStatus(HttpStatusCode.Created)
             }
             put<Api.Liberator.Success>("success") { it: Api.Liberator.Success ->
-                if (!it.version.matches(Comparators.VersionComparator.pattern)) {
-                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
-                }
-                val timestamp = Instant.fromEpochMilliseconds(it.timestamp)
-                if (!timestamp.isInRelativeRange(minus = feedbackPastAllowance, plus = feedbackFutureAllowance)) {
-                    return@put call.respondStatus(HttpStatusCode.NotAcceptable)
-                }
+                if (!enforceFeedbackLimits(call, it.version, it.timestamp)) return@put
                 ApiServer.api.liberator.reportSuccess(it)
                 call.respondStatus(HttpStatusCode.Created)
             }
