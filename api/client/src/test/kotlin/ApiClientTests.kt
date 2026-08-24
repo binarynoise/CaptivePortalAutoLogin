@@ -9,11 +9,20 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.time.Clock
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.TimeZone.Companion.UTC
+import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.json.har.Cache
+import de.binarynoise.captiveportalautologin.api.json.har.Content
 import de.binarynoise.captiveportalautologin.api.json.har.Creator
+import de.binarynoise.captiveportalautologin.api.json.har.Entry
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.Log
+import de.binarynoise.captiveportalautologin.api.json.har.Request
+import de.binarynoise.captiveportalautologin.api.json.har.Response
+import de.binarynoise.captiveportalautologin.api.json.har.Timings
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.createServer
@@ -86,9 +95,33 @@ class ApiClientTests {
     inner class Har {
         @Test
         fun submitHar() {
-            val har = HAR(Log("", Creator("", validTestVersion), null, null, mutableListOf()))
+            val har = HAR(
+                Log(
+                    "", Creator("", validTestVersion), null, null, mutableListOf(
+                        Entry(
+                            null, Clock.System.now().toLocalDateTime(UTC),
+                            Request("GET", "", "", mutableSetOf(), mutableSetOf(), mutableListOf(), null, 0, 0),
+                            Response(200, "", "", mutableSetOf(), mutableSetOf(), Content(0, "", null, null), "", 0, 0),
+                            Cache(),
+                            Timings(),
+                            null,
+                            null,
+                        )
+                    )
+                )
+            )
             client.har.submitHar("test", har)
             assertEquals(har, serializer.decodeFromString(server.harDB.load("test")))
+        }
+        
+        @Test
+        fun submitEmptyHar() {
+            val har = HAR(Log("", Creator("", validTestVersion), null, null, mutableListOf()))
+            
+            assertThrows<HttpStatusCodeException> {
+                client.har.submitHar("test", har)
+            }
+            assertFalse { server.harDB.exists("test") }
         }
         
         @Test

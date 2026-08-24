@@ -34,6 +34,9 @@ fun Routing.api() {
                 if (!har.log.creator.version.matches(Comparators.VersionComparator.pattern)) {
                     return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
                 }
+                if (har.log.entries.isEmpty()) {
+                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
+                }
                 ApiServer.api.har.submitHar(name, har)
                 call.respondStatus(HttpStatusCode.Created)
             }
