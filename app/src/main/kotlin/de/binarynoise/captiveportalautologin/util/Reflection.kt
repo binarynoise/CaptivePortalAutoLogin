@@ -1,29 +1,34 @@
 package de.binarynoise.captiveportalautologin.util
 
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import android.os.Build
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-
-fun invokeSystemApiFunction(
-    clazz: Class<*>,
-    thiz: Any?,
-    methodName: String,
-    vararg args: Any?,
-): Any? {
+fun Any.invokeHiddenMethod(name: String, vararg args: Any?): Any {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.invoke(clazz, thiz, methodName, *args)
+        HiddenApiBypass.invoke(this::class.java, this, name, *args)
     } else {
-        TODO()
+        this::class.java.getDeclaredMethod(name).invoke(this, *args)
     }
 }
 
-fun getSystemApiStaticField(
-    clazz: Class<*>,
-    fieldName: String,
-): Any? {
+fun Class<*>.getHiddenStaticField(fieldName: String): Field {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.getStaticFields(clazz).single { it.name == fieldName }.get(null)
+        HiddenApiBypass.getStaticFields(this)
     } else {
-        TODO("VERSION.SDK_INT < P")
-    }
+        (this.fields + this.declaredFields).filter { Modifier.isStatic(it.modifiers) }
+    }.single { it.name == fieldName }
+}
+
+fun Class<*>.getHiddenStaticFieldValue(fieldName: String): Any? = this.getHiddenStaticField(fieldName).get(null)
+fun Any.getHiddenStaticField(fieldName: String): Field = this::class.java.getHiddenStaticField(fieldName)
+fun Any.getHiddenStaticFieldValue(fieldName: String): Any? = this::class.java.getHiddenStaticFieldValue(fieldName)
+
+fun Any.getHiddenInstanceField(name: String): Field {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        HiddenApiBypass.getInstanceFields(this::class.java)
+    } else {
+        (this::class.java.fields + this::class.java.declaredFields).filterNot { Modifier.isStatic(it.modifiers) }
+    }.single { it.name == name }
 }

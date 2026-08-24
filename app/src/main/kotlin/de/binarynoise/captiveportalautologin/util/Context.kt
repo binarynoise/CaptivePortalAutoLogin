@@ -6,6 +6,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
@@ -37,6 +38,12 @@ fun Context.getColorFromAttr(
     return typedValue.data
 }
 
-fun Context.getSignaturePublicKey(): PublicKey? = this.packageManager.getPackageInfo(
-    this.packageName, PackageManager.GET_SIGNING_CERTIFICATES
-).signingInfo?.publicKeys?.singleOrNull()
+fun Context.getSignaturePublicKey(): PublicKey? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+    this.packageManager.getPackageInfo(
+        this.packageName, PackageManager.GET_SIGNING_CERTIFICATES
+    ).signingInfo?.publicKeys?.singleOrNull()
+} else {
+    this.packageManager.getPackageInfo(
+        this.packageName, PackageManager.GET_SIGNATURES
+    ).signatures!![0].invokeHiddenMethod("getPublicKey") as PublicKey?
+}

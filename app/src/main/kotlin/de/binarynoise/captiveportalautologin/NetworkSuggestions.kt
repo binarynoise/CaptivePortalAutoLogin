@@ -28,7 +28,9 @@ import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.getHiddenInstanceField
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
+import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.isExperimental
@@ -186,14 +188,6 @@ fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetwo
         removeNetworkSuggestions(wifiManager.networkSuggestions - suggestions)
     }
     return sendNetworkSuggestions(suggestions)
-}
-
-fun Any.getHiddenInstanceField(name: String): Field {
-    return HiddenApiBypass.getInstanceFields(this::class.java).single { it.name == name }
-}
-
-fun Any.invokeHiddenMethod(name: String, vararg args: Any?): Any {
-    return HiddenApiBypass.invoke(this::class.java, this, name, *args)
 }
 
 fun WifiNetworkSuggestion.getWifiConfiguration(): WifiConfiguration {

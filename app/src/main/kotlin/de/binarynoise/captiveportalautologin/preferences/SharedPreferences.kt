@@ -10,7 +10,7 @@ import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.util.applicationContext
-import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
+import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalTestURL
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -18,11 +18,11 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 val SystemPortalTestUrl = PortalTestURL(
     httpUrl = Settings.Global.getString(
         applicationContext.contentResolver,
-        (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_HTTP_URL") as String)
+        Settings.Global::class.java.getHiddenStaticFieldValue("CAPTIVE_PORTAL_HTTP_URL") as String,
     )?.toHttpUrlOrNull() ?: PortalDetection.backends["Google"]?.httpUrl ?: PortalDetection.defaultBackend.httpUrl,
     httpsUrl = Settings.Global.getString(
         applicationContext.contentResolver,
-        (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_HTTPS_URL") as String)
+        Settings.Global::class.java.getHiddenStaticFieldValue("CAPTIVE_PORTAL_HTTPS_URL") as String,
     )?.toHttpUrlOrNull() ?: PortalDetection.backends["Google"]?.httpsUrl ?: PortalDetection.defaultBackend.httpsUrl,
 )
 val PortalDetection.backendsAndroid: Map<String, PortalTestURL>
@@ -30,7 +30,7 @@ val PortalDetection.backendsAndroid: Map<String, PortalTestURL>
 
 val SystemPortalUserAgent = Settings.Global.getString(
     applicationContext.contentResolver,
-    (getSystemApiStaticField(Settings.Global::class.java, "CAPTIVE_PORTAL_USER_AGENT") as String)
+    Settings.Global::class.java.getHiddenStaticFieldValue("CAPTIVE_PORTAL_USER_AGENT") as String,
 ) ?: PortalDetection.userAgents["AOSP"] ?: PortalDetection.defaultUserAgent
 val PortalDetection.userAgentsAndroid: Map<String, String>
     get() = mapOf("System" to SystemPortalUserAgent) + PortalDetection.userAgents

@@ -33,8 +33,8 @@ import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePo
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.preferences.SystemPortalTestUrl
 import de.binarynoise.captiveportalautologin.preferences.SystemPortalUserAgent
-import de.binarynoise.captiveportalautologin.util.getSystemApiStaticField
-import de.binarynoise.captiveportalautologin.util.invokeSystemApiFunction
+import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
+import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -103,9 +103,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         
         if (SharedPreferences.liberator_user_agent.get() == SystemPortalUserAgent) {
             val userAgent = intent.getStringExtra(
-                getSystemApiStaticField(
-                    ConnectivityManager::class.java, "EXTRA_CAPTIVE_PORTAL_USER_AGENT"
-                ) as String
+                ConnectivityManager::class.java.getHiddenStaticFieldValue("EXTRA_CAPTIVE_PORTAL_USER_AGENT") as String
             )
             if (userAgent != null) extensionDelegate.session.settings.userAgentOverride = userAgent
         }
@@ -177,7 +175,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
             && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE // from V onwards this request is silently ignored
             && !Build.ID.startsWith("AP2A") // only QPR3 throws a silent server-side SecurityException
         ) {
-            invokeSystemApiFunction(CaptivePortal::class.java, captivePortal, "reevaluateNetwork")
+            captivePortal!!.invokeHiddenMethod("reevaluateNetwork")
         } else {
             ConnectivityChangeListenerService.reportNetworkConnectivity(network, true)
         }
