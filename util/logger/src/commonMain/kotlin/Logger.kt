@@ -13,6 +13,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Arrays
 import java.util.Locale
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.reflect.KClass
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
@@ -75,7 +76,7 @@ object Logger {
         
         platform.log(message.toString())
         
-        logToFile(message.toString(), "D", callingClassTag)
+        logToFile(callingClassTag, "D", message.toString())
     }
     
     fun log(message: CharSequence, t: Throwable) {
@@ -88,7 +89,7 @@ object Logger {
         platform.log(message.toString())
         platform.log(t)
         
-        logToFile("$message\n$stackTraceString", "E", callingClassTag)
+        logToFile(callingClassTag, "E", "$message\n$stackTraceString")
     }
     
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.GERMAN)
@@ -100,7 +101,7 @@ object Logger {
         val startupMessage = platform.startupMessage
         if (startupMessage != null) {
             log("Logger", startupMessage)
-            logToFile(startupMessage, "I", "Logger")
+            logToFile("Logger", "I", startupMessage)
         }
     }
     
@@ -118,7 +119,7 @@ object Logger {
         }
     }
     
-    internal fun logToFile(logString: String, level: String, callingClassTag: String) {
+    internal fun logToFile(callingClassTag: String, level: String, logString: String) {
         if (!Config.toFile) return
         val logFolder = Config.folder ?: error("no log folder set")
         
@@ -372,7 +373,7 @@ object Logger {
             
             return buildString {
                 if (Config.Include.processName) {
-                    val fullProcess = ProcessHandle.current().info().command().orElse("")
+                    val fullProcess = ProcessHandle.current().info().command().getOrDefault("")
                     val index = fullProcess.indexOfLast { it == ':' }
                     if (index != -1) {
                         val process = fullProcess.substring(index)
