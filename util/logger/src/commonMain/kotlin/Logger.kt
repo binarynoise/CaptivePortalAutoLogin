@@ -91,6 +91,19 @@ object Logger {
         logToFile("$message\n$stackTraceString", "E", callingClassTag)
     }
     
+    private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.GERMAN)
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss,SSS", Locale.GERMAN)
+    private val currentDateString: String get() = LocalDate.now().format(dateFormatter)
+    private val currentTimeString: String get() = LocalTime.now().format(timeFormatter)
+    
+    init {
+        val startupMessage = platform.startupMessage
+        if (startupMessage != null) {
+            log("Logger", startupMessage)
+            logToFile(startupMessage, "I", "Logger")
+        }
+    }
+    
     internal fun log(callingClassTag: String, message: String) {
         if (!Config.toSOut) return
         message.lines().forEach {
@@ -114,6 +127,13 @@ object Logger {
             try {
                 logString.lines().forEach { line ->
                     val file: File = logFolder.resolve("$currentDateString.log")
+                    if (!file.exists()) {
+                        file.createNewFile()
+                        val startupMessage = platform.startupMessage
+                        if (startupMessage != null && logString != startupMessage) {
+                            file.appendText("$currentTimeString I Logger: $startupMessage\n")
+                        }
+                    }
                     file.appendText("$currentTimeString $level $callingClassTag: $line\n")
                 }
                 
@@ -144,10 +164,6 @@ object Logger {
         }
     }
     
-    private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.GERMAN)
-    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss,SSS", Locale.GERMAN)
-    private val currentDateString: String get() = LocalDate.now().format(dateFormatter)
-    private val currentTimeString: String get() = LocalTime.now().format(timeFormatter)
     
     /**
      * Dumps the contents of this object.

@@ -7,6 +7,8 @@ package de.binarynoise.logger
  * This interface is implemented by the platform specific implementations.
  */
 internal interface Platform {
+    val startupMessage: String?
+    
     fun <T> print(t: T)
     fun <T> println(t: T)
     

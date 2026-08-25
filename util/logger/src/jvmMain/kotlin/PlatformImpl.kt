@@ -5,6 +5,8 @@ import java.util.concurrent.Executors
 
 @Suppress("ReplaceJavaStaticMethodWithKotlinAnalog")
 class PlatformImpl : Platform {
+    override val startupMessage: String? = null
+    
     override fun <T> print(t: T) {
         System.out.print(t)
     }

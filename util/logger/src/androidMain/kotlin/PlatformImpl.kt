@@ -21,6 +21,16 @@ import org.json.JSONObject as OrgJSONObject
 class PlatformImpl : Platform {
     private val TAG = "Logger"
     
+    @get:Suppress("DEPRECATION")
+    override val startupMessage: String?
+        get() {
+            val packageName = applicationContext.packageName
+            val packageInfo = applicationContext.packageManager.getPackageInfo(packageName, 0)
+            val versionCode = packageInfo.versionCode
+            val versionName = packageInfo.versionName
+            return "$packageName version $versionName ($versionCode)"
+        }
+    
     var printBuffer = StringBuilder()
     override fun <T> print(t: T) {
         printBuffer.append(t)
