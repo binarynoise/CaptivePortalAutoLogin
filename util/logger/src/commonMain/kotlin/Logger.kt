@@ -349,8 +349,8 @@ object Logger {
                     } catch (e: ReflectiveOperationException) {
                         println("failed to dump field ${it.name}")
                         when (e.suppressed.size) {
-                            e.suppressed.size -> println(e.message)
-                            e.suppressed.size -> println(e.suppressed[0].message)
+                            0 -> println(e.message)
+                            1 -> println(e.suppressed[0].message)
                             else -> e.printStackTrace()
                         }
                     } catch (_: InaccessibleObjectException) {

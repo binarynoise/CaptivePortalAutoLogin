@@ -8,7 +8,7 @@
         and as soon as you encounter a network with captive portal, 
         your operating system will notify this app and it will solve the captive portal in the background.
         If a specific network isn\'t supported, 
-        you can choose CaptivePortalAutoLogin when signing into the network 
+        you can choose CaptivePortalAutoLogin when signing in to the network 
         to capture the process and submit it to have it implemented in the next updates.
     </string>
     <string name="setup_get_started">
@@ -27,7 +27,7 @@
     </string>
     <string name="setup_location">
         This app needs the location permission in order to collect the SSIDs (names) of networks with captive portals.
-        WiFi names can be used to deduce the location of the device, 
+        Wi-Fi names can be used to deduce the location of the device, 
         which is why Android locks them behind the location permission.
         \n
         \nThis app uses the SSIDs to determine how a network can be solved

@@ -3,7 +3,6 @@
 package de.binarynoise.liberator.portals
 
 import kotlinx.serialization.json.JsonObject
-import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID

@@ -9,11 +9,9 @@ import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.annotation.LayoutRes
-import androidx.core.content.getSystemService
 import androidx.core.view.SoftwareKeyboardControllerCompat
 import androidx.core.view.get
 import androidx.preference.DropDownPreference

@@ -41,7 +41,7 @@ object Picopoint : PortalLiberator {
         val inputs = form.getElementsByTag("input")
         val postParametersMap =
             inputs.filter { it.attr("name").isNotEmpty() }.associate { it.attr("name") to it.attr("value") }
-        val fid = postParametersMap["__fid"]
+        val fid = postParametersMap["__fid"] ?: error("no __fid")
         val session = client.get(response.requestUrl, "/gk/rest/session").parseJsonObject()
         val clientMac = session.getJsonObject("network").getString("client_mac")
         client.postForm(

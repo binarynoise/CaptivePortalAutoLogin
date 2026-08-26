@@ -41,7 +41,6 @@ fun FormElement.submit(
     preConnectSetup: Request.Builder.() -> Unit = {},
 ): Response {
     val method = this.attr("method").lowercase()
-    check(method != "dialog") {}
     val action = this.attr("action").takeIf { it.isNotEmpty() }?.toHttpUrl(baseUrl) ?: baseUrl
     val formParameters = this.toParameterMap()
     return when (method) {

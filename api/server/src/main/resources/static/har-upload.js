@@ -193,18 +193,4 @@ export class HarUploader {
 
         return response;
     }
-
-    /**
-     * Clean up event listeners
-     */
-    destroy() {
-        // Remove all event listeners
-        ['dragenter', 'dragover', 'dragleave', 'dragend', 'drop'].forEach(eventName => {
-            this.dropArea.removeEventListener(eventName, this.handleDragOver);
-            this.dropArea.removeEventListener(eventName, this.handleDragLeave);
-        });
-
-        this.fileInput.removeEventListener('change', this.handleFileSelect);
-        this.selectButton.removeEventListener('click', this.handleFileSelect);
-    }
 }

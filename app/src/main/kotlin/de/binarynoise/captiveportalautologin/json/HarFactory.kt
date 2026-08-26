@@ -2,7 +2,8 @@ package de.binarynoise.captiveportalautologin.json
 
 import java.net.HttpCookie
 import kotlin.io.encoding.Base64
-import kotlin.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import android.os.Build
@@ -28,7 +29,8 @@ fun Cookie(cookie: HttpCookie): Cookie = Cookie(
     value = cookie.value,
     path = cookie.path,
     domain = cookie.domain,
-    expires = Instant.fromEpochMilliseconds(cookie.maxAge).toLocalDateTime(TimeZone.currentSystemDefault()),
+    expires = if (cookie.maxAge == -1L) null
+    else Clock.System.now().plus(cookie.maxAge.seconds).toLocalDateTime(TimeZone.currentSystemDefault()),
     httpOnly = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) cookie.isHttpOnly else false,
     secure = cookie.secure
 )

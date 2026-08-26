@@ -21,6 +21,7 @@ decourinator = "2.6.4"
 geckoview = "152.0.20260629141727"
 githubApi = "1.330"
 hiddenapibypass = "6.1"
+humanReadable = "1.13.0"
 java = "17"
 jebrainsAnnotations = "26.1.0"
 json = "20260522"
@@ -69,6 +70,7 @@ decoroutinator = { module = "dev.reformator.stacktracedecoroutinator:stacktrace-
 geckoview = { module = "org.mozilla.geckoview:geckoview", version.ref = "geckoview" }
 github-api = { module = "org.kohsuke:github-api", version.ref = "githubApi" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
+human-readable = { module = "nl.jacobras:Human-Readable", version.ref = "humanReadable" }
 jebtrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jebrainsAnnotations" }
 json = { module = "org.json:json", version.ref = "json" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }

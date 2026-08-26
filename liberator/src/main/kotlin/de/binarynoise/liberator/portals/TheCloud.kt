@@ -61,7 +61,7 @@ object TheCloud : PortalLiberator {
             alreadySeenUrls + response.requestUrl,
         )
         val possibleUrls = getPossibleUrls(response).distinct()
-        return possibleUrls.asSequence().map { url ->
+        return possibleUrls.firstNotNullOfOrNull { url ->
             crawlToUrl(
                 client,
                 doRequest(url),
@@ -70,7 +70,7 @@ object TheCloud : PortalLiberator {
                 doRequest,
                 alreadySeenUrls + url,
             )
-        }.filterNotNull().firstOrNull()
+        }
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {

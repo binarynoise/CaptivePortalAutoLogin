@@ -2,7 +2,6 @@
 
 package de.binarynoise.captiveportalautologin
 
-import java.lang.reflect.Field
 import java.util.concurrent.TimeUnit
 import android.annotation.SuppressLint
 import android.content.Context
@@ -38,7 +37,6 @@ import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 private val ssidJsonDB = FixedKeyJsonDB(applicationContext.noBackupFilesDir.toPath(), "NetworkSuggestionSSIDs")
 var ssidDb: List<String>?
@@ -125,11 +123,10 @@ fun enqueueUpdateNetworkSuggestionSSIDsWork(
     )
     if (expedited) {
         log("enqueue expedited ssid work")
-        val workRequest =
-            OneTimeWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>().apply {
-                setConstraints(constraints)
-                setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
-            }.build()
+        val workRequest = OneTimeWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>().apply {
+            setConstraints(constraints)
+            setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
+        }.build()
         workManager.enqueue(workRequest)
     }
 }

@@ -62,7 +62,7 @@ fun OkHttpClient.get(
 }
 
 /**
- * Sends a POST request to the specified URL using the provided OkHttpClient.
+ * Sends a request to the specified URL using the provided OkHttpClient.
  *
  * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.
@@ -135,7 +135,7 @@ fun OkHttpClient.postJson(
 }
 
 /**
- * Sends a POST request to the specified URL using the provided OkHttpClient.
+ * Sends a PUT request to the specified URL using the provided OkHttpClient.
  *
  * @param base The HttpUrl to use as the base URL. Can be null if url is provided.
  * @param url The URL to send the request to, will be merged with the base URL. Can be null if context is provided.

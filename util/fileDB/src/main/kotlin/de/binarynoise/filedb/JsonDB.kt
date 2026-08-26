@@ -40,7 +40,7 @@ class JsonDB(
         log("wrote ${T::class.simpleName} with key $key to ${file.absolutePathString()}")
     }
     
-    inline fun <reified T: Any> storeOrDelete(key: String, value: T?, extension: String = DEFAULT_EXTENSION) {
+    inline fun <reified T : Any> storeOrDelete(key: String, value: T?, extension: String = DEFAULT_EXTENSION) {
         if (value == null) return delete<T>(key, extension)
         return store(key, value, extension)
     }

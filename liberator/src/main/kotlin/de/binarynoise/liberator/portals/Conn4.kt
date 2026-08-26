@@ -6,7 +6,6 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.firstSuccess
-import de.binarynoise.liberator.portals.Conn4.createSession
 import de.binarynoise.liberator.successes
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull

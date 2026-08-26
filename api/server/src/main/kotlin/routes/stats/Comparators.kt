@@ -60,7 +60,7 @@ object Comparators {
             
             if (match1 == null || match2 == null) return o1.compareTo(o2)
             
-            return comparingInt<MatchResult> { it.groups["count"]!!.value.toInt() }
+            return comparingInt<MatchResult> { it.groups["count"]!!.value.toInt() } //
                 .thenComparing { it.groups["hash"]!!.value }
                 .thenComparing { it.groups["changes"]!!.value }
                 .thenComparing { it.groups["date"]!!.value }

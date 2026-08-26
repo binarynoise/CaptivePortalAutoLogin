@@ -96,7 +96,7 @@ object AenaES : PortalLiberator {
             //  "isAvailable": true
             //}
             Thread.sleep(1000)
-        } while (json6.getBoolean("isAvailable"))
+        } while (!json6.getBoolean("isAvailable"))
         
         
         val response5 = client.get(
