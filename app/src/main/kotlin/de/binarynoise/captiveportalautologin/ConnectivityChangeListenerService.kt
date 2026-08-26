@@ -203,6 +203,7 @@ class ConnectivityChangeListenerService : Service() {
                     null, getString(R.string.capture_captive_portal_short), pendingCaptureIntent
                 ).build()
             )
+            captureIntent.putExtra(ConnectivityManager.EXTRA_NETWORK, networkState.network)
         }
     }
     

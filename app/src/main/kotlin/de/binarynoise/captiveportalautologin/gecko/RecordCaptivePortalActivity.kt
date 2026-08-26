@@ -98,7 +98,11 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         
         captivePortal = IntentCompat.getParcelableExtra(intent, EXTRA_CAPTIVE_PORTAL, CaptivePortal::class.java)
         log("captivePortal = $captivePortal")
-        network = IntentCompat.getParcelableExtra(intent, EXTRA_NETWORK, Network::class.java)!!
+        network = IntentCompat.getParcelableExtra(intent, EXTRA_NETWORK, Network::class.java) ?: run {
+            log("$EXTRA_NETWORK is missing")
+            finish()
+            return
+        }
         log("network = $network")
         
         if (SharedPreferences.liberator_user_agent.get() == SystemPortalUserAgent) {
