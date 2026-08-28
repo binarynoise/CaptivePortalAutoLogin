@@ -46,6 +46,8 @@ import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.postIfCreated
 import de.binarynoise.liberator.PortalTestURL
+import de.binarynoise.liberator.cast
+import de.binarynoise.liberator.makeAccessible
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.getString
@@ -181,9 +183,21 @@ class ExtensionDelegate(
         
         session.navigationDelegate = null
         session.contentDelegate = null
+        session.progressDelegate = null
         geckoView.releaseSession()
         session.close()
         
+        if (BuildConfig.DEBUG) {
+            session::class.java.getDeclaredField("mSessionHandlers")
+                .makeAccessible()
+                .get(session)!!
+                .cast<Array<Any>>()
+                .forEach { handler ->
+                    val delegate =
+                        handler::class.java.superclass!!.getDeclaredField("mDelegate").makeAccessible().get(handler)
+                    check(delegate == null) { "Leaking a delegate of type ${delegate::class.simpleName}" }
+                }
+        }
         clearCache()
     }
     
