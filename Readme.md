@@ -31,8 +31,7 @@ Features:
 
 1. Open the app
 2. Grant permissions
-3. Toggle on the **Service Status** switch to enable the background monitoring service
-4. The service will automatically detect and liberate captive portals when you connect to Wi-Fi networks
+3. The service will automatically detect and liberate captive portals when you connect to Wi-Fi networks
 
 #### Manual Liberation
 
@@ -78,7 +77,7 @@ Run:
 HAR files contain the HTTP traffic needed to liberate a portal.
 If you find a new portal, please capture the traffic (via app or browser: Chrome or Firefox DevTools)
 and submit it (via app, Telegram, or GitHub; will contain all personal information you send to the portal).
-This will help me add support for it.
+This will help us add support for it.
 
 ### Code
 
