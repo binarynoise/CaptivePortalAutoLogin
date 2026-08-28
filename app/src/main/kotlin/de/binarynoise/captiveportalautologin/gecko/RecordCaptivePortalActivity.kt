@@ -36,6 +36,7 @@ import de.binarynoise.captiveportalautologin.preferences.SystemPortalUserAgent
 import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
 import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.liberator.PortalTestURL
+import de.binarynoise.liberator.tryOrIgnore
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.mozilla.geckoview.GeckoSession
@@ -170,7 +171,9 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     override fun onDestroy() {
         extensionDelegate.onDestroy(binding.geckoView)
         backgroundHandler.looper.quit()
-        connectivityManager.unregisterNetworkCallback(networkCallback)
+        tryOrIgnore {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        }
         super.onDestroy()
     }
     
