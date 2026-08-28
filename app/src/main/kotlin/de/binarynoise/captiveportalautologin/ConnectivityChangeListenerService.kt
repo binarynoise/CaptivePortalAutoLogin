@@ -310,17 +310,25 @@ class ConnectivityChangeListenerService : Service() {
         backgroundHandler.post(::tryLiberate)
     }
     
+    private val setPrivateDnsBypassMethodP by lazy {
+        check(Build.VERSION.SDK_INT == Build.VERSION_CODES.P)
+        Network::class.java.declaredMethods.single { it.name == "setPrivateDnsBypass" }
+    }
+    
+    private val getPrivateDnsBypassingCopyMethodQ by lazy {
+        check(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        Network::class.java.declaredMethods.single { it.name == "getPrivateDnsBypassingCopy" }
+    }
+    
     @Throws(ReflectiveOperationException::class, IllegalArgumentException::class, NoSuchElementException::class)
     fun disablePrivateDns(network: Network): Network {
         when {
             Build.VERSION.SDK_INT == Build.VERSION_CODES.P -> {
-                network::class.java.declaredMethods.single { it.name == "setPrivateDnsBypass" }(network, true)
+                setPrivateDnsBypassMethodP(network, true)
                 return network
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                val getPrivateDnsBypassingCopyMethod =
-                    network::class.java.declaredMethods.single { it.name == "getPrivateDnsBypassingCopy" }
-                return getPrivateDnsBypassingCopyMethod(network) as Network
+                return getPrivateDnsBypassingCopyMethodQ(network) as Network
             }
             else -> return network
         }
