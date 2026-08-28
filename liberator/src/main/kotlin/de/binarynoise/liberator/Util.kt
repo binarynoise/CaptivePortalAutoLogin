@@ -100,19 +100,17 @@ fun Base64.decodeString(
 }
 
 /**
- * [Base64] encoding compliant with `btoa` from javascript
+ * [Base64] encoding compliant with `btoa` from JavaScript
  */
-@Suppress("SpellCheckingInspection")
 fun btoa(source: String): String {
-    return Base64.UrlSafe.encode(source)
+    return Base64.encode(source)
 }
 
 /**
- * [Base64] decoding compliant with `atob` from javascript
+ * [Base64] decoding compliant with `atob` from JavaScript
  */
-@Suppress("SpellCheckingInspection")
 fun atob(encoded: String): String {
-    return Base64.UrlSafe.decodeString(encoded)
+    return Base64.decodeString(encoded)
 }
 
 
