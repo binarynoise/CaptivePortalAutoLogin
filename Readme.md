@@ -6,6 +6,10 @@
 
 Detect captive portals and automatically get liberated on Android and Linux.
 
+[![GitHub](https://img.shields.io/badge/GitHub-releases-green?logo=github)](https://github.com/binarynoise/CaptivePortalAutoLogin/releases/latest)
+[![Telegram Channel](https://img.shields.io/badge/Telegram-channel-blue?logo=telegram&type=plastic)](https://t.me/+__MmjOzaVOw3MDc6)
+[![Telegram Group](https://img.shields.io/badge/Telegram-group-blue?logo=telegram)](https://t.me/+a5Kj_MA-OGoyN2My)
+
 ## Android app
 
 Features:

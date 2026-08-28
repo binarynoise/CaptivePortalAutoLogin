@@ -6,9 +6,11 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreference
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkListeners
@@ -140,6 +142,23 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             addPreference(Preference(ctx)) {
                 titleRes = R.string.preference_advanced_settings
                 fragment = AdvancedFragment::class.qualifiedName
+            }
+            
+            
+            addPreference(PreferenceCategory(ctx)) {
+                title = "Contact"
+                addPreference(Preference(ctx)) {
+                    title = "GitHub Repository"
+                    intent = Intent(Intent.ACTION_VIEW, "https://github.com/binarynoise/CaptivePortalAutoLogin".toUri())
+                }
+                addPreference(Preference(ctx)) {
+                    title = "Telegram Channel"
+                    intent = Intent(Intent.ACTION_VIEW, "https://t.me/+__MmjOzaVOw3MDc6".toUri())
+                }
+                addPreference(Preference(ctx)) {
+                    title = "Telegram Group"
+                    intent = Intent(Intent.ACTION_VIEW, "https://t.me/+a5Kj_MA-OGoyN2My".toUri())
+                }
             }
             
             setIconSpaceReservedRecursively(false)

@@ -26,6 +26,7 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
     
     override fun run() {
         log("CaptivePortalAutoLogin for Linux")
+        log("https://github.com/binarynoise/CaptivePortalAutoLogin")
         
         if (restartNetworking) {
             restartNetworking()
