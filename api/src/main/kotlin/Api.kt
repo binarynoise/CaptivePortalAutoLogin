@@ -50,8 +50,10 @@ interface Api {
     
     suspend fun getSSIDs(
         limit: Int? = null,
-        majorVersion: Int? = null,
+        maximumMajorVersion: Int? = null,
         since: Instant? = null,
-        minimum: Int? = null,
+        minimumSuccesses: Int? = null,
+        minimumBayesianRating: Float? = null,
+        bayesianWeight: Int? = null,
     ): List<String>
 }

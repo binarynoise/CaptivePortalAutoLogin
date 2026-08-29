@@ -77,7 +77,12 @@ object ScheduledApiClient : Api {
     
     @Deprecated("use ApiClient directly", level = DeprecationLevel.HIDDEN)
     override suspend fun getSSIDs(
-        limit: Int?, majorVersion: Int?, since: Instant?, minimum: Int?,
+        limit: Int?,
+        maximumMajorVersion: Int?,
+        since: Instant?,
+        minimum: Int?,
+        minimumBayesianRating: Float?,
+        bayesianWeight: Int?,
     ): List<String> {
         throw UnsupportedOperationException("use ApiClient directly")
     }

@@ -107,15 +107,19 @@ class ApiServer(root: Path = Path(".")) : Api {
     
     override suspend fun getSSIDs(
         limit: Int?,
-        majorVersion: Int?,
+        maximumMajorVersion: Int?,
         since: Instant?,
-        minimum: Int?,
+        minimumSuccesses: Int?,
+        minimumBayesianRating: Float?,
+        bayesianWeight: Int?,
     ): List<String> {
         return database.SSIDDao().getSSIDs(
             limit = limit ?: 1024,
-            majorVersion = majorVersion ?: Int.MAX_VALUE,
+            maximumMajorVersion = maximumMajorVersion ?: Int.MAX_VALUE,
             since = since ?: (Clock.System.now() - 365.25.days),
-            minimum = minimum ?: 0,
+            minimumSuccesses = minimumSuccesses ?: 0,
+            minimumBayesianRating = minimumBayesianRating ?: 0.4f,
+            bayesianWeight = bayesianWeight ?: 10,
         )
     }
 }

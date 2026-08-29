@@ -125,9 +125,11 @@ fun Routing.api() {
             call.respond(
                 ApiServer.api.getSSIDs(
                     limit = call.queryParameters["limit"]?.toInt(),
-                    majorVersion = call.queryParameters["majorVersion"]?.toInt(),
+                    maximumMajorVersion = call.queryParameters["maximumMajorVersion"]?.toInt(),
                     since = call.queryParameters["since"]?.let { Instant.parse(it) },
-                    minimum = call.queryParameters["minimum"]?.toInt(),
+                    minimumSuccesses = call.queryParameters["minimumSuccesses"]?.toInt(),
+                    minimumBayesianRating = call.queryParameters["minimumBayesianRating"]?.toFloat(),
+                    bayesianWeight = call.queryParameters["bayesianWeight"]?.toInt(),
                 )
             )
         }

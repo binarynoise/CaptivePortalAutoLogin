@@ -62,9 +62,11 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
     
     override suspend fun getSSIDs(
         limit: Int?,
-        majorVersion: Int?,
+        maximumMajorVersion: Int?,
         since: Instant?,
-        minimum: Int?,
+        minimumSuccesses: Int?,
+        minimumBayesianRating: Float?,
+        bayesianWeight: Int?
     ): List<String> {
         return serializer.decodeFromString(
             httpClient.get(
@@ -72,9 +74,11 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
                 "ssid",
                 queryParameters = mapOf(
                     "limit" to limit,
-                    "majorVersion" to majorVersion,
+                    "maximumMajorVersion" to maximumMajorVersion,
                     "since" to since,
-                    "minimum" to minimum,
+                    "minimumSuccesses" to minimumSuccesses,
+                    "minimumBayesianRating" to minimumBayesianRating,
+                    "bayesianWeight" to bayesianWeight,
                 ).filterNot { it.value == null }.mapValues { it.value.toString() },
             ).readText()
         )
