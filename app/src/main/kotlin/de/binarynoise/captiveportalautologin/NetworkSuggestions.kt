@@ -43,11 +43,18 @@ var ssidDb: List<String>?
     get() = ssidJsonDB.loadOrNull()
     set(value) = ssidJsonDB.storeOrDelete(value)
 
+
+val supportedSSIDsByAnnotation =
+    allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }.flatMap { portalLiberator ->
+        portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
+    }
+
 val supportedSSIDs: List<String>
-    get() = ssidDb ?: allPortalLiberators.filter { !it.isExperimental() || BuildConfig.DEBUG }
-        .flatMap { portalLiberator ->
-            portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }
-        }
+    get() = if (BuildConfig.DEBUG) {
+        supportedSSIDsByAnnotation + ssidDb.orEmpty()
+    } else {
+        ssidDb ?: supportedSSIDsByAnnotation
+    }
 
 @get:SuppressLint("InlinedApi")
 val supportedSSIDSuggestions
