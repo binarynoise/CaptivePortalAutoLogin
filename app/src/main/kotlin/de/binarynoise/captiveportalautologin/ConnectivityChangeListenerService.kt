@@ -75,7 +75,7 @@ class ConnectivityChangeListenerService : Service() {
     private fun bindNetworkToProcess(oldState: NetworkState?, newState: NetworkState?) {
         if (oldState?.network == newState?.network) return
         
-        val success = connectivityManager.bindProcessToNetwork(newState?.network)
+        val success = connectivityManager.bindProcessToNetwork(if (newState?.hasPortal == true) newState.network else null)
         log(buildString {
             append(if (newState?.network != null) "bound to" else "unbound from")
             append(" network ")

@@ -26,6 +26,8 @@ class ApiServer(root: Path = Path(".")) : Api {
     val harDB = FileDB(root, "HAR", "har")
     val harDBArchived = FileDB(root, "HAR/archived", "har")
     val harDBError = FileDB(root, "HAR/error", "har")
+    val logDB = FileDB(root, "LOG", "log")
+    val logDBArchived = FileDB(root, "LOG/archived", "log")
     
     val database = AppDatabase.createDatabase(root)
     
@@ -40,6 +42,13 @@ class ApiServer(root: Path = Path(".")) : Api {
         override fun submitHar(name: String, har: HAR) {
             harDB.store(name, prettyPrinter.encodeToString(har))
             log("stored har $name")
+        }
+    }
+    
+    override val log: Api.Log = object : Api.Log {
+        override fun submitLog(name: String, log: String) {
+            logDB.store(name, log)
+            log("stored log $name")
         }
     }
     

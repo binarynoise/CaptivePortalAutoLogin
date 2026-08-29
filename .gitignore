@@ -59,6 +59,10 @@ google-services.json
 *.har
 /har
 
+# FileDB
+HAR/
+LOG/
+
 # application files
 db.sqlite*
 !**/test/resources/**/db.sqlite*

@@ -6,10 +6,15 @@ import de.binarynoise.captiveportalautologin.api.json.har.HAR
 
 interface Api {
     val har: Har
+    val log: Log
     val liberator: Liberator
     
     interface Har {
         fun submitHar(name: String, har: HAR)
+    }
+    
+    interface Log {
+        fun submitLog(name: String, log: String)
     }
     
     interface Liberator {
