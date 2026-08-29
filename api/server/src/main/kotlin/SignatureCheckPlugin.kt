@@ -10,6 +10,7 @@ import io.ktor.server.request.authorization
 import io.ktor.server.request.httpMethod
 import io.ktor.server.response.respond
 
+private const val AUTH_SIGNATURE = "Signature"
 
 val SignatureCheckPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name = "SignatureCheckPlugin") {
     val signature = System.getenv("SIGNATURE")
@@ -23,8 +24,17 @@ val SignatureCheckPlugin: ApplicationPlugin<Unit> = createApplicationPlugin(name
             return@onCall
         }
         
-        if (!call.request.authorization().equals("Signature $signature", ignoreCase = true)) {
-            call.respond(HttpStatusCode.Unauthorized, "Missing or invalid authorization header")
+        if (!call.request.authorization().orEmpty().startsWith("$AUTH_SIGNATURE ")) {
+            call.respond(HttpStatusCode.Unauthorized, "Missing authorization header")
+            return@onCall
+        }
+        
+        if (!call.request.authorization()
+                .orEmpty()
+                .removePrefix("$AUTH_SIGNATURE ")
+                .equals(signature, ignoreCase = true)
+        ) {
+            call.respond(HttpStatusCode.Unauthorized, "Invalid authorization header")
             return@onCall
         }
     }

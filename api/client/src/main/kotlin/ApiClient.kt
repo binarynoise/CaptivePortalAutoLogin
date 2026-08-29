@@ -5,6 +5,7 @@ import kotlin.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.SHA256Digest
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.json.serializer
@@ -25,7 +26,7 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
     fun addSignatureInterceptor(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         if (signature == null) return chain.proceed(originalRequest)
-        val signatureAuth = signature.encoded.toHexString()
+        val signatureAuth = SHA256Digest.digest(signature.encoded).toHexString()
         val newRequest = originalRequest.newBuilder().header("Authorization", "Signature $signatureAuth").build()
         return chain.proceed(newRequest)
     }
