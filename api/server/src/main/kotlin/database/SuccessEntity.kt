@@ -26,6 +26,24 @@ open class SuccessEntity(
         url = url,
         solver = solver,
     )
+    
+    fun copy(
+        id: Long = this.id,
+        version: String = this.version,
+        timestamp: Instant = this.timestamp,
+        ssid: String = this.ssid,
+        url: String = this.url,
+        solver: String = this.solver,
+    ): SuccessEntity {
+        return SuccessEntity(
+            id = id,
+            version = version,
+            timestamp = timestamp,
+            ssid = ssid,
+            url = url,
+            solver = solver,
+        )
+    }
 }
 
 @DataSchema

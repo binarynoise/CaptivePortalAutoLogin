@@ -32,6 +32,30 @@ open class ErrorEntity(
         stackTrace = stackTrace,
         harName = harName,
     )
+    
+    fun copy(
+        id: Long = this.id,
+        version: String = this.version,
+        timestamp: Instant = this.timestamp,
+        ssid: String = this.ssid,
+        url: String = this.url,
+        message: String = this.message,
+        solver: String = this.solver,
+        stackTrace: String = this.stackTrace,
+        harName: String? = this.harName,
+    ): ErrorEntity {
+        return ErrorEntity(
+            id = id,
+            version = version,
+            timestamp = timestamp,
+            ssid = ssid,
+            url = url,
+            message = message,
+            solver = solver,
+            stackTrace = stackTrace,
+            harName = harName,
+        )
+    }
 }
 
 @DataSchema

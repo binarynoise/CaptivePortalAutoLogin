@@ -3,6 +3,7 @@ package de.binarynoise.captiveportalautologin.server
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
@@ -12,10 +13,14 @@ import de.binarynoise.captiveportalautologin.api.json.har.generateHarFileName
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
 import de.binarynoise.captiveportalautologin.server.database.ErrorEntity
 import de.binarynoise.captiveportalautologin.server.database.SuccessEntity
+import de.binarynoise.captiveportalautologin.server.routes.toDuration
 import de.binarynoise.filedb.FileDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.prettyPrinter
 import io.ktor.http.Url
+
+val feedbackSuccessDelta: Duration = System.getenv("STATS_SUCCESS_DELTA")?.toDuration() ?: Duration.ZERO
+val feedbackErrorDelta: Duration = System.getenv("STATS_ERROR_DELTA")?.toDuration() ?: Duration.ZERO
 
 class ApiServer(root: Path = Path(".")) : Api {
     
@@ -85,7 +90,10 @@ class ApiServer(root: Path = Path(".")) : Api {
                     stackTrace = error.stackTrace.orEmpty(),
                     harName = harName,
                 )
-                database.errorDao().insert(errorEntity)
+                val replacedError = database.errorDao().upsertSimilarError(errorEntity, feedbackErrorDelta)
+                if (replacedError != null && replacedError.harName != null) {
+                    harDBError.delete(replacedError.harName)
+                }
             }
             log("Stored Api.Liberator.Error: $error")
         }
@@ -99,7 +107,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     url = success.url,
                     solver = success.solver.orEmpty(),
                 )
-                database.successDao().insert(successEntity)
+                database.successDao().upsertSimilarSuccess(successEntity, feedbackSuccessDelta)
             }
             log("Stored Api.Liberator.Success: $success")
         }

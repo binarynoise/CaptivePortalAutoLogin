@@ -1,6 +1,9 @@
 package de.binarynoise.captiveportalautologin.server.database
 
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.Instant
+import kotlin.time.toDuration
 import androidx.room.TypeConverter
 
 class DatabaseTypeConverters {
@@ -9,4 +12,10 @@ class DatabaseTypeConverters {
     
     @TypeConverter
     fun toInstant(value: Long): Instant = Instant.fromEpochMilliseconds(value)
+    
+    @TypeConverter
+    fun fromDuration(value: Duration): Long = value.inWholeMilliseconds
+    
+    @TypeConverter
+    fun toDuration(value: Long): Duration = value.toDuration(DurationUnit.MILLISECONDS)
 }

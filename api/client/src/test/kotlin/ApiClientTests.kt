@@ -245,12 +245,37 @@ class ApiClientTests {
             }
             assertEquals(1, count)
             
-            client.liberator.reportSuccess(success)
+            client.liberator.reportSuccess(success.copy(timestamp = success.timestamp + 1))
             
             val count2 = runBlocking {
                 server.database.successDao().getAll().size
             }
             assertEquals(2, count2)
+        }
+        
+        @Test
+        fun `reportSuccess - count equal`() {
+            val success = Api.Liberator.Success(
+                version = validTestVersion,
+                timestamp = System.currentTimeMillis(),
+                ssid = "test ssid",
+                url = "test url",
+                solver = "test solver",
+            )
+            
+            client.liberator.reportSuccess(success)
+            
+            val count = runBlocking {
+                server.database.successDao().getAll().size
+            }
+            assertEquals(1, count)
+            
+            client.liberator.reportSuccess(success)
+            
+            val count2 = runBlocking {
+                server.database.successDao().getAll().size
+            }
+            assertEquals(1, count2)
         }
     }
 }
