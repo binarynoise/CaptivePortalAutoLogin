@@ -22,8 +22,9 @@ class PlatformImpl : Platform {
     private val TAG = "Logger"
     
     @get:Suppress("DEPRECATION")
-    override val startupMessage: String
+    override val startupMessage: String?
         get() {
+            val applicationContext = applicationContext ?: return null
             val packageName = applicationContext.packageName
             val packageInfo = applicationContext.packageManager.getPackageInfo(packageName, 0)
             val versionCode = packageInfo.versionCode
