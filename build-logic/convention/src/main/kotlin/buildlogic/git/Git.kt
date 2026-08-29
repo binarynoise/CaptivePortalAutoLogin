@@ -1,5 +1,6 @@
 package buildlogic.git
 
+import java.io.File
 import com.android.build.gradle.BaseExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
@@ -79,6 +80,17 @@ private fun Project.getAllCommitsPushedExec(): ExecOutput {
         executable("git")
         args("diff", "--quiet", "--exit-code", "origin/main..main")
         isIgnoreExitValue = true
+    }
+}
+
+private fun Project.getFileCommitterDate(file: File) = providers.exec {
+    executable("git")
+    args("log", "-1", "--pretty=%ct", "--", file.absolutePath)
+}
+
+fun Project.getPortalLiberatorCommitterDates(): Map<String, Long> {
+    return rootDir.resolve("liberator/src/main/kotlin/de/binarynoise/liberator/portals/").listFiles().associate {
+        it.nameWithoutExtension to getFileCommitterDate(it).standardOutput.asText.get().trim().toLong()
     }
 }
 

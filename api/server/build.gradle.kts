@@ -1,4 +1,5 @@
 import buildlogic.git.getCommitInfos
+import buildlogic.git.getPortalLiberatorCommitterDates
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
@@ -17,6 +18,7 @@ dependencies {
     implementation(projects.util.fileDB)
     implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
+    implementation(projects.liberator)
     
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.dataframe)
@@ -46,6 +48,7 @@ dependencies {
 
 buildConfig {
     buildConfigField("GITCOMMITS", getCommitInfos())
+    buildConfigField("PORTALLIBERATORCOMMITTERDATES", getPortalLiberatorCommitterDates())
 }
 
 room {

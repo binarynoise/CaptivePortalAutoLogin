@@ -63,6 +63,13 @@ class PortalLiberatorProcessor(environment: SymbolProcessorEnvironment) : Symbol
             }
             
             writer.appendLine(")")
+            
+            writer.appendLine()
+            writer.appendLine("val allPortalLiberatorsFileMapping: Map<String, String> = mapOf(")
+            map.filterValues { v -> v != null }.filter { it.key.containingFile != null }.forEach { (declaration, qualifiedName) -> 
+                writer.appendLine("    \"${declaration.simpleName.asString()}\" to \"${declaration.containingFile!!.fileName.removeSuffix(".kt")}\",")
+            }
+            writer.appendLine(")")
         }
     }
 }
