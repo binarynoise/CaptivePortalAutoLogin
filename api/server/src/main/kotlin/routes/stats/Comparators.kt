@@ -58,7 +58,7 @@ object Comparators {
             val match1 = pattern.matchEntire(o1)
             val match2 = pattern.matchEntire(o2)
             
-            if (match1 == null || match2 == null) return o1.compareTo(o2)
+            require(match1 != null && match2 != null) { "Invalid version format: $o1 - $o2" }
             
             return comparingInt<MatchResult> { it.groups["count"]!!.value.toInt() } //
                 .thenComparing { it.groups["hash"]!!.value }
