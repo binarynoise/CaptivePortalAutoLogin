@@ -72,4 +72,14 @@ object Comparators {
     object RegularComparator : Comparator<Comparable<Any>> {
         override fun compare(o1: Comparable<Any>, o2: Comparable<Any>): Int = o1.compareTo(o2)
     }
+    
+    fun <T> Comparator<T>.toNullable(): Comparator<T?> = NullableComparator(this)
+    class NullableComparator<T>(private val comparator: Comparator<T>) : Comparator<T?> {
+        override fun compare(o1: T?, o2: T?): Int {
+            if (o1 == null && o2 == null) return 0
+            if (o1 == null) return 1
+            if (o2 == null) return -1
+            return comparator.compare(o1, o2)
+        }
+    }
 }
