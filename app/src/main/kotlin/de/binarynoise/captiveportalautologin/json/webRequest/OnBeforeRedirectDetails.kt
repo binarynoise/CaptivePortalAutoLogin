@@ -2,7 +2,7 @@ package de.binarynoise.captiveportalautologin.json.webRequest
 
 import kotlinx.serialization.json.JsonObject
 import de.binarynoise.util.json.getBoolean
-import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getDouble
 import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getLong
 import de.binarynoise.util.json.getOptJsonArray
@@ -46,7 +46,7 @@ class OnBeforeRedirectDetails(
     val documentUrl: String? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Float,
+    val timeStamp: Double,
     val ip: String? = null,
     val fromCache: Boolean,
     val statusCode: Int,
@@ -66,7 +66,7 @@ class OnBeforeRedirectDetails(
                 json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getFloat("timeStamp"),
+                json.getDouble("timeStamp"),
                 json.getOptString("ip"),
                 json.getBoolean("fromCache"),
                 json.getInt("statusCode"),

@@ -2,7 +2,7 @@ package de.binarynoise.captiveportalautologin.json.webRequest
 
 import kotlinx.serialization.json.JsonObject
 import de.binarynoise.util.json.getBoolean
-import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getDouble
 import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getLong
@@ -47,7 +47,7 @@ class OnAuthRequiredDetails(
     val documentUrl: String? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Float,
+    val timeStamp: Double,
     val scheme: String,
     val realm: String? = null,
     val challenger: Challenger,
@@ -68,7 +68,7 @@ class OnAuthRequiredDetails(
                 json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getFloat("timeStamp"),
+                json.getDouble("timeStamp"),
                 json.getString("scheme"),
                 json.getOptString("realm"),
                 Challenger.fromJson(json.getJsonObject("challenger")),

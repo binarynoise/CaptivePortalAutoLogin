@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
 import kotlinx.serialization.json.JsonObject
+import de.binarynoise.util.json.getDouble
 import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getLong
 import de.binarynoise.util.json.getOptJsonObject
@@ -38,7 +39,7 @@ class OnBeforeRequestDetails(
     val requestBody: RequestBody? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Long,
+    val timeStamp: Double,
 ) {
     companion object {
         fun fromJson(json: JsonObject): OnBeforeRequestDetails {
@@ -53,7 +54,7 @@ class OnBeforeRequestDetails(
                 json.getOptJsonObject("requestBody")?.let { RequestBody.fromJson(it) },
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getLong("timeStamp")
+                json.getDouble("timeStamp")
             )
         }
     }

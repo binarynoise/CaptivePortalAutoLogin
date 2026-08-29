@@ -4,6 +4,7 @@ import java.io.IOException
 import java.security.GeneralSecurityException
 import java.util.concurrent.TimeUnit.MINUTES
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import de.binarynoise.captiveportalautologin.api.json.har.Browser
@@ -69,7 +70,6 @@ class Liberator(
      * - record HAR entries
      */
     private fun interceptRequest(chain: Interceptor.Chain): Response {
-        val startTime = Clock.System.now()
         
         val originalRequest = chain.request()
         val cookiesToSend = cookies.filter { it.matches(originalRequest.url) }
@@ -85,23 +85,29 @@ class Liberator(
         
         val harRequest = Request(newRequest, cookiesToSend)
         
-        val startedDateTime = startTime.toLocalDateTime(TimeZone.currentSystemDefault())
+        val startTime = Clock.System.now()
         val response = chain.proceed(newRequest)
+        val fromCache = response.sentRequestAtMillis < startTime.toEpochMilliseconds()
         
         val harResponse = parseResponse(response, cookies)
         
         entries.add(
             Entry(
-                null,
-                startedDateTime,
-                harRequest,
-                harResponse,
-                Cache(),
-                Timings(),
-                null,
-                null,
-            )
-        )
+            null,
+            Instant.fromEpochMilliseconds(response.sentRequestAtMillis)
+                .toLocalDateTime(TimeZone.currentSystemDefault()),
+            harRequest,
+            harResponse,
+            Cache(),
+            Timings(
+                blocked = (response.sentRequestAtMillis - startTime.toEpochMilliseconds()).toInt()
+                    .takeIf { !fromCache } ?: 0,
+                receive = (response.receivedResponseAtMillis - response.sentRequestAtMillis).toInt()
+                    .takeIf { !fromCache } ?: 0,
+            ),
+            null,
+            null,
+        ))
         
         return response
     }

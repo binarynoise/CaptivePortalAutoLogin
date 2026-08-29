@@ -1,7 +1,7 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
 import kotlinx.serialization.json.JsonObject
-import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getDouble
 import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getLong
 import de.binarynoise.util.json.getOptJsonArray
@@ -40,7 +40,7 @@ class OnHeadersReceivedDetails(
     val documentUrl: String? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Float,
+    val timeStamp: Double,
     val statusLine: String,
     val responseHeaders: Array<HttpHeader>? = null,
     val statusCode: Int,
@@ -57,7 +57,7 @@ class OnHeadersReceivedDetails(
                 json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getFloat("timeStamp"),
+                json.getDouble("timeStamp"),
                 json.getString("statusLine"),
                 json.getOptJsonArray("responseHeaders")
                     ?.toList()

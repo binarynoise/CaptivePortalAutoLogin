@@ -1,7 +1,7 @@
 package de.binarynoise.captiveportalautologin.json.webRequest
 
 import kotlinx.serialization.json.JsonObject
-import de.binarynoise.util.json.getFloat
+import de.binarynoise.util.json.getDouble
 import de.binarynoise.util.json.getInt
 import de.binarynoise.util.json.getLong
 import de.binarynoise.util.json.getOptJsonArray
@@ -37,7 +37,7 @@ class OnBeforeSendHeadersDetails(
     val documentUrl: String? = null,
     val tabId: Int,
     val type: String,
-    val timeStamp: Float,
+    val timeStamp: Double,
     val requestHeaders: Array<HttpHeader>? = null,
 ) {
     companion object {
@@ -52,7 +52,7 @@ class OnBeforeSendHeadersDetails(
                 json.getOptString("documentUrl"),
                 json.getInt("tabId"),
                 json.getString("type"),
-                json.getFloat("timeStamp"),
+                json.getDouble("timeStamp"),
                 json.getOptJsonArray("requestHeaders")
                     ?.toList()
                     ?.map { HttpHeader.fromJson(it as JsonObject) }

@@ -2,7 +2,6 @@ package de.binarynoise.captiveportalautologin.gecko
 
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.JsonArray
@@ -218,7 +217,9 @@ class ExtensionDelegate(
     private val responseCache: MutableMap<String, Response> = mutableMapOf()
     private val contentCache: MutableMap<String, String> = mutableMapOf()
     private val redirectCount: MutableMap<String, Int> = mutableMapOf()
-    private val startTimeCache: MutableMap<String, LocalDateTime> = mutableMapOf()
+    private val startTimeCache: MutableMap<String, Double> = mutableMapOf()
+    private val timingsCache: MutableMap<String, Timings> = mutableMapOf()
+    private val ipCache: MutableMap<String, String> = mutableMapOf()
     
     private var allowEdits: Boolean = true
     
@@ -275,13 +276,18 @@ class ExtensionDelegate(
                 return
             }
             
+            if (!timingsCache.containsKey(requestIdWithRedirectCount)) timingsCache[requestIdWithRedirectCount] =
+                Timings()
+            fun getTimingSinceStart(timeStamp: Double): Int {
+                return (timeStamp - startTimeCache[requestIdWithRedirectCount]!!).toInt()
+            }
+            
             when (eventType) {
                 "onBeforeRequest" -> {
                     val onBeforeRequestDetails = OnBeforeRequestDetails.fromJson(details)
                     requestCache[requestIdWithRedirectCount] = Request(onBeforeRequestDetails)
-                    startTimeCache[requestIdWithRedirectCount] =
-                        Instant.fromEpochMilliseconds(onBeforeRequestDetails.timeStamp)
-                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                    startTimeCache[requestIdWithRedirectCount] = onBeforeRequestDetails.timeStamp
+                    log(onBeforeRequestDetails.timeStamp.toString())
                 }
                 "onBeforeSendHeaders" -> {
                     val onBeforeSendHeadersDetails = OnBeforeSendHeadersDetails.fromJson(details)
@@ -290,6 +296,8 @@ class ExtensionDelegate(
                 "onSendHeaders" -> {
                     val onSendHeadersDetails = OnSendHeadersDetails.fromJson(details)
                     requestCache[requestIdWithRedirectCount]?.handleRequestHeaders(onSendHeadersDetails.requestHeaders)
+                    timingsCache[requestIdWithRedirectCount]!!.blocked =
+                        getTimingSinceStart(onSendHeadersDetails.timeStamp)
                 }
                 "onHeadersReceived" -> {
                     val onHeadersReceivedDetails = OnHeadersReceivedDetails.fromJson(details)
@@ -298,10 +306,19 @@ class ExtensionDelegate(
                 "onResponseStarted" -> {
                     val onResponseStartedDetails = OnResponseStartedDetails.fromJson(details)
                     responseCache[requestIdWithRedirectCount]?.handleResponseHeaders(onResponseStartedDetails.responseHeaders)
+                    timingsCache[requestIdWithRedirectCount]!!.apply {
+                        send = getTimingSinceStart(onResponseStartedDetails.timeStamp) - (blocked ?: 0)
+                    }
+                    if (onResponseStartedDetails.ip != null) ipCache[requestIdWithRedirectCount] =
+                        onResponseStartedDetails.ip
                 }
                 "onCompleted" -> {
                     val onCompletedDetails = OnCompletedDetails.fromJson(details)
                     responseCache[requestIdWithRedirectCount]?.handleResponseHeaders(onCompletedDetails.responseHeaders)
+                    timingsCache[requestIdWithRedirectCount]!!.apply {
+                        receive = getTimingSinceStart(onCompletedDetails.timeStamp) - send - (blocked ?: 0)
+                    }
+                    if (onCompletedDetails.ip != null) ipCache[requestIdWithRedirectCount] = onCompletedDetails.ip
                     finalizeResponse(requestIdWithRedirectCount)
                 }
                 "onAuthRequired" -> {
@@ -359,7 +376,10 @@ class ExtensionDelegate(
         val response = responseCache[requestIdWithRedirectCount] ?: run { log("response is null"); return }
         response.setContent(content)
         
-        val startedDateTime = startTimeCache[requestIdWithRedirectCount] ?: return
+        val startedDateTime =
+            Instant.fromEpochMilliseconds(startTimeCache[requestIdWithRedirectCount]?.toLong() ?: return)
+                .toLocalDateTime(TimeZone.currentSystemDefault())
+        
         log.entries.add(
             Entry(
                 null,
@@ -367,13 +387,15 @@ class ExtensionDelegate(
                 request,
                 response,
                 Cache(),
-                Timings(),
-                null,
+                timingsCache[requestIdWithRedirectCount] ?: Timings(),
+                ipCache[requestIdWithRedirectCount],
                 null,
             )
         )
         requestCache.remove(requestIdWithRedirectCount)
         responseCache.remove(requestIdWithRedirectCount)
+        timingsCache.remove(requestIdWithRedirectCount)
+        ipCache.remove(requestIdWithRedirectCount)
         startTimeCache.remove(requestIdWithRedirectCount)
         contentCache.remove(requestIdWithRedirectCount)
         // log.dump(requestIdWithRedirectCount)
