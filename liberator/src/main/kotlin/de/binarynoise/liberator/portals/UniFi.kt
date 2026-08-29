@@ -12,6 +12,7 @@ import de.binarynoise.util.json.getBoolean
 import de.binarynoise.util.json.getJsonArray
 import de.binarynoise.util.json.getJsonObject
 import de.binarynoise.util.json.getString
+import de.binarynoise.util.json.has
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
@@ -80,7 +81,7 @@ object UniFi : PortalLiberator {
         val loginJson = loginResponse.parseUniFiBrokenJsonObject()
         check(loginJson.isUniFiMetaOk()) { "UniFi loginResponse responded not ok" }
         val loginDataJson = loginJson.getUniFiDataObject()
-        check(loginDataJson.getBoolean("authorized")) { "UniFi loginResponse responded not authorized" }
+        if (loginDataJson.has("authorized")) check(loginDataJson.getBoolean("authorized")) { "UniFi loginResponse responded not authorized" }
         
         val redirect_url = loginDataJson.getString("redirect_url")
         client.get(response.requestUrl, redirect_url).followRedirects(client)
