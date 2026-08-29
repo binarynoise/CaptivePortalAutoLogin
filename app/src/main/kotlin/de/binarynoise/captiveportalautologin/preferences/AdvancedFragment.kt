@@ -1,6 +1,9 @@
 package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.concurrent.read
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.database.ContentObserver
 import android.net.ConnectivityManager
@@ -10,6 +13,7 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
@@ -37,7 +41,10 @@ import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
+import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
 class AdvancedFragment : AutoCleanupPreferenceFragment() {
@@ -305,6 +312,24 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 ) {
                     key = SharedPreferences.api_base.sharedPreferencesKey
                     titleRes = R.string.preference_api_base
+                }
+                
+                addPreference(Preference(ctx)) {
+                    title = getString(R.string.preference_api_base_connection_test)
+                    onPreferenceClickListener = {
+                        lifecycleScope.launch {
+                            summary = getString(R.string.preference_api_base_connection_test_testing)
+                            summary = withContext(Dispatchers.IO) {
+                                val client = OkHttpClient()
+                                try {
+                                    client.get(null, SharedPreferences.api_base.get()).readText()
+                                } catch (e: Exception) {
+                                    e.message
+                                }
+                            }
+                        }
+                        true
+                    }
                 }
             } else {
                 SharedPreferences.api_base.set("")

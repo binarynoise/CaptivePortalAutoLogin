@@ -123,4 +123,6 @@
     <string name="share">Share</string>
     <string name="upload">Upload</string>
     <string name="save_to_storage">Save to SD</string>
+    <string name="preference_api_base_connection_test">Test API Connection</string>
+    <string name="preference_api_base_connection_test_testing">Testing…</string>
 </resources>
