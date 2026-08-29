@@ -11,18 +11,18 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.Modifier
 
+const val redirectorPackage = "$liberatorPackage.redirectors"
+private const val PortalRedirectorFqn = "$liberatorPackage.PortalRedirector"
+
 class PortalRedirectorProcessor(environment: SymbolProcessorEnvironment) : SymbolProcessor {
     
     private val logger = environment.logger
     private val codeGenerator: CodeGenerator = environment.codeGenerator
     
-    private val liberatorPackage = "de.binarynoise.liberator"
-    private val portalPackage = "$liberatorPackage.portals"
-    private val PortalRedirectorFqn = "$liberatorPackage.PortalRedirector"
-    
     @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val candidates = resolver.getDeclarationsFromPackage(portalPackage)
+            .plus(resolver.getDeclarationsFromPackage(redirectorPackage))
             .filterIsInstance<KSClassDeclaration>()
             .filter { it.classKind == ClassKind.OBJECT }
             .filter { !it.modifiers.contains(Modifier.PRIVATE) }

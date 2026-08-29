@@ -11,14 +11,14 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.Modifier
 
+const val liberatorPackage = "de.binarynoise.liberator"
+const val portalPackage = "$liberatorPackage.portals"
+private const val PortalLiberatorFqn = "$liberatorPackage.PortalLiberator"
+
 class PortalLiberatorProcessor(environment: SymbolProcessorEnvironment) : SymbolProcessor {
     
     private val logger = environment.logger
     private val codeGenerator: CodeGenerator = environment.codeGenerator
-    
-    private val liberatorPackage = "de.binarynoise.liberator"
-    private val portalPackage = "$liberatorPackage.portals"
-    private val PortalLiberatorFqn = "$liberatorPackage.PortalLiberator"
     
     @OptIn(KspExperimental::class)
     override fun process(resolver: Resolver): List<KSAnnotated> {
