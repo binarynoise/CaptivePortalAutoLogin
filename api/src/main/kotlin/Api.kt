@@ -56,4 +56,14 @@ interface Api {
         minimumBayesianRating: Float? = null,
         bayesianWeight: Int? = null,
     ): List<String>
+    
+    @Serializable
+    data class Update(
+        val version: String,
+        val url: String,
+    )
+    
+    suspend fun checkUpdate(
+        installedVersion: String,
+    ): Update?
 }

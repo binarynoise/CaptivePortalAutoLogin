@@ -162,5 +162,15 @@ fun Routing.api() {
                 )
             )
         }
+        get("/checkUpdate") {
+            val installedVersion = call.queryParameters["installedVersion"]
+            if (installedVersion == null) {
+                call.respondStatus(HttpStatusCode.BadRequest)
+                return@get
+            }
+            val update = ApiServer.api.checkUpdate(installedVersion)
+            if (update == null) call.respondStatus(HttpStatusCode.NoContent)
+            else call.respond(update)
+        }
     }
 }

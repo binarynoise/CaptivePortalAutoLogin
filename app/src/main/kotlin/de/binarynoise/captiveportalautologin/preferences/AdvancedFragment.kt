@@ -1,7 +1,11 @@
 package de.binarynoise.captiveportalautologin.preferences
 
 import kotlin.concurrent.read
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.content.Intent
@@ -11,6 +15,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +37,7 @@ import de.binarynoise.captiveportalautologin.NetworkSuggestionOnPreferenceChange
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
+import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
 import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
@@ -39,11 +45,15 @@ import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
 import de.binarynoise.captiveportalautologin.isNetworkSuggestion
 import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
 import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
+import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.wifiManager
+import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -333,6 +343,44 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             } else {
                 SharedPreferences.api_base.set("")
+            }
+            
+            addPreference(Preference(ctx)) {
+                title = "Check for Updates"
+                onPreferenceClickListener = {
+                    lifecycleScope.launch {
+                        summary = getString(R.string.preference_update_check_checking)
+                        summary = coroutineScope {
+                            val deferred = async(Dispatchers.IO) {
+                                val apiBaseFromPreference by SharedPreferences.api_base
+                                val apiBaseUrl =
+                                    (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
+                                if (apiBaseUrl == null) return@async "Error: apiBaseUrl missing"
+                                
+                                val update = try {
+                                    val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
+                                    apiClient.checkUpdate(BuildConfig.VERSION_NAME)
+                                } catch (e: Exception) {
+                                    log("update check failed", e)
+                                    return@async getString(R.string.preference_update_check_update_check_failed)
+                                }
+                                if (update != null) {
+                                    onPreferenceClickListener = {
+                                        val intent = Intent(Intent.ACTION_VIEW, update.url.toUri())
+                                        startActivity(intent)
+                                        true
+                                    }
+                                    getString(R.string.preference_update_check_update_available, update.version)
+                                } else {
+                                    getString(R.string.preference_update_check_no_update_available)
+                                }
+                            }
+                            delay(2.seconds)
+                            deferred.await()
+                        }
+                    }
+                    true
+                }
             }
             
             addPreference(Preference(ctx)) {

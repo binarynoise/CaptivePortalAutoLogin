@@ -27,6 +27,7 @@ open class Application : android.app.Application() {
         }
         
         enqueueStatsUploadWork(this)
+        enqueueUpdateCheckWork(this)
     }
     
     /**

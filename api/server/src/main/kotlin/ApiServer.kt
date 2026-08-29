@@ -6,18 +6,27 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.json.har.generateHarFileName
 import de.binarynoise.captiveportalautologin.server.database.AppDatabase
 import de.binarynoise.captiveportalautologin.server.database.ErrorEntity
 import de.binarynoise.captiveportalautologin.server.database.SuccessEntity
+import de.binarynoise.captiveportalautologin.server.routes.stats.Comparators
 import de.binarynoise.captiveportalautologin.server.routes.toDuration
 import de.binarynoise.filedb.FileDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.json.prettyPrinter
+import de.binarynoise.util.json.serializer
+import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.readText
 import io.ktor.http.Url
+import okhttp3.OkHttpClient
 
 val feedbackSuccessDelta: Duration = System.getenv("STATS_SUCCESS_DELTA")?.toDuration() ?: Duration.ZERO
 val feedbackErrorDelta: Duration = System.getenv("STATS_ERROR_DELTA")?.toDuration() ?: Duration.ZERO
@@ -130,4 +139,44 @@ class ApiServer(root: Path = Path(".")) : Api {
             bayesianWeight = bayesianWeight ?: 10,
         )
     }
+    
+    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
+        val release = fetchLatestRelease() ?: return null
+        if (Comparators.VersionComparator.compare(installedVersion, release.tagName) >= 0) return null
+        return Api.Update(version = release.tagName, url = release.htmlUrl)
+    }
+}
+
+@Serializable
+private data class GitHubRelease(
+    @SerialName("tag_name") val tagName: String,
+    @SerialName("html_url") val htmlUrl: String,
+)
+
+private val client = OkHttpClient()
+
+private var cachedRelease: GitHubRelease? = null
+private var cachedReleaseFetchedAt: Instant? = null
+
+private suspend fun fetchLatestRelease(): GitHubRelease? {
+    val now = Clock.System.now()
+    val fetchedAt = cachedReleaseFetchedAt
+    if (cachedRelease != null && fetchedAt != null && now - fetchedAt < 1.days) {
+        return cachedRelease
+    }
+    val repo = System.getenv("GITHUB_REPO") ?: "binarynoise/CaptivePortalAutoLogin"
+    
+    val json = withContext(Dispatchers.IO) {
+        val response = client.get(null, "https://api.github.com/repos/$repo/releases/latest") {
+            header("User-Agent", "CaptivePortalAutoLogin-UpdateChecker")
+            header("Accept", "application/vnd.github+json")
+        }
+        response.readText()
+    }
+    val release: GitHubRelease = serializer.decodeFromString(json)
+    
+    cachedRelease = release
+    cachedReleaseFetchedAt = now
+    log("Fetched latest release from GitHub: ${release.tagName}")
+    return release
 }

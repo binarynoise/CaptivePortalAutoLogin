@@ -7,6 +7,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import androidx.work.WorkQuery
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.databinding.ActivityWorkBinding
 
@@ -23,28 +25,31 @@ class QueuedWorkActivity : ComponentActivity() {
         
         binding.scheduleButton.setOnClickListener {
             enqueueStatsUploadWork(singleShot = true)
+            enqueueUpdateCheckWork(singleShot = true)
         }
         
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                getEnqueuedStatsUploadWork().collect { workInfos ->
-                    binding.counters.text = buildString {
-                        append("Total: ")
-                        append(workInfos.size)
-                        
-                        WorkInfo.State.entries.forEach { state ->
-                            val filtered = workInfos.filter { it.state == state }
-                            if (filtered.isNotEmpty()) {
-                                appendLine()
-                                append("${state.name}: ")
-                                append(filtered.size)
+                WorkManager.getInstance(applicationContext)
+                    .getWorkInfosFlow(WorkQuery.fromStates(WorkInfo.State.entries.toList()))
+                    .collect { workInfos ->
+                        binding.counters.text = buildString {
+                            append("Total: ")
+                            append(workInfos.size)
+                            
+                            WorkInfo.State.entries.forEach { state ->
+                                val filtered = workInfos.filter { it.state == state }
+                                if (filtered.isNotEmpty()) {
+                                    appendLine()
+                                    append("${state.name}: ")
+                                    append(filtered.size)
+                                }
                             }
                         }
+                        binding.text.text = workInfos.filter { it.state != WorkInfo.State.SUCCEEDED }
+                            .joinToString("\n\n\n") { it.toFriendlyString() }
+                        
                     }
-                    binding.text.text = workInfos.filter { it.state != WorkInfo.State.SUCCEEDED }
-                        .joinToString("\n\n\n") { it.toFriendlyString() }
-                    
-                }
             }
         }
     }

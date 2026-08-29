@@ -5,6 +5,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.dataframe)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.room)
@@ -18,6 +19,7 @@ dependencies {
     implementation(projects.util.fileDB)
     implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
+    implementation(projects.util.okhttpKts)
     implementation(projects.liberator)
     
     implementation(libs.kotlin.reflect)
@@ -33,6 +35,7 @@ dependencies {
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.mustache)
     implementation(libs.slf4j.simple)
+    implementation(libs.okhttp)
     
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)

@@ -125,4 +125,9 @@
     <string name="save_to_storage">Save to SD</string>
     <string name="preference_api_base_connection_test">Test API Connection</string>
     <string name="preference_api_base_connection_test_testing">Testing…</string>
+    <string name="update">Update</string>
+    <string name="preference_update_check_no_update_available">No update is available. Automatic update checks are active.</string>
+    <string name="preference_update_check_update_available">Update available: %1$s</string>
+    <string name="preference_update_check_update_check_failed">Update check failed</string>
+    <string name="preference_update_check_checking">Checking…</string>
 </resources>

@@ -86,6 +86,11 @@ object ScheduledApiClient : Api {
     ): List<String> {
         throw UnsupportedOperationException("use ApiClient directly")
     }
+    
+    @Deprecated("use ApiClient directly", level = DeprecationLevel.HIDDEN)
+    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
+        throw UnsupportedOperationException("use ApiClient directly")
+    }
 }
 
 class HarStatsWorker(

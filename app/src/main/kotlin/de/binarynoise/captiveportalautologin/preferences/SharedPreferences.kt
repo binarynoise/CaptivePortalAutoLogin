@@ -67,6 +67,8 @@ object SharedPreferences {
             PreferencePropertyDelegate("stats_retry_after_$type", 0L)
         )
     
+    val last_notified_update_version: PreferencePropertyDelegate<String> by PreferenceProperty("")
+    
     private class PreferenceProperty<T : Any>(private val defaultValue: T) {
         operator fun getValue(parent: Any, property: KProperty<*>): PreferencePropertyDelegate<T> {
             return PreferencePropertyDelegate(property.name, defaultValue)

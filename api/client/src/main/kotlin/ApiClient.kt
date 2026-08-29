@@ -85,6 +85,19 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
         )
     }
     
+    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
+        val response = httpClient.get(
+            base,
+            "checkUpdate",
+            queryParameters = mapOf(
+                "installedVersion" to installedVersion,
+            ),
+        )
+        response.checkSuccess()
+        if (response.code == 204) return null
+        return serializer.decodeFromString(response.readText())
+    }
+    
     private fun post(url: String, json: JsonElement) {
         httpClient.postJson(base, url, json).use { it.checkSuccess() }
     }
