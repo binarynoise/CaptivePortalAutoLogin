@@ -2,6 +2,7 @@
 
 package de.binarynoise.liberator.portals
 
+import de.binarynoise.liberator.Experimental
 import de.binarynoise.liberator.LiberatorExtras
 import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
@@ -18,8 +19,10 @@ import okhttp3.Response
 @SSID(
     "Landratsamt Besucher",
     "MesseSpot",
+    "OUTLETCITY freeWiFi",
     "Vector Hotspot",
 )
+@Experimental
 object LPHotspot : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
         if (!response.isSuccessful) return false
@@ -33,6 +36,6 @@ object LPHotspot : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        client.postForm(response.requestUrl, "/", mapOf("auth" to "free"))
+        client.postForm(response.requestUrl, "/", mapOf("auth" to "free", "accept_tou" to "1"))
     }
 }
