@@ -36,11 +36,19 @@ private val jsonDB = JsonDB(localCacheRoot)
 
 object ScheduledApiClient : Api {
     override val har: Har = Har()
+    override val log: Log = Log()
     override val liberator: Liberator = Liberator()
     
     class Har : Api.Har {
         override fun submitHar(name: String, har: HAR) {
             jsonDB.store(name, har, "har")
+            enqueueStatsUploadWork()
+        }
+    }
+    
+    class Log : Api.Log {
+        override fun submitLog(name: String, log: String) {
+            jsonDB.store(name, log, "log")
             enqueueStatsUploadWork()
         }
     }
@@ -114,6 +122,18 @@ class ErrorStatsWorker(
     delete = { jsonDB.delete<Api.Liberator.Error>(it) },
 )
 
+class LogStatsWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
+) : StatsWorker<String>(
+    appContext,
+    workerParams,
+    type = "Log",
+    keys = { jsonDB.listAll<String>("log") },
+    load = { jsonDB.load<String>(it, "log") },
+    upload = { key, log, apiClient -> apiClient.log.submitLog(key, log) },
+    delete = { jsonDB.delete<String>(it, "log") },
+)
 
 abstract class StatsWorker<T : Any>(
     appContext: Context,
@@ -177,6 +197,7 @@ private val statsWorkerClasses = listOf(
     HarStatsWorker::class.java,
     SuccessStatsWorker::class.java,
     ErrorStatsWorker::class.java,
+    LogStatsWorker::class.java,
 )
 
 private fun getStatsUploadUniqueWorkName(cls: Class<out StatsWorker<*>>): String = "StatsUpload ${cls.simpleName}"

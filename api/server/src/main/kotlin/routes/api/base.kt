@@ -4,12 +4,16 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 import CaptivePortalAutoLogin.api.server.BuildConfig
 import de.binarynoise.captiveportalautologin.api.Api
+import de.binarynoise.captiveportalautologin.api.hashLogFile
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
+import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.isInRelativeRange
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
 import de.binarynoise.captiveportalautologin.server.routes.stats.Comparators
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDB
+import de.binarynoise.captiveportalautologin.server.routes.stats.logDBArchived
 import de.binarynoise.captiveportalautologin.server.routes.toDuration
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -83,6 +87,26 @@ fun Routing.api() {
                 }
                 ApiServer.api.har.submitHar(name, har)
                 call.respondStatus(HttpStatusCode.Created)
+            }
+        }
+        route("/log") {
+            put("/{name}") {
+                val name = call.parameters["name"] ?: missingParameter("name")
+                val (_, _, parsedChecksum) = try {
+                    parseLogFileName(name)
+                } catch (e: IllegalStateException) {
+                    return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
+                }
+                if (logDB.exists(name) || logDBArchived.exists(name)) {
+                    return@put call.respond(HttpStatusCode.Conflict, "file already exists")
+                }
+                val file = call.receive<String>()
+                val checksum = hashLogFile(file)
+                if (checksum != parsedChecksum) {
+                    return@put call.respond(HttpStatusCode.BadRequest, "hash does not match")
+                }
+                ApiServer.api.log.submitLog(name, file)
+                call.respond(HttpStatusCode.Created)
             }
         }
         route("/liberator") {

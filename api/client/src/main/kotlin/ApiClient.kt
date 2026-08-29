@@ -12,6 +12,7 @@ import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.putJson
+import de.binarynoise.util.okhttp.putPlain
 import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl
 import okhttp3.Interceptor
@@ -34,6 +35,13 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
             put("har/$name", har.toJsonElement())
         }
     }
+    
+    override val log = object : Api.Log {
+        override fun submitLog(name: String, log: String) {
+            httpClient.putPlain(base, "log/$name", log).use { it.checkSuccess() }
+        }
+    }
+    
     override val liberator = object : Api.Liberator {
         override fun getLiberatorVersion(): String {
             TODO("Not yet implemented")
