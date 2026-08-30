@@ -37,6 +37,7 @@ import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
 import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.liberator.tryOrIgnore
+import de.binarynoise.liberator.tryOrLog
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.mozilla.geckoview.GeckoSession
@@ -183,10 +184,12 @@ class RecordCaptivePortalActivity : ComponentActivity() {
             && !Build.ID.startsWith("AP2A") // only QPR3 throws a silent server-side SecurityException
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R // before R the method didn't exist yet
         ) {
-            captivePortal!!.invokeHiddenMethod("reevaluateNetwork")
-        } else {
-            ConnectivityChangeListenerService.reportNetworkConnectivity(network, true)
+            tryOrLog {
+                captivePortal!!.invokeHiddenMethod("reevaluateNetwork")
+                return
+            }
         }
+        ConnectivityChangeListenerService.reportNetworkConnectivity(network, true)
     }
     
     var done = false
