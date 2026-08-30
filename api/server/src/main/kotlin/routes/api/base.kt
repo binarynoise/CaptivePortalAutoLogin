@@ -18,11 +18,13 @@ import de.binarynoise.captiveportalautologin.server.routes.toDuration
 import de.binarynoise.liberator.portals.allPortalLiberatorsFileMapping
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingCall
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
@@ -162,13 +164,15 @@ fun Routing.api() {
                 )
             )
         }
-        get("/checkUpdate") {
-            val installedVersion = call.queryParameters["installedVersion"]
-            if (installedVersion == null) {
+        post("/checkUpdate") {
+            val form = call.receiveParameters()
+            val installedVersion = form["installedVersion"]
+            val manual = form["manual"]?.toBooleanStrictOrNull()
+            if (installedVersion == null || manual == null) {
                 call.respondStatus(HttpStatusCode.BadRequest)
-                return@get
+                return@post
             }
-            val update = ApiServer.api.checkUpdate(installedVersion)
+            val update = ApiServer.api.checkUpdate(installedVersion, manual)
             if (update == null) call.respondStatus(HttpStatusCode.NoContent)
             else call.respond(update)
         }

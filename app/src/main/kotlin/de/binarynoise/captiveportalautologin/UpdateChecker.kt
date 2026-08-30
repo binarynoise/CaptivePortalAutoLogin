@@ -40,7 +40,7 @@ class UpdateCheckerWorker(
         val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
         
         log("Checking for updates")
-        val update = apiClient.checkUpdate(BuildConfig.VERSION_NAME)
+        val update = apiClient.checkUpdate(BuildConfig.VERSION_NAME, false)
         if (update == null) {
             log("No update available")
             return Result.success()
@@ -95,11 +95,10 @@ fun enqueueUpdateCheckWork(
         }.build()
         workManager.enqueue(workRequest)
     } else {
-        val workRequest =
-            PeriodicWorkRequest.Builder(UpdateCheckerWorker::class.java, 2, TimeUnit.DAYS, 1, TimeUnit.DAYS).apply {
-                setConstraints(constraints)
-                addTag(UpdateCheckerWorker::class.java.name)
-            }.build()
+        val workRequest = PeriodicWorkRequest.Builder(UpdateCheckerWorker::class.java, 7, TimeUnit.DAYS).apply {
+            setConstraints(constraints)
+            addTag(UpdateCheckerWorker::class.java.name)
+        }.build()
         workManager.enqueueUniquePeriodicWork(
             UpdateCheckerWorker::class.java.name,
             ExistingPeriodicWorkPolicy.KEEP,

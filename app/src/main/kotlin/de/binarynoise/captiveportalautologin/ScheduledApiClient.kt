@@ -88,7 +88,7 @@ object ScheduledApiClient : Api {
     }
     
     @Deprecated("use ApiClient directly", level = DeprecationLevel.HIDDEN)
-    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
+    override suspend fun checkUpdate(installedVersion: String, manual: Boolean): Api.Update? {
         throw UnsupportedOperationException("use ApiClient directly")
     }
 }

@@ -141,7 +141,8 @@ class ApiServer(root: Path = Path(".")) : Api {
         )
     }
     
-    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
+    override suspend fun checkUpdate(installedVersion: String, manual: Boolean): Api.Update? {
+        database.usageStatsDao().insert(installedVersion, manual)
         val release = fetchLatestRelease() ?: return null
         if (Comparators.VersionComparator.compare(installedVersion, release.tagName) >= 0) return null
         return Api.Update(version = release.tagName, url = release.htmlUrl)

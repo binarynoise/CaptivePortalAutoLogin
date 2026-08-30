@@ -14,11 +14,12 @@ import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION
 import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_3_4
 import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_4_5
 import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_5_6
+import de.binarynoise.captiveportalautologin.server.database.migration.MIGRATION_6_7
 import de.binarynoise.logger.Logger.log
 
 @Database(
-    entities = [ErrorEntity::class, SuccessEntity::class],
-    version = 6,
+    entities = [ErrorEntity::class, SuccessEntity::class, UsageStatsEntity::class],
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(DatabaseTypeConverters::class)
@@ -26,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun errorDao(): ErrorDao
     abstract fun successDao(): SuccessDao
     abstract fun SSIDDao(): SSIDDao
+    abstract fun usageStatsDao(): UsageStatsDao
     
     companion object {
         fun createDatabase(root: Path): AppDatabase {
@@ -50,7 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
             return Room.databaseBuilder<AppDatabase>(dbFile.absolutePath)
                 .setDriver(BundledSQLiteDriver())
                 .setJournalMode(JournalMode.TRUNCATE)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .addCallback(object : Callback() {
                     override fun onCreate(connection: SQLiteConnection) {
                         log("AppDatabase created")

@@ -63,5 +63,6 @@ interface Api {
     
     suspend fun checkUpdate(
         installedVersion: String,
+        manual: Boolean,
     ): Update?
 }

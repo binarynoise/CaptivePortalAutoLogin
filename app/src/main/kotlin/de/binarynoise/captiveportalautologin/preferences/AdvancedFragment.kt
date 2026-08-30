@@ -359,7 +359,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                                 
                                 val update = try {
                                     val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
-                                    apiClient.checkUpdate(BuildConfig.VERSION_NAME)
+                                    apiClient.checkUpdate(BuildConfig.VERSION_NAME, true)
                                 } catch (e: Exception) {
                                     log("update check failed", e)
                                     return@async getString(R.string.preference_update_check_update_check_failed)

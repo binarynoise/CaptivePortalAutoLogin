@@ -11,6 +11,7 @@ import de.binarynoise.util.json.prettyPrinter
 import de.binarynoise.util.json.serializer
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.get
+import de.binarynoise.util.okhttp.postForm
 import de.binarynoise.util.okhttp.postJson
 import de.binarynoise.util.okhttp.putJson
 import de.binarynoise.util.okhttp.putPlain
@@ -85,12 +86,13 @@ class ApiClient(private val base: HttpUrl, private val signature: PublicKey?) : 
         )
     }
     
-    override suspend fun checkUpdate(installedVersion: String): Api.Update? {
-        val response = httpClient.get(
+    override suspend fun checkUpdate(installedVersion: String, manual: Boolean): Api.Update? {
+        val response = httpClient.postForm(
             base,
             "checkUpdate",
-            queryParameters = mapOf(
+            form = mapOf(
                 "installedVersion" to installedVersion,
+                "manual" to manual.toString(),
             ),
         )
         response.checkSuccess()
