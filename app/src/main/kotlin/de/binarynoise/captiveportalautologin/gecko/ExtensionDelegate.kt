@@ -280,6 +280,8 @@ class ExtensionDelegate(
             if (!timingsCache.containsKey(requestIdWithRedirectCount)) timingsCache[requestIdWithRedirectCount] =
                 Timings()
             fun getTimingSinceStart(timeStamp: Double): Int {
+                if (startTimeCache[requestIdWithRedirectCount] == null) startTimeCache[requestIdWithRedirectCount] =
+                    timeStamp
                 return (timeStamp - startTimeCache[requestIdWithRedirectCount]!!).toInt()
             }
             
@@ -292,6 +294,8 @@ class ExtensionDelegate(
                 }
                 "onBeforeSendHeaders" -> {
                     val onBeforeSendHeadersDetails = OnBeforeSendHeadersDetails.fromJson(details)
+                    if (startTimeCache[requestIdWithRedirectCount] == null) startTimeCache[requestIdWithRedirectCount] =
+                        onBeforeSendHeadersDetails.timeStamp
                     requestCache[requestIdWithRedirectCount]?.handleRequestHeaders(onBeforeSendHeadersDetails.requestHeaders)
                 }
                 "onSendHeaders" -> {
