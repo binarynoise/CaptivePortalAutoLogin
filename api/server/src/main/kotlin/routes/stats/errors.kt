@@ -35,7 +35,8 @@ internal fun Route.errorRoutes() {
             ColumnDefinition("stackTrace", "Stack Trace", Comparators.RegularComparator),
             ColumnDefinition("harName", "Har Name", Comparators.RegularComparator),
         )
-        val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "message")
+        val defaultGroups: Set<String> = setOf("version", "timestamp", "ssid", "domain", "message", "solver")
+        val defaultSort = "version-desc"
         
         val actionColumnDefinitions = dataFrameOf(
             ActionColumnDefinition("download", "Download Error HAR", listOf("harName"))
@@ -90,6 +91,7 @@ internal fun Route.errorRoutes() {
             defaultGroups = defaultGroups,
             defaultPreFilter = "no_noise",
             actionColumnDefinitions = actionColumnDefinitions,
+            defaultSort = defaultSort,
         )
         
         call.respond(

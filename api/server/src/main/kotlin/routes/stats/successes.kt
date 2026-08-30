@@ -31,7 +31,8 @@ internal fun Route.successRoutes() {
             ColumnDefinition("url", "URL", Comparators.RegularComparator),
             ColumnDefinition("domain", "Domain", Comparators.DomainComparator),
         )
-        val defaultGroups: Set<String> = setOf("year", "month", "majorVersion", "solver")
+        val defaultGroups: Set<String> = setOf("version", "timestamp", "ssid", "solver", "url", "domain")
+        val defaultSort = "version-desc"
         
         val preFilterDefinitions: List<PreFilterDefinition> = listOf(
             PreFilterDefinition("all", "All") {
@@ -44,6 +45,7 @@ internal fun Route.successRoutes() {
             columnDefinitions,
             preFilterDefinitions,
             defaultGroups = defaultGroups,
+            defaultSort = defaultSort,
         )
         
         call.respond(
