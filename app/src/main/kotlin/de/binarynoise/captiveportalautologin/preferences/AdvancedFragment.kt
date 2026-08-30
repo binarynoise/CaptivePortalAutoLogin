@@ -350,6 +350,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 onPreferenceClickListener = {
                     lifecycleScope.launch {
                         summary = getString(R.string.preference_update_check_checking)
+                        isEnabled = false
                         summary = coroutineScope {
                             val deferred = async(Dispatchers.IO) {
                                 val apiBaseFromPreference by SharedPreferences.api_base
@@ -378,6 +379,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             delay(2.seconds)
                             deferred.await()
                         }
+                        isEnabled = true
                     }
                     true
                 }
