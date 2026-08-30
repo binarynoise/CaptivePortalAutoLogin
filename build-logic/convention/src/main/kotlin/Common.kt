@@ -174,6 +174,7 @@ private class CommonAndroid : Plugin<Project> {
                     disable += "OldTargetApi"
                     disable += "MissingApplicationIcon"
                     disable += "UnusedAttribute"
+                    disable += "ObsoleteSdkInt"
                 }
                 
                 compileOptions {
