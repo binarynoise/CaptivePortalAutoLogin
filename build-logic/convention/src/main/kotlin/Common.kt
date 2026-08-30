@@ -109,7 +109,7 @@ class CommonAndroidApplication : Plugin<Project> {
         val workingTreeClean = project.getWorkingTreeClean()
         val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         
-        if (commitCount <= 1) {
+        if (commitCount <= 1 && !System.getenv("CI").equals("true")) {
             throw InvalidUserDataException("commit count is invalid: $commitCount")
         }
         
