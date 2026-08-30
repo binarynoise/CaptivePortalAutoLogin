@@ -197,7 +197,7 @@ suspend fun generateTableData(
             }
         }
         TableRow(
-            columns = columnDefinitions.names.map { row[it].toString() },
+            columns = columnDefinitions.names.map { row[it] ?: "" },
             url = "?" + url.encodedQuery,
             actionColumns = visibleActionColumnNames.map { row[it] as ActionColumnAction },
         )
@@ -291,7 +291,7 @@ data class TableHeaderColumn(
 }
 
 data class TableRow(
-    val columns: List<String>,
+    val columns: List<Any>,
     val url: String,
     val actionColumns: List<ActionColumnAction> = emptyList(),
 ) : MappableData
@@ -301,7 +301,7 @@ interface MappableData {
         this::class.memberProperties.filterIsInstance<KProperty1<Any, *>>().associate { property ->
             val value = property.get(this)
             property.name to when (value) {
-                is List<*> -> value.map { if (it is MappableData) it.toMap() else it }
+                is Iterable<*> -> value.map { if (it is MappableData) it.toMap() else it }
                 is MappableData -> value.toMap()
                 else -> value
             }

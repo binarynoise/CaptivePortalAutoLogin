@@ -33,9 +33,9 @@ val harFileNameRegex =
 fun parseHarFileName(name: String): Triple<String, String, String>? {
     val match = harFileNameRegex.matchEntire(name.trim()) ?: return null
     
-    val ssid = match.groups["ssid"]?.value ?: ""
-    val domain = match.groups["domain"]?.value ?: ""
-    val timestamp = match.groups["timestamp"]?.value ?: ""
+    val ssid = match.groups["ssid"]?.value.orEmpty()
+    val domain = match.groups["domain"]?.value.orEmpty()
+    val timestamp = match.groups["timestamp"]?.value.orEmpty()
     
     return Triple(ssid, domain, timestamp)
 }

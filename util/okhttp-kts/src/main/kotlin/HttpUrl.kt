@@ -102,7 +102,7 @@ fun HttpUrl.relativeTo(base: HttpUrl): HttpUrl {
 
 fun HttpUrl.queryEntries(): Map<String, String> {
     return (0 until this.querySize).associate {
-        this.queryParameterName(it) to (this.queryParameterValue(it) ?: "")
+        this.queryParameterName(it) to (this.queryParameterValue(it).orEmpty())
     }
 }
 

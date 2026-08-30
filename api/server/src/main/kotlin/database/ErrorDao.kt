@@ -58,9 +58,9 @@ interface ErrorDao {
     suspend fun getSimilarError(
         version: String,
         ssid: String,
-        url: String,
-        message: String,
-        solver: String,
+        url: String?,
+        message: String?,
+        solver: String?,
         timestamp: Instant,
         timestampDelta: Duration = Duration.ZERO,
     ): ErrorEntity?

@@ -244,8 +244,8 @@ class Liberator(
                 } else throwable.message
                 return LiberationResult.Error(
                     response.requestUrl.toString(),
-                    message.orEmpty(),
-                    solvers.joinToString { it::class.simpleName.orEmpty() },
+                    message,
+                    solvers.joinToString { it::class.simpleName!! },
                     throwable,
                     har,
                 )
@@ -254,10 +254,10 @@ class Liberator(
             }
             return LiberationResult.Success(
                 response.requestUrl.toString(),
-                solvers.joinToString { it::class.simpleName.orEmpty() },
+                solvers.joinToString { it::class.simpleName!! },
             )
         } catch (e: Exception) {
-            return LiberationResult.Error(response.requestUrl.toString(), e.message.orEmpty(), "", e, har)
+            return LiberationResult.Error(response.requestUrl.toString(), e.message, null, e, har)
         }
     }
     
@@ -301,8 +301,8 @@ class Liberator(
         data class Timeout(val url: String) : LiberationResult()
         data class Error(
             val url: String,
-            val message: String,
-            val solvers: String,
+            val message: String?,
+            val solvers: String?,
             val exception: Throwable,
             val har: HAR,
         ) : LiberationResult()

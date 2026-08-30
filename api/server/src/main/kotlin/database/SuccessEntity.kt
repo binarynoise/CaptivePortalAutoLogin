@@ -55,8 +55,8 @@ class ExtendedSuccessEntity(
     url: String,
     solver: String,
 ) : SuccessEntity(id, version, timestamp, ssid, url, solver) {
-    val domain: String = url.getUrlDomain()
-    val majorVersion: Int = version.getMajorVersion()
+    val domain: String? = url.getUrlDomain()
+    val majorVersion: Int? = version.getMajorVersion()
     private val localDateTime = timestamp.toLocalDateTime(UTC)
     val year: Int = localDateTime.year
     val month: Int = localDateTime.month.number

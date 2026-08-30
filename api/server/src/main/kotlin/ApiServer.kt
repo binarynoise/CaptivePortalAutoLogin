@@ -79,7 +79,8 @@ class ApiServer(root: Path = Path(".")) : Api {
             val timestamp = Instant.fromEpochMilliseconds(error.timestamp)
             
             val har: HAR? = error.har
-            val harName = if (har == null) {
+            val url = error.url
+            val harName = if (har == null || url == null) {
                 null
             } else with(error) {
                 val host = Url(url).host
@@ -95,12 +96,12 @@ class ApiServer(root: Path = Path(".")) : Api {
                     ssid = error.ssid,
                     url = error.url,
                     message = error.message,
-                    solver = error.solver.orEmpty(),
-                    stackTrace = error.stackTrace.orEmpty(),
+                    solver = error.solver,
+                    stackTrace = error.stackTrace,
                     harName = harName,
                 )
                 val replacedError = database.errorDao().upsertSimilarError(errorEntity, feedbackErrorDelta)
-                if (replacedError != null && replacedError.harName != null) {
+                if (replacedError?.harName != null) {
                     harDBError.delete(replacedError.harName)
                 }
             }
@@ -114,7 +115,7 @@ class ApiServer(root: Path = Path(".")) : Api {
                     timestamp = Instant.fromEpochMilliseconds(success.timestamp),
                     ssid = success.ssid,
                     url = success.url,
-                    solver = success.solver.orEmpty(),
+                    solver = success.solver,
                 )
                 database.successDao().upsertSimilarSuccess(successEntity, feedbackSuccessDelta)
             }

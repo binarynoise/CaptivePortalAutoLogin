@@ -84,7 +84,7 @@ fun PostData(body: OkRequestBody?): PostData? {
         else -> {
             log("> Content-Type: ${body.contentType()} (${body.contentLength()} bytes)")
             PostData(
-                mimeType = body.contentType()?.toString() ?: "",
+                mimeType = body.contentType()?.toString().orEmpty(),
                 params = null,
                 text = body.readText(),
             )
@@ -121,7 +121,7 @@ fun Content(response: OkResponse): Content {
     
     return Content(
         size = text.length.toLong(),
-        mimeType = contentType ?: "",
+        mimeType = contentType.orEmpty(),
         text = text,
         encoding = "",
     )
@@ -150,7 +150,7 @@ fun parseResponse(response: OkResponse, cookies: MutableSet<OkCookie>): Response
         cookies = newCookies.map(::Cookie).toMutableSet(),
         headers = response.headers.map(::Header).toMutableSet().onEach { log("< ${it.name}: ${it.value}") },
         content = Content(response),
-        redirectURL = response.getLocation() ?: "",
+        redirectURL = response.getLocation().orEmpty(),
         headersSize = 0,
         bodySize = 0,
     )

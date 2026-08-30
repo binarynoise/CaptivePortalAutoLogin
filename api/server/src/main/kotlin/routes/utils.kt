@@ -30,7 +30,7 @@ internal fun missingParameter(name: String): Nothing {
 }
 
 internal fun RoutingNode.toLogString(): String {
-    val parentLogString = parent?.toLogString() ?: ""
+    val parentLogString = parent?.toLogString().orEmpty()
     return when (val routeSelector = selector) {
         is HttpMethodRouteSelector -> "${routeSelector.method} $parentLogString"
         is TrailingSlashRouteSelector -> "$parentLogString|/"

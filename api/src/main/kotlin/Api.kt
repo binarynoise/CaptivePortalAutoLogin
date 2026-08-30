@@ -26,9 +26,8 @@ interface Api {
             val version: String,
             val timestamp: Long,
             val ssid: String,
-            val url: String,
-            val message: String,
-            // TODO: eventually remove nullable
+            val url: String?,
+            val message: String?,
             val solver: String?,
             val stackTrace: String?,
             val har: HAR?,
@@ -40,8 +39,7 @@ interface Api {
             val timestamp: Long,
             val ssid: String,
             val url: String,
-            // TODO: eventually remove nullable
-            val solver: String?,
+            val solver: String,
         )
         
         fun reportError(error: Error)

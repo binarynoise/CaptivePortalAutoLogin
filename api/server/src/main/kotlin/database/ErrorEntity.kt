@@ -15,10 +15,10 @@ open class ErrorEntity(
     val version: String,
     val timestamp: Instant,
     val ssid: String,
-    val url: String,
-    val message: String,
-    val solver: String,
-    val stackTrace: String,
+    val url: String?,
+    val message: String?,
+    val solver: String?,
+    val stackTrace: String?,
     val harName: String?,
 ) {
     fun toExtendedErrorEntity() = ExtendedErrorEntity(
@@ -38,10 +38,10 @@ open class ErrorEntity(
         version: String = this.version,
         timestamp: Instant = this.timestamp,
         ssid: String = this.ssid,
-        url: String = this.url,
-        message: String = this.message,
-        solver: String = this.solver,
-        stackTrace: String = this.stackTrace,
+        url: String? = this.url,
+        message: String? = this.message,
+        solver: String? = this.solver,
+        stackTrace: String? = this.stackTrace,
         harName: String? = this.harName,
     ): ErrorEntity {
         return ErrorEntity(
@@ -64,14 +64,14 @@ class ExtendedErrorEntity(
     version: String,
     timestamp: Instant,
     ssid: String,
-    url: String,
-    message: String,
-    solver: String,
-    stackTrace: String,
+    url: String?,
+    message: String?,
+    solver: String?,
+    stackTrace: String?,
     harName: String?,
 ) : ErrorEntity(id, version, timestamp, ssid, url, message, solver, stackTrace, harName) {
-    val domain = url.getUrlDomain()
-    val majorVersion = version.getMajorVersion()
+    val domain: String? = url?.getUrlDomain()
+    val majorVersion: Int = version.getMajorVersion()
     private val localDateTime = timestamp.toLocalDateTime(UTC)
     val year: Int = localDateTime.year
     val month: Int = localDateTime.month.number

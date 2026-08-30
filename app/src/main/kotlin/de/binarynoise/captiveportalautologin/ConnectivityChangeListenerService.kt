@@ -456,8 +456,8 @@ class ConnectivityChangeListenerService : Service() {
                             ssid = ssid,
                             url = liberationResult.url,
                             message = "unknown portal",
-                            solver = "",
-                            stackTrace = "",
+                            solver = null,
+                            stackTrace = null,
                             har = null,
                         )
                     )
@@ -478,7 +478,7 @@ class ConnectivityChangeListenerService : Service() {
                             url = liberationResult.url,
                             message = "still captured",
                             solver = liberationResult.solvers,
-                            stackTrace = "",
+                            stackTrace = null,
                             har = liberationResult.har,
                         )
                     )
@@ -509,9 +509,9 @@ class ConnectivityChangeListenerService : Service() {
                     version = BuildConfig.VERSION_NAME,
                     timestamp = System.currentTimeMillis(),
                     ssid = ssid,
-                    url = "",
+                    url = null,
                     message = message,
-                    solver = "",
+                    solver = null,
                     stackTrace = e.stackTraceToString(),
                     har = null,
                 )
