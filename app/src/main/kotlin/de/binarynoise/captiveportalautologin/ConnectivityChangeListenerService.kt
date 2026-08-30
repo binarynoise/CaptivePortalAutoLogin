@@ -169,7 +169,7 @@ class ConnectivityChangeListenerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
             contentResolver.registerContentObserver(uri, false, nonPersistentMacRandomizationSettingsObserver)
-            updateNetworkSuggestions()
+            updateNetworkSuggestions(onAppDisallowedCallback = { SharedPreferences.network_suggestions.set(false) })
         }
         
         log("started")

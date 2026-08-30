@@ -48,10 +48,11 @@ inline fun <T> tryOrNull(block: () -> T): T? {
  * @param block The block to execute.
  * @return The result of the block or default if an exception was thrown.
  */
-inline fun <T> tryOrDefault(default: T, block: () -> T): T {
+inline fun <T> tryOrDefault(default: T, log: Boolean = false, block: () -> T): T {
     try {
         return block()
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        if (log) log("exception in tryOrDefault", e)
         return default
     }
 }

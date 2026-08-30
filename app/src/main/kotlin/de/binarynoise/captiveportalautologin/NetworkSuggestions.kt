@@ -75,11 +75,15 @@ val supportedSSIDSuggestions
 
 val wifiManager by lazy { ContextCompat.getSystemService(applicationContext, WifiManager::class.java)!! }
 
-val isMacRandomizationSupported by lazy { tryOrDefault(true) { wifiManager.invokeHiddenMethod("isConnectedMacRandomizationSupported") as Boolean } }
+val isMacRandomizationSupported by lazy {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) tryOrDefault(false) {
+        wifiManager.invokeHiddenMethod("isConnectedMacRandomizationSupported") as Boolean
+    } else false
+}
 
 const val SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY = "non_persistent_mac_randomization_force_enabled"
 val isMacRandomizationForceEnabled
-    get() = Settings.Global.getInt(
+    get() = isMacRandomizationSupported && Settings.Global.getInt(
         applicationContext.contentResolver,
         SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY,
         0,
@@ -144,12 +148,16 @@ fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context = applicationContex
 
 val NetworkSuggestionOnPreferenceChangeListener: Preference.OnPreferenceChangeListener = { preference, newValue ->
     require(preference is TwoStatePreference) { "preference is not TwoStatePreference" }
+    val onAppDisallowedCallback = {
+        preference.isChecked = false
+        preference.isEnabled = false
+    }
     if (newValue as Boolean) {
         enqueueUpdateNetworkSuggestionSSIDsWork(preference.context, expedited = true)
-        sendNetworkSuggestions()
+        sendNetworkSuggestions(onAppDisallowedCallback = onAppDisallowedCallback)
     } else {
         dequeueUpdateNetworkSuggestionSSIDsWork(preference.context)
-        removeNetworkSuggestions()
+        removeNetworkSuggestions(onAppDisallowedCallback = onAppDisallowedCallback)
     }
 }
 
@@ -162,7 +170,8 @@ fun getNetworkSuggestions(): List<WifiNetworkSuggestion> {
 
 fun removeNetworkSuggestions(
     suggestions: List<WifiNetworkSuggestion> = listOf(),
-    action: Int = WifiManager.ACTION_REMOVE_SUGGESTION_LINGER,
+    @SuppressLint("InlinedApi") action: Int = WifiManager.ACTION_REMOVE_SUGGESTION_LINGER,
+    onAppDisallowedCallback: () -> Unit = {},
 ): Boolean {
     val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         wifiManager.removeNetworkSuggestions(suggestions, action)
@@ -170,13 +179,18 @@ fun removeNetworkSuggestions(
         wifiManager.removeNetworkSuggestions(suggestions)
     }
     log("removeNetworkSuggestions Status = ${status.toNetworkSuggestionStatusString()}")
+    if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED) onAppDisallowedCallback()
     return status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
 }
 
-fun sendNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
+fun sendNetworkSuggestions(
+    suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions(),
+    onAppDisallowedCallback: () -> Unit = {},
+): Boolean {
     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) removeNetworkSuggestions()
     val status = wifiManager.addNetworkSuggestions(suggestions)
     log("addNetworkSuggestions Status = ${status.toNetworkSuggestionStatusString()}")
+    if (status == WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED) onAppDisallowedCallback()
     return status == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
 }
 
@@ -186,12 +200,18 @@ fun Number.toNetworkSuggestionStatusString(): String {
     }?.name?.removePrefix("STATUS_NETWORK_SUGGESTIONS_") ?: "UNKNOWN"
 }
 
-fun updateNetworkSuggestions(suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions()): Boolean {
+fun updateNetworkSuggestions(
+    suggestions: List<WifiNetworkSuggestion> = getNetworkSuggestions(),
+    onAppDisallowedCallback: () -> Unit = {},
+): Boolean {
     if (!SharedPreferences.network_suggestions.get()) return true
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        removeNetworkSuggestions(wifiManager.networkSuggestions - suggestions)
+        removeNetworkSuggestions(
+            wifiManager.networkSuggestions - suggestions,
+            onAppDisallowedCallback = onAppDisallowedCallback,
+        )
     }
-    return sendNetworkSuggestions(suggestions)
+    return sendNetworkSuggestions(suggestions, onAppDisallowedCallback = onAppDisallowedCallback)
 }
 
 fun WifiNetworkSuggestion.getWifiConfiguration(): WifiConfiguration {
