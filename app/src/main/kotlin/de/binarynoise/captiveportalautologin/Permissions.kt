@@ -99,7 +99,15 @@ object Permissions : Set<Permission> by allPermissions {
         R.string.preference_permission_location_description,
         { context ->
             val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            locationManager.isLocationEnabled
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                locationManager.isLocationEnabled
+            } else {
+                LocationManager::class.java.declaredFields.filter { it.name.endsWith("_PROVIDER") }
+                    .map { it.get(null) as String }
+                    .map { locationManager.isProviderEnabled(it) }
+                    .any { it } // 
+                    && Settings.Secure.getInt(context.contentResolver, "location_mode", 0) > 0
+            }
         },
         { componentActivity ->
             componentActivity.startActivity { action = Settings.ACTION_LOCATION_SOURCE_SETTINGS }
