@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package de.binarynoise.liberator
 
 import java.lang.reflect.Field
@@ -33,6 +35,7 @@ fun Field.makeAccessible(): Field = apply { isAccessible = true }
  * @return The result of the block or null if an exception was thrown.
  */
 inline fun <T> tryOrNull(block: () -> T): T? {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
     try {
         return block()
     } catch (_: Exception) {
@@ -49,6 +52,7 @@ inline fun <T> tryOrNull(block: () -> T): T? {
  * @return The result of the block or default if an exception was thrown.
  */
 inline fun <T> tryOrDefault(default: T, log: Boolean = false, block: () -> T): T {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
     try {
         return block()
     } catch (e: Exception) {
@@ -62,7 +66,6 @@ inline fun <T> tryOrDefault(default: T, log: Boolean = false, block: () -> T): T
  *
  * @param block The block to execute.
  */
-@OptIn(ExperimentalContracts::class)
 inline fun <T> tryOrIgnore(block: () -> T) {
     contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
     try {
@@ -77,6 +80,7 @@ inline fun <T> tryOrIgnore(block: () -> T) {
  * @param block The block to execute.
  */
 inline fun tryOrLog(block: () -> Unit) {
+    contract { callsInPlace(block, InvocationKind.AT_MOST_ONCE) }
     try {
         block()
     } catch (e: Exception) {
