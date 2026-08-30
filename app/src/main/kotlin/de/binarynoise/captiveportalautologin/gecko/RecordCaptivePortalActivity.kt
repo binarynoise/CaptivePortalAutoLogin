@@ -181,6 +181,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         if (captivePortal != null //
             && Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE // from V onwards this request is silently ignored
             && !Build.ID.startsWith("AP2A") // only QPR3 throws a silent server-side SecurityException
+            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R // before R the method didn't exist yet
         ) {
             captivePortal!!.invokeHiddenMethod("reevaluateNetwork")
         } else {
