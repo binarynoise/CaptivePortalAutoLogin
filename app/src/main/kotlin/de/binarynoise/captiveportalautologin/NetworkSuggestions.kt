@@ -132,7 +132,7 @@ fun enqueueUpdateNetworkSuggestionSSIDsWork(
         log("enqueue expedited ssid work")
         val workRequest = OneTimeWorkRequestBuilder<UpdateNetworkSuggestionSSIDsWorker>().apply {
             setConstraints(constraints)
-            setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
         }.build()
         workManager.enqueue(workRequest)
     }

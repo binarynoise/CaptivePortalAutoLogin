@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -91,7 +92,7 @@ fun enqueueUpdateCheckWork(
         val workRequest = OneTimeWorkRequest.Builder(UpdateCheckerWorker::class.java).apply {
             setConstraints(constraints)
             addTag(UpdateCheckerWorker::class.java.name)
-            setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
         }.build()
         workManager.enqueue(workRequest)
     } else {

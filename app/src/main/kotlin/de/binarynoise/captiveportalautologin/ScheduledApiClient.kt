@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import android.content.Context
+import android.os.Build
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -226,7 +227,7 @@ fun enqueueStatsUploadWork(
             val workRequest = OneTimeWorkRequest.Builder(it).apply {
                 setConstraints(constraints)
                 addTag(StatsWorker::class.java.name)
-                setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
                 setInputData(inputData)
             }.build()
             workManager.enqueue(workRequest)
