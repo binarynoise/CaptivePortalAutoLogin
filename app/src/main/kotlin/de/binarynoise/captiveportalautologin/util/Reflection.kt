@@ -17,7 +17,7 @@ fun Class<*>.getHiddenStaticField(fieldName: String): Field {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         HiddenApiBypass.getStaticFields(this)
     } else {
-        (this.fields + this.declaredFields).filter { Modifier.isStatic(it.modifiers) }
+        (this.fields + this.declaredFields).toSet().filter { Modifier.isStatic(it.modifiers) }
     }.single { it.name == fieldName }
 }
 
