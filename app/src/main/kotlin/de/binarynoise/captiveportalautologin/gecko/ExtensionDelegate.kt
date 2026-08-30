@@ -111,6 +111,7 @@ class ExtensionDelegate(
     // PortDelegate
     override fun onDisconnect(port: WebExtension.Port) {
         log("onDisconnect: ${port.hashCode().toHexString(HexFormat.UpperCase)}")
+        port.setDelegate(null)
         this.port = null
     }
     
