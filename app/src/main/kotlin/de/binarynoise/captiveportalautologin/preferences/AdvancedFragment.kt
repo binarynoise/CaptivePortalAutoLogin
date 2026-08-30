@@ -332,7 +332,9 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             summary = withContext(Dispatchers.IO) {
                                 val client = OkHttpClient()
                                 try {
-                                    client.get(null, SharedPreferences.api_base.get()).readText()
+                                    val apiBaseFromPreference by SharedPreferences.api_base
+                                    val apiBaseUrl = apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE
+                                    client.get(null, apiBaseUrl).readText()
                                 } catch (e: Exception) {
                                     e.message
                                 }
