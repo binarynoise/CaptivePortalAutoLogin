@@ -41,6 +41,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Error
 import de.binarynoise.captiveportalautologin.api.Api.Liberator.Success
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
