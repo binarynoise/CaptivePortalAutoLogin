@@ -12,6 +12,7 @@ import buildlogic.libs
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -107,6 +108,10 @@ class CommonAndroidApplication : Plugin<Project> {
         val commitHash = project.getCommitHash()
         val workingTreeClean = project.getWorkingTreeClean()
         val date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+        
+        if (commitCount <= 1) {
+            throw InvalidUserDataException("commit count is invalid: $commitCount")
+        }
         
         defaultConfig {
             versionCode = commitCount

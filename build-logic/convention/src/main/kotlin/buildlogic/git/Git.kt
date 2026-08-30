@@ -2,6 +2,7 @@ package buildlogic.git
 
 import java.io.File
 import com.android.build.gradle.BaseExtension
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOutput
@@ -94,20 +95,38 @@ fun Project.getPortalLiberatorCommitterDates(): Map<String, Long> {
     }
 }
 
-fun Project.getCommitCount() = try {
-    getCommitCountExec().standardOutput.asText.get().trim().toInt()
-} catch (e: Exception) {
-    logger.error("Failed to get commit count", e)
-    0
+private fun Project.ensureInGitRepository() {
+    if (rootDir.resolve(".git").exists().not()) {
+        throw InvalidUserDataException("Not in a git repository")
+    }
 }
 
-fun Project.getCommitHash() = try {
-    getCommitHashExec().standardOutput.asText.get().trim()
-} catch (e: Exception) {
-    logger.error("Failed to get commit hash", e)
-    ""
+fun Project.getCommitCount(): Int {
+    ensureInGitRepository()
+    return try {
+        getCommitCountExec().standardOutput.asText.get().trim().toInt()
+    } catch (e: Exception) {
+        logger.error("Failed to get commit count", e)
+        0
+    }
 }
 
-fun Project.getWorkingTreeClean() = getWorkingTreeCleanExec().result.orNull?.exitValue == 0
+fun Project.getCommitHash(): String {
+    ensureInGitRepository()
+    return try {
+        getCommitHashExec().standardOutput.asText.get().trim()
+    } catch (e: Exception) {
+        logger.error("Failed to get commit hash", e)
+        ""
+    }
+}
 
-fun Project.getAllCommitsPushed() = getAllCommitsPushedExec().result.orNull?.exitValue == 0
+fun Project.getWorkingTreeClean(): Boolean {
+    ensureInGitRepository()
+    return getWorkingTreeCleanExec().result.orNull?.exitValue == 0
+}
+
+fun Project.getAllCommitsPushed(): Boolean {
+    ensureInGitRepository()
+    return getAllCommitsPushedExec().result.orNull?.exitValue == 0
+}
