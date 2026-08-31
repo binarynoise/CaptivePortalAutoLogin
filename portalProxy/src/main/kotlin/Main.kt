@@ -10,6 +10,7 @@ import de.binarynoise.captiveportalautologin.portalproxy.proxy.forwardConnect
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.proxyPort
 import de.binarynoise.logger.Logger
 import de.binarynoise.logger.Logger.log
+import io.netty.handler.codec.DecoderException
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServerRequest
@@ -83,7 +84,11 @@ class MainVerticle : CoroutineVerticle() {
         }
         
         val exceptionHandler = { t: Throwable ->
-            log("Unhandled exception during connection", t)
+            if (t is DecoderException) {
+                log("Decoder error: ${t.message}")
+            } else {
+                log("Unhandled exception during connection", t)
+            }
         }
         
         val proxyServer = vertx.createHttpServer()
