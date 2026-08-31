@@ -130,4 +130,6 @@
     <string name="preference_update_check_update_available">Update available: %1$s</string>
     <string name="preference_update_check_update_check_failed">Update check failed</string>
     <string name="preference_update_check_checking">Checking…</string>
+    <string name="error_api_base_url_not_set">Error: API base URL not set</string>
+    <string name="preference_api_base_url_url_must_end_with_api">URL must end with /api/</string>
 </resources>

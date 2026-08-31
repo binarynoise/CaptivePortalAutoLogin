@@ -13,6 +13,7 @@ import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalTestURL
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 val SystemPortalTestUrl = PortalTestURL(
@@ -49,7 +50,15 @@ object SharedPreferences {
     )
     
     val liberator_send_stats: PreferencePropertyDelegate<Boolean> by PreferenceProperty(true)
-    val api_base: PreferencePropertyDelegate<String> by PreferenceProperty("")
+    
+    val api_base_raw: PreferencePropertyDelegate<String> by PreferenceProperty("")
+    val api_base_url: TypeConversionPreferencePropertyDelegate<HttpUrl?, String> =
+        TypeConversionPreferencePropertyDelegate(
+            { raw -> if (BuildConfig.DEBUG && raw.isNotEmpty()) raw.toHttpUrlOrNull() else BuildConfig.API_BASE.toHttpUrlOrNull() },
+            { url -> url?.toString() ?: "" },
+            api_base_raw,
+        )
+    
     val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
     val network_suggestions_mac_randomization: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
     
@@ -159,7 +168,7 @@ class MappedPreferencePropertyDelegate<V : Any>(
     }
 }
 
-class TypeConversionPreferencePropertyDelegate<V : Any, W : Any>(
+class TypeConversionPreferencePropertyDelegate<V : Any?, W : Any>(
     val unwrap: (W) -> V,
     val wrap: (V) -> W,
     val wrapped: PreferencePropertyDelegate<W>,
@@ -187,4 +196,5 @@ class TypeConversionPreferencePropertyDelegate<V : Any, W : Any>(
     }
     
     fun get(): V = getValue(null, null)
+    fun set(newValue: V) = setValue(null, null, newValue)
 }

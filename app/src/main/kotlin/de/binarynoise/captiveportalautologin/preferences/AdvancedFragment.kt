@@ -53,7 +53,6 @@ import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import org.mozilla.gecko.util.ThreadUtils.runOnUiThread
 
@@ -308,19 +307,21 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         hint = API_BASE,
                     ) { editText, s ->
                         if (s.isBlank()) {
-                            SharedPreferences.api_base.set("")
+                            SharedPreferences.api_base_url.set(null)
                             editText.error = null
                         } else try {
                             val url = s.trim().toHttpUrl()
-                            require(url.pathSegments.takeLast(2) == listOf("api", "")) { "URL must end with /api/" }
-                            SharedPreferences.api_base.set(url.toString())
+                            require(url.pathSegments.takeLast(2) == listOf("api", "")) {
+                                getString(R.string.preference_api_base_url_url_must_end_with_api)
+                            }
+                            SharedPreferences.api_base_url.set(url)
                             editText.error = null
                         } catch (e: IllegalArgumentException) {
-                            editText.error = e.message ?: getString(R.string.invalid_url)
+                            editText.error = e.localizedMessage ?: e.message ?: getString(R.string.invalid_url)
                         }
                     },
                 ) {
-                    key = SharedPreferences.api_base.sharedPreferencesKey
+                    key = SharedPreferences.api_base_url.sharedPreferencesKey
                     titleRes = R.string.preference_api_base
                 }
                 
@@ -332,9 +333,9 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             summary = withContext(Dispatchers.IO) {
                                 val client = OkHttpClient()
                                 try {
-                                    val apiBaseFromPreference by SharedPreferences.api_base
-                                    val apiBaseUrl = apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE
-                                    client.get(null, apiBaseUrl).readText()
+                                    val apiBaseUrl = SharedPreferences.api_base_url.get()
+                                    if (apiBaseUrl == null) getString(R.string.error_api_base_url_not_set)
+                                    else client.get(apiBaseUrl, null).readText()
                                 } catch (e: Exception) {
                                     e.message
                                 }
@@ -343,8 +344,6 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         true
                     }
                 }
-            } else {
-                SharedPreferences.api_base.set("")
             }
             
             addPreference(Preference(ctx)) {
@@ -355,10 +354,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         isEnabled = false
                         summary = coroutineScope {
                             val deferred = async(Dispatchers.IO) {
-                                val apiBaseFromPreference by SharedPreferences.api_base
-                                val apiBaseUrl =
-                                    (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
-                                if (apiBaseUrl == null) return@async "Error: apiBaseUrl missing"
+                                val apiBaseUrl = SharedPreferences.api_base_url.get()
+                                    ?: return@async getString(R.string.error_api_base_url_not_set)
                                 
                                 val update = try {
                                     val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())

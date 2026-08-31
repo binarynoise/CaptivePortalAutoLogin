@@ -18,18 +18,17 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.api.Api
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.englishResources
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.HttpStatusCodeException
 import de.binarynoise.util.okhttp.parseRetryAfterOrNull
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats")
 private val jsonDB = JsonDB(localCacheRoot)
@@ -166,9 +165,11 @@ abstract class StatsWorker<T : Any>(
             return Result.retry()
         }
         
-        val apiBaseFromPreference by SharedPreferences.api_base
-        val apiBaseUrl =
-            (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull() ?: return Result.failure()
+        val apiBaseUrl = SharedPreferences.api_base_url.get()
+        if (apiBaseUrl == null) {
+            log(applicationContext.englishResources.getString(R.string.error_api_base_url_not_set))
+            return Result.failure()
+        }
         val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
         
         var shouldRetry = false

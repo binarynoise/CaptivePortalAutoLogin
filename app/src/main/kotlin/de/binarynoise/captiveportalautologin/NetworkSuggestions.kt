@@ -23,10 +23,10 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.englishResources
 import de.binarynoise.captiveportalautologin.util.getHiddenInstanceField
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
@@ -36,7 +36,6 @@ import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 private val ssidJsonDB = FixedKeyJsonDB(applicationContext.noBackupFilesDir.toPath(), "NetworkSuggestionSSIDs")
 var ssidDb: List<String>?
@@ -98,9 +97,11 @@ class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: 
             return Result.success()
         }
         
-        val apiBaseFromPreference by SharedPreferences.api_base
-        val apiBaseUrl = (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull()
-        if (apiBaseUrl == null) return Result.failure()
+        val apiBaseUrl = SharedPreferences.api_base_url.get()
+        if (apiBaseUrl == null) {
+            log(applicationContext.englishResources.getString(R.string.error_api_base_url_not_set))
+            return Result.failure()
+        }
         val apiClient = ApiClient(apiBaseUrl, appContext.getSignaturePublicKey())
         
         log("obtaining ssids from api")

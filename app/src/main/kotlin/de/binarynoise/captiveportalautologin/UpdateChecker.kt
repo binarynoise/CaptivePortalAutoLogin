@@ -19,13 +19,12 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import de.binarynoise.captiveportalautologin.BuildConfig.API_BASE
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
+import de.binarynoise.captiveportalautologin.util.englishResources
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.logger.Logger.log
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class UpdateCheckerWorker(
     appContext: Context,
@@ -35,9 +34,11 @@ class UpdateCheckerWorker(
     workerParams,
 ) {
     override suspend fun doWork(): Result = try {
-        val apiBaseFromPreference by SharedPreferences.api_base
-        val apiBaseUrl =
-            (apiBaseFromPreference.takeUnless { it == "" } ?: API_BASE).toHttpUrlOrNull() ?: return Result.failure()
+        val apiBaseUrl = SharedPreferences.api_base_url.get()
+        if (apiBaseUrl == null) {
+            log(applicationContext.englishResources.getString(R.string.error_api_base_url_not_set))
+            return Result.failure()
+        }
         val apiClient = ApiClient(apiBaseUrl, applicationContext.getSignaturePublicKey())
         
         log("Checking for updates")
