@@ -5,6 +5,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.Lifecycle
@@ -82,30 +83,39 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                         }
                                     }
                                     uploadButton.setOnClickListener {
-                                        lifecycleScope.launch {
-                                            try {
-                                                withContext(Dispatchers.IO) {
-                                                    val timestamp = Instant.fromEpochMilliseconds(file.lastModified())
-                                                    val version = BuildConfig.VERSION_NAME
-                                                    val content = file.readText()
-                                                    val name = generateLogFileName(timestamp, version, content)
-                                                    ScheduledApiClient.log.submitLog(name, content)
+                                        AlertDialog.Builder(ctx)
+                                            .setTitle(R.string.submit_log)
+                                            .setMessage(getString(R.string.submit_log_description))
+                                            .setPositiveButton(android.R.string.yes) { _, _ ->
+                                                lifecycleScope.launch {
+                                                    try {
+                                                        withContext(Dispatchers.IO) {
+                                                            val timestamp =
+                                                                Instant.fromEpochMilliseconds(file.lastModified())
+                                                            val version = BuildConfig.VERSION_NAME
+                                                            val content = file.readText()
+                                                            val name = generateLogFileName(timestamp, version, content)
+                                                            ScheduledApiClient.log.submitLog(name, content)
+                                                        }
+                                                        Toast.makeText(
+                                                            view.context,
+                                                            R.string.upload_scheduled,
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                    } catch (e: Exception) {
+                                                        Toast.makeText(
+                                                            view.context,
+                                                            e::class.java.simpleName + ": " + e.message + "\n" + getString(
+                                                                R.string.please_try_again
+                                                            ),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                        log("Error scheduling upload", e)
+                                                    }
                                                 }
-                                                
-                                                Toast.makeText(
-                                                    view.context,
-                                                    R.string.upload_scheduled,
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
-                                            } catch (e: Exception) {
-                                                Toast.makeText(
-                                                    view.context,
-                                                    e::class.java.simpleName + ": " + e.message + "\n" + getString(R.string.please_try_again),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
-                                                log("Error scheduling upload", e)
                                             }
-                                        }
+                                            .setNegativeButton(android.R.string.no) { _, _ -> }
+                                            .show()
                                     }
                                 }
                             }) {

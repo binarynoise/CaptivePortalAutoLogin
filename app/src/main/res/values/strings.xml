@@ -117,6 +117,8 @@
     <string name="submit_portal_description">Do you want to submit the recording of this captive portal? \nPlease do not share this network if you entered any kind of personal data or passwords.</string>
     <string name="submit_portal_confirmed">Thanks for contributing :)</string>
     <string name="submit_portal_aborted">Discarded recorded data :(</string>
+    <string name="submit_log">Submit Log?</string>
+    <string name="submit_log_description">Do you want to submit this log file for analysis? \nPlease note that it may contain sensitive data, such as your Wi-Fi connection history.</string>
     <string name="exception_occurred">"Exception occurred: "</string>
     <string name="loading">Loading…</string>
     <string name="upload_scheduled">Upload scheduled</string>
