@@ -100,6 +100,7 @@ fun enqueueUpdateCheckWork(
         val workRequest = PeriodicWorkRequest.Builder(UpdateCheckerWorker::class.java, 7, TimeUnit.DAYS).apply {
             setConstraints(constraints)
             addTag(UpdateCheckerWorker::class.java.name)
+            setInitialDelay(1, TimeUnit.HOURS)
         }.build()
         workManager.enqueueUniquePeriodicWork(
             UpdateCheckerWorker::class.java.name,
