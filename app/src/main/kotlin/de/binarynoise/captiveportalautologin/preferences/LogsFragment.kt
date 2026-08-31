@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -116,6 +117,10 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                             }
                                             .setNegativeButton(android.R.string.no) { _, _ -> }
                                             .show()
+                                    }
+                                    if (SharedPreferences.api_base_url.get() == null) {
+                                        uploadButton.isEnabled = false
+                                        uploadButton.isVisible = false
                                     }
                                 }
                             }) {
