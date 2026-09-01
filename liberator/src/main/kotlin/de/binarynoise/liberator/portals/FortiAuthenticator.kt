@@ -10,6 +10,7 @@ import de.binarynoise.liberator.portals.FortiAuthenticator.isFortiAuthenticatorU
 import de.binarynoise.rhino.RhinoParser
 import de.binarynoise.util.okhttp.checkSuccess
 import de.binarynoise.util.okhttp.firstPathSegment
+import de.binarynoise.util.okhttp.followRedirects
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.parseHtml
 import de.binarynoise.util.okhttp.requestUrl
@@ -43,7 +44,14 @@ object FortiAuthenticator : PortalLiberator {
     }
     
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
-        response.submitOnlyForm(client, mapOf("answer" to "1"))
+        val submitResponse = response.submitOnlyForm(client, mapOf("answer" to "1")).followRedirects(client)
+        fun recurseForti(response: Response) {
+            if (FortiAuthenticatorRedirect.canRedirect(response)) recurseForti(
+                FortiAuthenticatorRedirect.redirect(client, response, extras)
+            )
+            if (canSolve(response)) solve(client, response, extras)
+        }
+        recurseForti(submitResponse)
     }
 }
 
