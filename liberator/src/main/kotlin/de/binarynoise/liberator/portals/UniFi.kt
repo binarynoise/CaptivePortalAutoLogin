@@ -23,7 +23,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
-@Experimental
 @SSID(
     "Baeckerhaus Veit",
     "Henri Willig GUEST",
