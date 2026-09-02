@@ -24,6 +24,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.RoutingCall
+import io.ktor.server.routing.RoutingHandler
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -104,6 +105,36 @@ suspend fun enforceFeedbackLimits(
     return true
 }
 
+fun harPutHandler(): RoutingHandler = call@{
+    val name = call.parameters["name"] ?: missingParameter("name")
+    val har = call.receive<HAR>()
+    if (!enforceFeedbackLimits(call, har, har.log.creator.version, null, null)) return@call
+    if (har.log.entries.isEmpty()) {
+        return@call call.respondStatus(HttpStatusCode.UnprocessableEntity)
+    }
+    ApiServer.api.har.submitHar(name, har)
+    call.respondStatus(HttpStatusCode.Created)
+}
+
+fun logPutHandler(): RoutingHandler = call@{
+    val name = call.parameters["name"] ?: missingParameter("name")
+    val (_, _, parsedChecksum) = try {
+        parseLogFileName(name)
+    } catch (e: IllegalStateException) {
+        return@call call.respond(HttpStatusCode.BadRequest, e.message.toString())
+    }
+    if (logDB.exists(name) || logDBArchived.exists(name)) {
+        return@call call.respond(HttpStatusCode.Conflict, "file already exists")
+    }
+    val file = call.receive<String>()
+    val checksum = hashLogFile(file)
+    if (checksum != parsedChecksum) {
+        return@call call.respond(HttpStatusCode.BadRequest, "hash does not match")
+    }
+    ApiServer.api.log.submitLog(name, file)
+    call.respond(HttpStatusCode.Created)
+}
+
 fun Routing.api() {
     route("/api") {
         install(SignatureCheckPlugin)
@@ -112,36 +143,10 @@ fun Routing.api() {
             call.respondText("Welcome to Captive Portal Auto Login API")
         }
         route("/har") {
-            put("/{name}") {
-                val name = call.parameters["name"] ?: missingParameter("name")
-                val har = call.receive<HAR>()
-                if (!enforceFeedbackLimits(call, har, har.log.creator.version, null, null)) return@put
-                if (har.log.entries.isEmpty()) {
-                    return@put call.respondStatus(HttpStatusCode.UnprocessableEntity)
-                }
-                ApiServer.api.har.submitHar(name, har)
-                call.respondStatus(HttpStatusCode.Created)
-            }
+            put("/{name}", harPutHandler())
         }
         route("/log") {
-            put("/{name}") {
-                val name = call.parameters["name"] ?: missingParameter("name")
-                val (_, _, parsedChecksum) = try {
-                    parseLogFileName(name)
-                } catch (e: IllegalStateException) {
-                    return@put call.respond(HttpStatusCode.BadRequest, e.message.toString())
-                }
-                if (logDB.exists(name) || logDBArchived.exists(name)) {
-                    return@put call.respond(HttpStatusCode.Conflict, "file already exists")
-                }
-                val file = call.receive<String>()
-                val checksum = hashLogFile(file)
-                if (checksum != parsedChecksum) {
-                    return@put call.respond(HttpStatusCode.BadRequest, "hash does not match")
-                }
-                ApiServer.api.log.submitLog(name, file)
-                call.respond(HttpStatusCode.Created)
-            }
+            put("/{name}", logPutHandler())
         }
         route("/liberator") {
             put<Api.Liberator.Error>("error") { it: Api.Liberator.Error ->

@@ -7,6 +7,7 @@ import kotlin.time.Instant
 import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.FileSize
+import de.binarynoise.captiveportalautologin.server.routes.api.logPutHandler
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondPathWithContentDisposition
 import de.binarynoise.logger.Logger.log
@@ -20,6 +21,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingHandler
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
@@ -188,6 +190,8 @@ internal fun Route.logRoutes() {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+        
+        put("{name}", logPutHandler())
     }
 }
 

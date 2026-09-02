@@ -178,7 +178,7 @@ export class HarUploader {
      * @param {string} content
      */
     async sendToServer(harName, content) {
-        const response = await fetch(`/api/har/${encodeURIComponent(harName)}`, {
+        const response = await fetch(`${encodeURIComponent(harName)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

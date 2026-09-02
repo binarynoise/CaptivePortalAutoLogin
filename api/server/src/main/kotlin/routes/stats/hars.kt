@@ -6,6 +6,7 @@ import kotlin.io.path.nameWithoutExtension
 import de.binarynoise.captiveportalautologin.api.json.har.parseHarFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
 import de.binarynoise.captiveportalautologin.server.routes.FileSize
+import de.binarynoise.captiveportalautologin.server.routes.api.harPutHandler
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondPathWithContentDisposition
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
@@ -23,6 +24,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
@@ -209,6 +211,8 @@ internal fun Route.harRoutes() {
                 )
             )
         }
+        
+        put("{name}", harPutHandler())
     }
 }
 
