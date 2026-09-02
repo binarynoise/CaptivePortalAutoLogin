@@ -171,3 +171,13 @@ fun <T> List<Result<T>>.successes(): Result<List<T>> {
  * E.g. a password is required, a social media login is required, ...
  */
 class UnsupportedPortalException(message: String? = null) : Exception(message)
+
+/**
+ * filter Map for Non-Null Values
+ * https://youtrack.jetbrains.com/issue/KT-4734/filterNotNullValues-and-filterNonNullKeys#focus=Comments-27-2221167.0-0
+ */
+fun <K, V> Map<K, V?>.filterNotNullValues(): Map<K, V> {
+    return mapNotNull { (key, nullableValue) ->
+        nullableValue?.let { key to it }
+    }.toMap()
+}
