@@ -134,6 +134,9 @@ class Liberator(
         if (!isInPortalPost) {
             return liberationResult
         }
+        if (liberationResult.solvers == SubmitOnlyForm::class.simpleName) {
+            return LiberationResult.UnknownPortal(liberationResult.url)
+        }
         return LiberationResult.StillCaptured(portalResponsePost?.requestUrl.toString(), liberationResult.solvers, har)
     }
     
