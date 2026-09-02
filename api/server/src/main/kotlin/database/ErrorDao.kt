@@ -34,6 +34,12 @@ interface ErrorDao {
         AND message NOT LIKE 'Chain validation failed'
         AND message NOT LIKE 'java.security.cert.CertPathValidatorException: %'
         AND message NOT LIKE 'Socket is closed'
+        AND message NOT LIKE '%ENONET%'
+        AND message NOT LIKE '%EPERM%'
+        AND message NOT LIKE 'Read timed out'
+        AND message NOT LIKE 'Connection reset'
+        AND message NOT LIKE 'timeout'
+        AND message NOT LIKE 'Unacceptable certificate: %'
         ORDER BY timestamp DESC
         """
     )
