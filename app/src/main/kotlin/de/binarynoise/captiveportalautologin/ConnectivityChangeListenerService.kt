@@ -180,8 +180,9 @@ class ConnectivityChangeListenerService : Service() {
     fun addNotificationActions(builder: NotificationCompat.Builder, networkState: NetworkState?) {
         val hasPortal = networkState?.hasPortal ?: false
         val liberated = networkState?.liberated ?: false
+        val autoLiberation = SharedPreferences.liberator_automatically_liberate.get()
         
-        if (hasPortal && liberated) {
+        if (hasPortal && (liberated || !autoLiberation)) {
             // add button to try liberating again
             val retryIntent = Intent(this, this::class.java)
             retryIntent.putExtra("retry", true)
