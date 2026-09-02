@@ -269,8 +269,9 @@ suspend fun generateTableData(
 }
 
 private fun Parameters.getSelectedCheckboxes(prefix: String): List<String> = this.toMap()
+    .filter { (key, value) -> key.startsWith(prefix) }
     .mapValues { (_, value) -> value.single() }
-    .filter { (key, value) -> key.startsWith(prefix) && value == "on" }.keys.map { key -> key.removePrefix(prefix) }
+    .filter { (_, value) -> value == "on" }.keys.map { key -> key.removePrefix(prefix) }
 
 @get:JvmName("columnDefinitionNames")
 val DataFrame<ColumnDefinition>.names get() = this.rows().map { it.name }.toList()
