@@ -25,6 +25,7 @@ import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.englishResources
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
+import de.binarynoise.filedb.FileDB
 import de.binarynoise.filedb.JsonDB
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.HttpStatusCodeException
@@ -32,7 +33,7 @@ import de.binarynoise.util.okhttp.parseRetryAfterOrNull
 
 private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats")
 private val jsonDB = JsonDB(localCacheRoot)
-
+private val logDB = FileDB(localCacheRoot, "LOG", "log")
 
 object ScheduledApiClient : Api {
     override val har: Har = Har()
@@ -48,7 +49,7 @@ object ScheduledApiClient : Api {
     
     class Log : Api.Log {
         override fun submitLog(name: String, log: String) {
-            jsonDB.store(name, log, "log")
+            logDB.store(name, log, "log")
             enqueueStatsUploadWork()
         }
     }
@@ -139,10 +140,10 @@ class LogStatsWorker(
     appContext,
     workerParams,
     type = "Log",
-    keys = { jsonDB.listAll<String>("log") },
-    load = { jsonDB.load<String>(it, "log") },
+    keys = { logDB.listAll() },
+    load = { logDB.load(it) },
     upload = { key, log, apiClient -> apiClient.log.submitLog(key, log) },
-    delete = { jsonDB.delete<String>(it, "log") },
+    delete = { logDB.delete(it) },
 )
 
 abstract class StatsWorker<T : Any>(
