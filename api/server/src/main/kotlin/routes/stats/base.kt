@@ -29,5 +29,6 @@ fun Routing.stats() {
         errorRoutes()
         harRoutes()
         logRoutes()
+        usageRoutes()
     }
 }

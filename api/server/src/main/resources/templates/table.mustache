@@ -35,7 +35,9 @@
                         <div style="display: flex">
                             <input id="filter" name="filter" value="{{filterValue}}"
                                    style="width: auto; flex-grow: 1;"/>
-                            <button type="button" style="margin-left: 4pt; font-size: 0.8em;" onclick="document.getElementById('filter').value = '';">✕</button>
+                            <button type="button" style="margin-left: 4pt; font-size: 0.8em;"
+                                    onclick="document.getElementById('filter').value = '';">✕
+                            </button>
                         </div>
                         {{#filterOptions}}
                             <input type="checkbox" name="filterBy-{{name}}" id="filterBy-{{name}}"
@@ -45,6 +47,38 @@
                     </td>
                 </tr>
             {{/filterOptions.isEmpty}}
+            
+            {{^customInputs.isEmpty}}
+                {{#customInputs}}
+                    {{#hidden}}
+                        <input type="hidden" name="custom-{{name}}" id="custom-{{name}}" value="{{value}}">
+                    {{/hidden}}
+                    {{^hidden}}
+                        <tr>
+                            <td>
+                                {{^isCheckbox}}
+                                    <label for="custom-{{name}}">{{displayName}}</label>
+                                {{/isCheckbox}}
+                            </td>
+                            <td>
+                                {{^isCheckbox}}
+                                    <input type="{{type}}" name="custom-{{name}}" id="custom-{{name}}"
+                                           {{#hint?}}placeholder="{{hint}}"{{/hint?}}
+                                           value="{{value}}"
+                                    >
+                                {{/isCheckbox}}
+                                {{#isCheckbox}}
+                                    <input type="hidden" name="custom-{{name}}" value="false">
+                                    <input type="checkbox" name="custom-{{name}}" id="custom-{{name}}"
+                                           value="true" {{value}}>
+                                    <label for="custom-{{name}}">{{displayName}}</label>
+                                {{/isCheckbox}}
+                            </td>
+                        </tr>
+                    {{/hidden}}
+                {{/customInputs}}
+            {{/customInputs.isEmpty}}
+            
             <tr>
                 <td>
                     <label for="limit">Limit</label>

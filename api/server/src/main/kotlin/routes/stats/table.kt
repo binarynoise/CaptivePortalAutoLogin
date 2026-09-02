@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.server.routes.stats
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.Collections.emptyList
 import java.util.Comparator.nullsFirst
 import java.util.Comparator.nullsLast
 import kotlin.reflect.KProperty1
@@ -74,6 +75,44 @@ data class PreFilterDefinition(
     val dataFrameProvider: suspend () -> DataFrame<*>,
 )
 
+@DataSchema
+open class CustomInputDefinition<T : Any>(
+    val name: String,
+    val displayName: String,
+    val type: String,
+    val default: T,
+    val hint: String? = null,
+    val unpack: (String) -> T?,
+    val pack: (T) -> String? = { it.toString() },
+) {
+    val hidden: Boolean = type == "hidden"
+    open val isCheckbox: Boolean = false
+    open var typedValue: T = default
+        protected set
+    
+    open val value: String?
+        get() = typedValue.let(pack)
+    
+    open fun applyFrom(parameters: Parameters) {
+        typedValue = parameters.getAll("custom-$name")?.lastOrNull()?.let { unpack(it) } ?: default
+    }
+}
+
+class CheckboxCustomInputDefinition(
+    name: String,
+    displayName: String,
+    default: Boolean,
+) : CustomInputDefinition<Boolean>(
+    name = name,
+    displayName = displayName,
+    type = "checkbox",
+    default = default,
+    unpack = { it.toBooleanStrict() },
+    pack = { if (it) "checked" else "" },
+) {
+    override val isCheckbox: Boolean = true
+}
+
 suspend fun generateTableData(
     call: RoutingCall,
     columnDefinitions: DataFrame<ColumnDefinition>,
@@ -82,6 +121,7 @@ suspend fun generateTableData(
     defaultPreFilter: String = "all",
     defaultSort: String = "timestamp-desc",
     actionColumnDefinitions: DataFrame<ActionColumnDefinition> = emptyDataFrame(),
+    customInputs: List<CustomInputDefinition<*>> = emptyList(),
 ): TableData {
     val preFilterDefinitionMap = preFilterDefinitions.associateBy { it.name }
     
@@ -219,6 +259,7 @@ suspend fun generateTableData(
         groupOptions = groupOptions,
         filterOptions = filterOptions,
         filterValue = filterString,
+        customInputs = customInputs,
         header = tableHeader,
         rows = rows,
         limit = limit,
@@ -242,6 +283,7 @@ data class TableData(
     val groupOptions: List<TableOption>,
     val filterOptions: List<TableOption>,
     val filterValue: String?,
+    val customInputs: List<CustomInputDefinition<*>>,
     val header: TableHeader,
     val rows: List<TableRow>,
     val limit: Int,

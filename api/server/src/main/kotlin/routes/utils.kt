@@ -5,9 +5,13 @@ import java.time.LocalDate
 import kotlin.io.path.name
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlin.time.toKotlinInstant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone.Companion.UTC
+import kotlinx.datetime.number
 import kotlinx.datetime.toJavaZoneId
 import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
@@ -71,3 +75,36 @@ fun Instant.isInRelativeRange(
 fun String.toDuration(): Duration {
     return Duration.parse(this)
 }
+
+fun String.toDurationExtended(): Duration {
+    val regex = "(?<value>\\d+)\\s*(?<unit>[hdwmy])".toRegex()
+    val match = regex.matchEntire(this) ?: throw IllegalArgumentException("Invalid duration format: $this")
+    val value = match.groups["value"]!!.value.toInt()
+    val unit = match.groups["unit"]!!.value
+    return when (unit) {
+        "h" -> value.hours
+        "d" -> value.days
+        "w" -> value.days * 7
+        "m" -> value.days * 28
+        "y" -> value.days * 365.25
+        else -> throw IllegalArgumentException("Invalid duration unit: $unit")
+    }
+}
+
+fun LocalDateTime.with(
+    year: Int = this.year,
+    month: Int = this.month.number,
+    day: Int = this.day,
+    hour: Int = this.hour,
+    minute: Int = this.minute,
+    second: Int = this.second,
+    nanosecond: Int = this.nanosecond
+): LocalDateTime = LocalDateTime(
+    year = year,
+    month = month,
+    day = day,
+    hour = hour,
+    minute = minute,
+    second = second,
+    nanosecond = nanosecond,
+)

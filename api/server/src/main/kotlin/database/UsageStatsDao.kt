@@ -7,6 +7,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 
 @Dao
 interface UsageStatsDao {
@@ -73,6 +74,7 @@ interface UsageStatsDao {
         minimumEntryCount: Int = 0,
     ): List<ActiveInstall>
     
+    @DataSchema
     data class ActiveVersionInstall(
         @ColumnInfo(name = "bucket_start") val start: Instant,
         @ColumnInfo(name = "version") val version: String,
