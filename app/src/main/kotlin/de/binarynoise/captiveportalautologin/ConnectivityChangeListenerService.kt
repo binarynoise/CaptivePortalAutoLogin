@@ -197,6 +197,7 @@ class ConnectivityChangeListenerService : Service() {
         
         if (hasPortal) {
             val captureIntent = Intent(this, RecordCaptivePortalActivity::class.java)
+            captureIntent.putExtra(ConnectivityManager.EXTRA_NETWORK, networkState.network)
             val pendingCaptureIntent =
                 PendingIntent.getActivity(this, 0, captureIntent, FLAG_CANCEL_CURRENT or FLAG_IMMUTABLE)
             builder.addAction(
@@ -204,7 +205,6 @@ class ConnectivityChangeListenerService : Service() {
                     null, getString(R.string.capture_captive_portal_short), pendingCaptureIntent
                 ).build()
             )
-            captureIntent.putExtra(ConnectivityManager.EXTRA_NETWORK, networkState.network)
         }
     }
     
