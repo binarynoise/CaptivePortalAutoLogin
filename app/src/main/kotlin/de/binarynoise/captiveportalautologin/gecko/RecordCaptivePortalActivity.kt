@@ -14,12 +14,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.UiThread
 import androidx.core.content.IntentCompat
 import androidx.core.view.isVisible
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.connectivityManager
@@ -93,6 +95,22 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         }
     }
     
+    class ScrollRefreshDelegate(defaultCanScrollUp: Boolean = false) : SwipeRefreshLayout.OnChildScrollUpCallback,
+        GeckoSession.ScrollDelegate {
+        var canScrollUp: Boolean = defaultCanScrollUp
+        override fun onScrollChanged(session: GeckoSession, scrollX: Int, scrollY: Int) {
+            canScrollUp = scrollY > 0
+            super.onScrollChanged(session, scrollX, scrollY)
+        }
+        
+        override fun canChildScrollUp(parent: SwipeRefreshLayout, child: View?): Boolean {
+            return canScrollUp
+        }
+    }
+    
+    val scrollRefreshDelegate = ScrollRefreshDelegate()
+    
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -127,10 +145,12 @@ class RecordCaptivePortalActivity : ComponentActivity() {
         
         extensionDelegate.onCreate(binding.geckoView)
         extensionDelegate.session.progressDelegate = progressDelegate
+        extensionDelegate.session.scrollDelegate = scrollRefreshDelegate
         binding.swipeRefresh.setOnRefreshListener {
             reevaluateNetwork()
             extensionDelegate.session.reload()
         }
+        binding.swipeRefresh.setOnChildScrollUpCallback(scrollRefreshDelegate)
     }
     
     fun createFinalizedHar(): Pair<String, HAR> {
@@ -170,6 +190,7 @@ class RecordCaptivePortalActivity : ComponentActivity() {
     }
     
     override fun onDestroy() {
+        extensionDelegate.session.scrollDelegate = null
         extensionDelegate.onDestroy(binding.geckoView)
         backgroundHandler.looper.quit()
         tryOrIgnore {
