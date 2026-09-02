@@ -115,7 +115,7 @@ object TheCloud : PortalLiberator {
         if (macAuthResponse.getLocationUrl()!!.lastPathSegment == "getonline") // 
             throw IllegalStateException("macAuthResponse redirected to getonline")
         
-        val onlineResponse = macAuthResponse.followRedirects(client) { it.host == THECLOUD_DOMAIN }
+        val onlineResponse = macAuthResponse.followRedirects(client) { it.host == THECLOUD_DOMAIN && it.lastPathSegment != "online" }.followRedirects(client) {false}
         onlineResponse.checkSuccess()
         check(onlineResponse.requestUrl.lastPathSegment == "online") {
             "redirection chain didn't end with online"
