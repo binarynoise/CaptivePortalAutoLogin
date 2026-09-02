@@ -8,6 +8,7 @@ import de.binarynoise.captiveportalautologin.api.hashLogFile
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
 import de.binarynoise.captiveportalautologin.api.parseLogFileName
 import de.binarynoise.captiveportalautologin.server.ApiServer
+import de.binarynoise.captiveportalautologin.server.SignatureCheckPlugin
 import de.binarynoise.captiveportalautologin.server.routes.isInRelativeRange
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondStatus
@@ -105,6 +106,8 @@ suspend fun enforceFeedbackLimits(
 
 fun Routing.api() {
     route("/api") {
+        install(SignatureCheckPlugin)
+        
         get("/") {
             call.respondText("Welcome to Captive Portal Auto Login API")
         }
