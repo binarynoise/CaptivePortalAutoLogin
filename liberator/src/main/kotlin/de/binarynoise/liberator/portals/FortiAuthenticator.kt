@@ -16,6 +16,7 @@ import de.binarynoise.util.okhttp.requestUrl
 import de.binarynoise.util.okhttp.submitOnlyForm
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Response
 
@@ -52,7 +53,7 @@ object FortiAuthenticatorRedirect : PortalRedirector {
         val html = response.parseHtml()
         val script = html.getElementsByTag("script").first()?.data() ?: return false
         val assignments = RhinoParser().parseAssignments(script)
-        val redirectUrl = assignments["window.location"]?.toHttpUrl() ?: return false
+        val redirectUrl = assignments["window.location"]?.toHttpUrlOrNull() ?: return false
         // only allow redirects from and to FortiAuthenticator
         return response.requestUrl.isFortiAuthenticatorUrl() || redirectUrl.isFortiAuthenticatorUrl()
     }
