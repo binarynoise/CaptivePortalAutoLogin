@@ -62,7 +62,9 @@ object ArubaNetworks : PortalLiberator {
     override fun solve(client: OkHttpClient, response: Response, extras: LiberatorExtras) {
         val portal_login_page_config1 = getPortalLoginPageConfig(response)
         val pageConfig = portal_login_page_config1.getJsonObject("page")
-        if (pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException()
+        if (!pageConfig.getBoolean("allow_anonymous")) throw UnsupportedPortalException("no anonymous login")
+        if (pageConfig.getBoolean("anonymous_password_required")) throw UnsupportedPortalException("requires password")
+        if (pageConfig.getBoolean("require_sponsor_approval")) throw UnsupportedPortalException("requires sponsor approval")
         
         val capture = response.requestUrl.queryParameter("capture") ?: tryOrNull {
             val loginConfig = portal_login_page_config1.getJsonObject("capture")
