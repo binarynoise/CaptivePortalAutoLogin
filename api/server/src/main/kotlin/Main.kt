@@ -34,6 +34,8 @@ val isRunningFromJar = ::main.javaMethod!!.declaringClass.protectionDomain.codeS
 fun main() {
     if (isDevelopment) DecoroutinatorJvmApi.install()
     
+    api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
+    
     val port = System.getenv("API_SERVER_PORT")?.toInt() ?: 8080
     val host = System.getenv("API_SERVER_HOST") ?: "::"
     log("launching server at $host:$port")
@@ -59,7 +61,6 @@ fun createServer(host: String, port: Int): EmbeddedServer<*, *> {
 }
 
 /*suspend*/ fun Application.module() { // TODO: make this suspend again for ktor >=3.2.0
-    api = ApiServer(Path(System.getenv("API_SERVER_PATH") ?: "."))
     
     check(developmentMode == isDevelopment) { "developmentMode != isDevelopment" }
     log("launching in ${if (isDevelopment) "development" else "production"} mode")

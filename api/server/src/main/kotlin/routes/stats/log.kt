@@ -10,6 +10,7 @@ import de.binarynoise.captiveportalautologin.server.routes.FileSize
 import de.binarynoise.captiveportalautologin.server.routes.api.logPutHandler
 import de.binarynoise.captiveportalautologin.server.routes.missingParameter
 import de.binarynoise.captiveportalautologin.server.routes.respondPathWithContentDisposition
+import de.binarynoise.filedb.FileDB
 import de.binarynoise.logger.Logger.log
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -46,8 +47,8 @@ fun parseLogPath(path: Path, archived: Boolean): LogEntry {
     return LogEntry(name, timestamp, version, checksum, fileSize, archived)
 }
 
-val logDB = ApiServer.api.logDB
-val logDBArchived = ApiServer.api.logDBArchived
+val logDB: FileDB get() = ApiServer.api.logDB
+val logDBArchived: FileDB get() = ApiServer.api.logDBArchived
 
 internal fun Route.logRoutes() {
     get("log") {

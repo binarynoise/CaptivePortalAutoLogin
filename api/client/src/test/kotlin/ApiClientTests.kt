@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalPathApi::class)
-
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.deleteRecursively
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -36,50 +33,41 @@ import io.ktor.server.engine.EmbeddedServer
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.assertThrows
 
 class ApiClientTests {
-    
-    private val validTestVersion = "1-deadbe-00000000"
-    
     private lateinit var server: ApiServer
     private lateinit var client: ApiClient
     
+    private val httpServer: EmbeddedServer<*, *> = createServer("::", 0)
+    
+    lateinit var base: HttpUrl
+    lateinit var apiBase: HttpUrl
+    
     @BeforeTest
     fun setup() {
-        tempDirectory.deleteRecursively()
+        val tempDirectory: Path = Files.createTempDirectory("api-client-test")
+        
         server = ApiServer(tempDirectory)
         ApiServer.api = server
+        
+        httpServer.start(wait = false)
+        val port = runBlocking { httpServer.engine.resolvedConnectors().first().port }
+        log("port: $port")
+        base = "http://localhost:$port/".toHttpUrl()
+        apiBase = base.resolve("api/")!!
+        
         client = ApiClient(apiBase, null)
     }
     
+    @AfterTest
+    fun cleanup() {
+        httpServer.stop()
+    }
+    
     companion object {
-        private val tempDirectory: Path = Files.createTempDirectory("api-client-test")
-        
-        private val httpServer: EmbeddedServer<*, *> = createServer("::", 0)
-        
-        lateinit var base: HttpUrl
-        lateinit var apiBase: HttpUrl
-        
-        @BeforeAll
-        @JvmStatic
-        fun start() {
-            httpServer.start(wait = false)
-            val port = runBlocking { httpServer.engine.resolvedConnectors().first().port }
-            log("port: $port")
-            base = "http://localhost:$port/".toHttpUrl()
-            apiBase = base.resolve("api/")!!
-        }
-        
-        @AfterAll
-        @JvmStatic
-        fun cleanup() {
-            httpServer.stop()
-            tempDirectory.deleteRecursively()
-        }
+        private val validTestVersion = "1-deadbe-00000000"
     }
     
     @Nested
