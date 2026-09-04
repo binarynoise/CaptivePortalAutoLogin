@@ -46,9 +46,9 @@ import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.captiveportalautologin.util.postIfCreated
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.liberator.cast
-import de.binarynoise.liberator.makeAccessible
 import de.binarynoise.logger.Logger.dump
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.reflection.makeAccessible
 import de.binarynoise.util.json.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.mozilla.geckoview.BuildConfig.MOZILLA_VERSION

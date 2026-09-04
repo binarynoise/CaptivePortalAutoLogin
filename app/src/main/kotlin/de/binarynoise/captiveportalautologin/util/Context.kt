@@ -13,6 +13,7 @@ import android.os.Build
 import android.util.TypedValue
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
+import de.binarynoise.reflection.invokeHiddenMethod
 
 @SuppressLint("PrivateApi")
 internal var applicationContext: Application =

@@ -89,6 +89,7 @@ dependencies {
     implementation(projects.util.fileDB)
     implementation(projects.util.jsonKts)
     implementation(projects.util.logger)
+    implementation(projects.util.reflection)
     
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.core.ktx)

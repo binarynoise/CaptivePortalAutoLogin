@@ -27,15 +27,15 @@ import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.englishResources
-import de.binarynoise.captiveportalautologin.util.getHiddenInstanceField
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
-import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.reflection.getHiddenInstanceField
+import de.binarynoise.reflection.invokeHiddenMethod
 
 private val ssidJsonDB = FixedKeyJsonDB(applicationContext.noBackupFilesDir.toPath(), "NetworkSuggestionSSIDs")
 var ssidDb: List<String>?

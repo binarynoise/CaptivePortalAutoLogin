@@ -35,12 +35,12 @@ import de.binarynoise.captiveportalautologin.databinding.ActivityRecordCaptivePo
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.preferences.SystemPortalTestUrl
 import de.binarynoise.captiveportalautologin.preferences.SystemPortalUserAgent
-import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
-import de.binarynoise.captiveportalautologin.util.invokeHiddenMethod
 import de.binarynoise.liberator.PortalTestURL
 import de.binarynoise.liberator.tryOrIgnore
 import de.binarynoise.liberator.tryOrLog
 import de.binarynoise.logger.Logger.log
+import de.binarynoise.reflection.getHiddenStaticFieldValue
+import de.binarynoise.reflection.invokeHiddenMethod
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.mozilla.geckoview.GeckoSession
 

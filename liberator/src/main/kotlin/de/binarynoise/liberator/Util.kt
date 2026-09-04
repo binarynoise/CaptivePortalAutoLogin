@@ -2,7 +2,6 @@
 
 package de.binarynoise.liberator
 
-import java.lang.reflect.Field
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -24,8 +23,6 @@ inline fun <reified T> Any.cast(): T = if (null is T) {
     // T is not nullable. Use direct cast.
     this as T
 }
-
-fun Field.makeAccessible(): Field = apply { isAccessible = true }
 
 /**
  * Executes the given block and returns its result.

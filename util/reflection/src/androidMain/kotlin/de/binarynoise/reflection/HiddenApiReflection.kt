@@ -1,4 +1,4 @@
-package de.binarynoise.captiveportalautologin.util
+package de.binarynoise.reflection
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier

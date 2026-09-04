@@ -10,9 +10,9 @@ import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.util.applicationContext
-import de.binarynoise.captiveportalautologin.util.getHiddenStaticFieldValue
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalTestURL
+import de.binarynoise.reflection.getHiddenStaticFieldValue
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
