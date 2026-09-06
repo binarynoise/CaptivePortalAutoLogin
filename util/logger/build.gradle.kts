@@ -1,22 +1,23 @@
 plugins {
-    alias(libs.plugins.buildlogic.android.library)
+    alias(libs.plugins.buildlogic.android.kotlin.multiplatform.library)
     alias(libs.plugins.buildlogic.kotlin.multiplatform)
 }
 
 kotlin {
     jvm()
-    androidTarget()
+    android {
+        namespace = "de.binarynoise.logger"
+        enableCoreLibraryDesugaring = true
+    }
     
-    
-    @Suppress("unused", "RedundantSuppression") //
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 compileOnly(libs.kotlinx.serialization.json)
             }
         }
         
-        val androidMain by getting {
+        androidMain {
             dependencies {
                 compileOnly(libs.androidx.collection.ktx)
                 compileOnly(libs.androidx.core.ktx)
@@ -25,21 +26,9 @@ kotlin {
             }
         }
         
-        val jvmMain by getting {
+        jvmMain {
             dependencies {}
         }
-    }
-}
-
-
-android {
-    namespace = "de.binarynoise.logger"
-    
-    defaultConfig {
-        minSdk = 21
-    }
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
     }
 }
 

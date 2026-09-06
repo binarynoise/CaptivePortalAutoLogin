@@ -6,11 +6,12 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 -dontobfuscate
+-dontrepackage
 -allowaccessmodification
 -dontskipnonpubliclibraryclasses
 -dontskipnonpubliclibraryclassmembers
 
--keepattributes SourceFile, LineNumberTable, Exception, *Annotation*, InnerClasses, EnclosingMethod, Signature
+-keepattributes SourceFile, LineNumberTable
 
 -keep,allowoptimization class de.binarynoise.** {
     public static void main(***);

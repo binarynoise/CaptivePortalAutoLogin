@@ -15,6 +15,11 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             from(files("../gradle/libs.versions.toml"))
+            
+            // override the Kotlin version to match Gradle's embedded version
+            // so `kotlin-dsl` / `embedded-kotlin` doesn't warn about version mismatch.
+            version("kotlin", embeddedKotlinVersion)
+            println("Using Kotlin version $embeddedKotlinVersion")
         }
     }
 }

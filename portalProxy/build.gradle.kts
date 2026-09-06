@@ -1,10 +1,8 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.buildlogic.shadow)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -26,11 +24,4 @@ tasks.withType<Jar> {
     manifest {
         attributes(mapOf("Main-Class" to mainClass))
     }
-}
-
-tasks.withType<ShadowJar> {
-    archiveClassifier.set("shadow")
-    mergeServiceFiles()
-    minimize()
-    exclude("**/*.kotlin_*")
 }

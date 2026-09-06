@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.buildlogic.kotlin.jvm)
+    alias(libs.plugins.buildlogic.jvm.test)
 }
 
 dependencies {
@@ -23,8 +24,4 @@ dependencies {
     testImplementation(libs.ktor.server.status.pages)
     testImplementation(libs.kotlinx.datetime)
     testImplementation(libs.androidx.room.runtime)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

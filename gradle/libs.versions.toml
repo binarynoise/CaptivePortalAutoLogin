@@ -1,34 +1,36 @@
 [versions]
+androidCompileSdk = "37"
 androidDesugarJdkLibs = "2.1.5"
-androidGradlePlugin = "8.12.3"
-androidTools = "32.2.1"
+androidGradlePlugin = "9.1.1"
+androidTargetSdk = "36"
+androidTools = "32.4.0"
 androidxActivityKtx = "1.13.0"
 androidxAnnotation = "1.10.0"
-androidxAppCompat = "1.7.1"
+androidxAppCompat = "1.8.0"
 androidXCollectionKtx = "1.6.0"
-androidxCore = "1.18.0"
-androidxFragment = "1.8.9"
+androidxCore = "1.19.0"
+androidxFragment = "1.9.0"
 androidxLifecycleRuntimeKtx = "2.11.0"
 androidxPreferenceKtx = "1.2.1"
-androidxRoom = "2.8.4"
-androidxRoomSqlite = "2.7.0"
+androidxRoom = "2.8.5"
+androidxRoomSqlite = "2.7.1"
 androidxWorkRuntimeKtx = "2.11.2"
 blockhound = "1.0.17.RELEASE"
 buildconfig = "6.0.10"
 clikt = "5.1.0"
-dataframeCore = "1.0.0-Beta5"
-decourinator = "2.6.4"
-geckoview = "152.0.20260629141727"
+dataframeCore = "1.0.0-rc01"
+decourinator = "2.6.6"
+geckoview = "155.0.20260826195058"
 githubApi = "1.330"
 hiddenapibypass = "6.1"
-humanReadable = "1.13.0"
+humanReadable = "1.13.1"
 java = "17"
-jebrainsAnnotations = "26.1.0"
-json = "20260522"
-jsoup = "1.22.2"
-junitJupiter = "6.1.1"
-kotlin = "2.4.0"
-kotlinKsp = "2.3.9"
+jetbrainsAnnotations = "26.1.0"
+json = "20260814"
+jsoup = "1.23.2"
+junitJupiter = "6.1.3"
+#kotlin = "2.4.0"
+kotlinKsp = "2.3.11" # not tied to kotlin version anymore since 2.3.0
 kotlinxCoroutines = "1.11.0"
 kotlinxDatetime = "0.8.0-0.6.x-compat"
 kotlinxHtml = "0.12.0"
@@ -37,16 +39,18 @@ kotlinxSerializationJson = "1.11.0"
 # https://youtrack.jetbrains.com/issue/KTOR-8821/Autoreloading-module-function-refs-not-working-since-3.2.0
 #noinspection NewerVersionAvailable
 ktor = "3.1.3"
-leakcanary = "2.14"
+leakcanary = "3.0-alpha-9"
 material = "1.14.0"
-netty = "4.2.15.Final"
-okhttp = "5.4.0"
+netty = "4.2.17.Final"
+okhttp = "5.5.0"
 rhino = "1.9.1"
-r8 = "9.1.31"
-shadow = "9.4.3"
-slf4jSimple = "2.0.18"
+# https://r8.googlesource.com/r8/+refs
+# curl -sSf 'https://r8.googlesource.com/r8/+refs?format=JSON' | tail -n +2 | jq -r 'keys | .[] | select(contains("tags")) | select(contains("agp") | not)' | sort -Vr
+r8 = "9.4.20"
+shadow = "9.6.1"
+slf4j = "2.0.19"
 swiperefreshlayout = "1.2.0"
-vertx = "5.1.3"
+vertx = "5.1.7"
 viewbindingpropertydelegate = "1.5.9"
 xposed = "82"
 
@@ -71,7 +75,7 @@ geckoview = { module = "org.mozilla.geckoview:geckoview", version.ref = "geckovi
 github-api = { module = "org.kohsuke:github-api", version.ref = "githubApi" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 human-readable = { module = "nl.jacobras:Human-Readable", version.ref = "humanReadable" }
-jebtrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jebrainsAnnotations" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
 json = { module = "org.json:json", version.ref = "json" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
@@ -81,7 +85,6 @@ kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin" }
 kotlin-ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "kotlinKsp" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
@@ -102,11 +105,12 @@ netty-bom = { module = "io.netty:netty-bom", version.ref = "netty" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
 r8 = { module = "com.android.tools:r8", version.ref = "r8" }
+shadow-gradlePlugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version.ref = "shadow" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxRoomSqlite" }
-slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 vertx-bom = { module = "io.vertx:vertx-dependencies", version.ref = "vertx" }
 vertx-lang-kotlin = { module = "io.vertx:vertx-lang-kotlin" }
 vertx-lang-kotlin-coroutines = { module = "io.vertx:vertx-lang-kotlin-coroutines" }
@@ -120,7 +124,6 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 androidx-room = { id = "androidx.room", version.ref = "androidxRoom" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
 decourinator = { id = "dev.reformator.stacktracedecoroutinator", version.ref = "decourinator" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-dataframe = { id = "org.jetbrains.kotlin.plugin.dataframe", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlinKsp" }
@@ -130,8 +133,11 @@ shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
 # Plugins defined by this project
 buildlogic-android-application = { id = "common.android.application" }
+buildlogic-android-kotlin-multiplatform-library = { id = "common.android.kotlin.multiplatform.library" }
 buildlogic-android-library = { id = "common.android.library" }
 buildlogic-jvm = { id = "common.jvm" }
+buildlogic-jvm-test = { id = "common.jvm.test" }
 buildlogic-kotlin-android = { id = "common.kotlin.android" }
 buildlogic-kotlin-jvm = { id = "common.kotlin.jvm" }
 buildlogic-kotlin-multiplatform = { id = "common.kotlin.multiplatform" }
+buildlogic-shadow = { id = "common.shadow" }

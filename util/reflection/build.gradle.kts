@@ -1,13 +1,15 @@
 plugins {
-    alias(libs.plugins.buildlogic.android.library)
+    alias(libs.plugins.buildlogic.android.kotlin.multiplatform.library)
     alias(libs.plugins.buildlogic.kotlin.multiplatform)
 }
 
 kotlin {
     jvm()
-    androidTarget()
+    android {
+        namespace = "de.binarynoise.reflection"
+    }
     
-    sourceSets {
+    @Suppress("unused", "RedundantSuppression") sourceSets {
         commonMain {
             dependencies {}
         }
@@ -22,8 +24,4 @@ kotlin {
             dependencies {}
         }
     }
-}
-
-android {
-    namespace = "de.binarynoise.reflection"
 }

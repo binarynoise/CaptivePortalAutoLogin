@@ -17,6 +17,14 @@ pluginManagement {
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    
+    versionCatalogs {
+        create("libs") {
+            // override the Kotlin version to match Gradle's embedded version
+            version("kotlin", embeddedKotlinVersion)
+        }
+    }
+    
     repositories {
         google {
             content {
