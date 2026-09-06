@@ -6,10 +6,11 @@ plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.buildlogic.shadow)
+    alias(libs.plugins.buildlogic.jvm.test)
     alias(libs.plugins.kotlin.dataframe)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.androidx.room)
-    alias(libs.plugins.shadow)
     alias(libs.plugins.buildconfig)
 }
 
@@ -58,13 +59,6 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-tasks.test {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-    }
-}
-
 val mainClass = "de.binarynoise.captiveportalautologin.server.MainKt"
 application.mainClass = mainClass
 tasks.withType<Jar> {
@@ -74,8 +68,6 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<ShadowJar> {
-    archiveClassifier.set("shadow")
-    mergeServiceFiles()
     minimize {
         exclude(dependency(libs.ktor.serialization.kotlinx.json.get()))
         exclude(dependency(libs.slf4j.simple.get()))
@@ -89,7 +81,6 @@ tasks.withType<ShadowJar> {
         "/*/default/linkdata/",
         "/*/default/manifest",
         "/DebugProbesKt.bin",
-        "/META-INF/**/*.kotlin_*",
         "/META-INF/**/*.pro",
         "/META-INF/**/*.version*",
         "/META-INF/**/*LICENSE*",

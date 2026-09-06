@@ -6,11 +6,12 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 -dontobfuscate
+-dontrepackage
 -allowaccessmodification
 -dontskipnonpubliclibraryclasses
 -dontskipnonpubliclibraryclassmembers
 
--keepattributes SourceFile, LineNumberTable, Exception, *Annotation*, InnerClasses, EnclosingMethod, Signature
+-keepattributes SourceFile, LineNumberTable
 
 -keep,allowoptimization class de.binarynoise.** {
     public static void main(***);
@@ -21,9 +22,9 @@
 	public static ** bind(android.view.View);
 }
 
--keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookLoadPackage
--keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookInitPackageResources
--keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookZygoteInit
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookLoadPackage { <init>(); }
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookInitPackageResources { <init>(); }
+-keep,allowoptimization class ** implements de.robv.android.xposed.IXposedHookZygoteInit { <init>(); }
 
 #noinspection ShrinkerUnresolvedReference
 -assumenosideeffects class android.util.Log {

@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     application
     alias(libs.plugins.buildlogic.kotlin.jvm)
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.buildlogic.shadow)
 }
 
 dependencies {
@@ -23,10 +23,7 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<ShadowJar> {
-    archiveClassifier.set("shadow")
-    mergeServiceFiles()
     minimize {
         exclude(dependency("com.github.ajalt.mordant:mordant-jvm-jna"))
     }
-    exclude("**/*.kotlin_*")
 }
