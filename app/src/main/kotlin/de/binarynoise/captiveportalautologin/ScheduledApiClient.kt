@@ -81,7 +81,7 @@ object ScheduledApiClient : Api {
         limit: Int?,
         maximumMajorVersion: Int?,
         since: Instant?,
-        minimum: Int?,
+        minimumSuccesses: Int?,
         minimumBayesianRating: Float?,
         bayesianWeight: Int?,
     ): List<String> {
