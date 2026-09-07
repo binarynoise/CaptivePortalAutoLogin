@@ -1,98 +1,11 @@
 package buildlogic.git
 
+import kotlin.text.trim
 import com.android.build.api.dsl.CommonExtension
-import java.io.File
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.process.ExecOutput
-
-private fun Project.getCommitCountExec() = providers.exec {
-    executable("git")
-    args("rev-list", "--count", "HEAD", "--")
-    args("--")
-    args(projectDir)
-    args(rootProject.file("gradle"))
-    args(rootProject.file("build-logic"))
-    
-    args(rootProject.file("build.gradle.kts"))
-    args(rootProject.file("settings.gradle.kts"))
-    args(rootProject.file("gradle.properties"))
-    args(rootProject.file("proguard-rules.pro"))
-    
-    args(rootProject.file("gradlew"))
-    args(rootProject.file("gradlew.bat"))
-    
-    extensions.findByType(CommonExtension::class.java)?.let {
-        val metadata = rootProject.file("metadata").resolve(it.namespace ?: "-")
-        if (metadata.exists()) {
-            args(metadata)
-        }
-    }
-}
-
-private fun Project.getCommitHashExec() = providers.exec {
-    executable("git")
-    args("rev-parse", "--short", "HEAD")
-}
-
-/**
- * get all commit hashes known in this git repository
- */
-private fun Project.getAllCommitHashesExec() = providers.exec {
-    executable("git")
-    args("rev-list", "--all")
-}
-
-fun Project.getAllCommitHashes() = try {
-    getAllCommitHashesExec().standardOutput.asText.get().lines()
-} catch (e: Exception) {
-    logger.error("Failed to get commit hashes", e)
-    listOf()
-}
-
-/**
- * get all commits with dates
- * in ascending order, required for partial hash matching
- */
-private fun Project.getCommitDatesExec() = providers.exec {
-    executable("git")
-    args("log", "--pretty=format:%H,%ct", "--all", "--reverse")
-}
-
-fun Project.getCommitInfos(): Map<String, Long> =
-    getCommitDatesExec().standardOutput.asText.get().lines().map { it.split(",") }.associate { it[0] to it[1].toLong() }
-
-
-private fun Project.getWorkingTreeCleanExec() = providers.exec {
-    executable("git")
-    args("diff", "--quiet", "--exit-code", rootDir.absolutePath)
-    isIgnoreExitValue = true
-}
-
-private fun Project.getAllCommitsPushedExec(): ExecOutput {
-    providers.exec {
-        executable("git")
-        args("fetch")
-        isIgnoreExitValue = true
-    }
-    
-    return providers.exec {
-        executable("git")
-        args("diff", "--quiet", "--exit-code", "origin/main..main")
-        isIgnoreExitValue = true
-    }
-}
-
-private fun Project.getFileCommitterDate(file: File) = providers.exec {
-    executable("git")
-    args("log", "-1", "--pretty=%ct", "--", file.absolutePath)
-}
-
-fun Project.getPortalLiberatorCommitterDates(): Map<String, Long> {
-    return rootDir.resolve("liberator/src/main/kotlin/de/binarynoise/liberator/portals/").listFiles().associate {
-        it.nameWithoutExtension to getFileCommitterDate(it).standardOutput.asText.get().trim().toLong()
-    }
-}
+import org.gradle.kotlin.dsl.*
+import org.gradle.process.ExecResult
 
 private fun Project.ensureInGitRepository() {
     if (rootDir.resolve(".git").exists().not()) {
@@ -100,20 +13,73 @@ private fun Project.ensureInGitRepository() {
     }
 }
 
+fun Project.getAllCommitHashes(): List<String> {
+    ensureInGitRepository()
+    return providers.exec {
+        executable("git")
+        args("rev-list", "--all")
+    }.standardOutput.asText.get().lines().filter { line -> line.isNotBlank() }
+}
+
+fun Project.getCommitInfos(): Map<String, Long> {
+    ensureInGitRepository()
+    return providers.exec {
+        executable("git")
+        args("log", "--pretty=format:%H,%ct", "--all", "--reverse")
+    }.standardOutput.asText.get()
+        .lines()
+        .filter { it.isNotBlank() }
+        .map { it.split(",") }
+        .associate { it[0] to it[1].toLong() }
+}
+
+fun Project.getPortalLiberatorCommitterDates(): Map<String, Long> {
+    ensureInGitRepository()
+    val portalFiles = rootDir.resolve("liberator/src/main/kotlin/de/binarynoise/liberator/portals/").listFiles()!!
+    
+    return portalFiles.associate { file ->
+        val gitLogExec = providers.exec {
+            executable("git")
+            args("log", "-1", "--pretty=%ct", "--", file.absolutePath)
+        }
+        file.nameWithoutExtension to gitLogExec.standardOutput.asText.get().trim().toLong()
+    }
+}
+
 fun Project.getCommitCount(): Int {
     ensureInGitRepository()
-    return try {
-        getCommitCountExec().standardOutput.asText.get().trim().toInt()
-    } catch (e: Exception) {
-        logger.error("Failed to get commit count", e)
-        0
-    }
+    return providers.exec {
+        executable("git")
+        args("rev-list", "--count", "HEAD")
+        args("--")
+        args(projectDir)
+        args(rootProject.file("gradle"))
+        args(rootProject.file("build-logic"))
+        
+        args(rootProject.file("build.gradle.kts"))
+        args(rootProject.file("settings.gradle.kts"))
+        args(rootProject.file("gradle.properties"))
+        args(rootProject.file("proguard-rules.pro"))
+        
+        args(rootProject.file("gradlew"))
+        args(rootProject.file("gradlew.bat"))
+        
+        extensions.findByType<CommonExtension>()?.namespace?.let {
+            val metadata = rootProject.file("metadata").resolve(it)
+            if (metadata.exists()) {
+                args(metadata)
+            }
+        }
+    }.standardOutput.asText.get().trim().toInt()
 }
 
 fun Project.getCommitHash(): String {
     ensureInGitRepository()
     return try {
-        getCommitHashExec().standardOutput.asText.get().trim()
+        providers.exec {
+            executable("git")
+            args("rev-parse", "--short", "HEAD")
+        }.standardOutput.asText.get().trim()
     } catch (e: Exception) {
         logger.error("Failed to get commit hash", e)
         ""
@@ -122,10 +88,27 @@ fun Project.getCommitHash(): String {
 
 fun Project.getWorkingTreeClean(): Boolean {
     ensureInGitRepository()
-    return getWorkingTreeCleanExec().result.orNull?.exitValue == 0
+    val gitStatus = providers.exec {
+        executable("git")
+        args("status", "--porcelain", rootDir.absolutePath)
+        isIgnoreExitValue = true
+    }
+    return gitStatus.result.get().isSuccess() && gitStatus.standardOutput.asText.get().isBlank()
 }
 
 fun Project.getAllCommitsPushed(): Boolean {
     ensureInGitRepository()
-    return getAllCommitsPushedExec().result.orNull?.exitValue == 0
+    providers.exec {
+        executable("git")
+        args("fetch")
+        isIgnoreExitValue = true
+    }.result.get()
+    val diffExec = providers.exec {
+        executable("git")
+        args("diff", "--quiet", "--exit-code", "origin/main..main")
+        isIgnoreExitValue = true
+    }
+    return diffExec.result.get().isSuccess()
 }
+
+fun ExecResult.isSuccess() = exitValue == 0
