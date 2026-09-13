@@ -14,6 +14,9 @@ import android.widget.LinearLayout
 import androidx.annotation.LayoutRes
 import androidx.core.view.SoftwareKeyboardControllerCompat
 import androidx.core.view.get
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.preference.DropDownPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -22,6 +25,7 @@ import androidx.preference.PreferenceViewHolder
 import androidx.preference.children
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPreferenceBinding
+import de.binarynoise.captiveportalautologin.preferences.PreferencePropertyDelegate.OnSharedPreferenceChangeListener
 
 //fun Preference.PreferenceIcon(icon: IIcon): Drawable {
 //    return IconicsDrawable(context, icon).apply {
@@ -173,3 +177,23 @@ var Preference.titleRes: Int
 var Preference.summaryRes: Int
     get() = 0
     set(value) = this.setSummary(value)
+
+fun <T : Any> PreferencePropertyDelegate<T>.addOnSharedPreferenceChangeListener(
+    lifecycle: Lifecycle,
+    immediateCallback: Boolean = true,
+    listener: OnSharedPreferenceChangeListener<T>,
+) {
+    lifecycle.addObserver(object : DefaultLifecycleObserver {
+        override fun onCreate(owner: LifecycleOwner) {
+            addOnSharedPreferenceChangeListener(immediateCallback, listener)
+        }
+        
+        override fun onStart(owner: LifecycleOwner) {
+            addOnSharedPreferenceChangeListener(immediateCallback = false, listener)
+        }
+        
+        override fun onStop(owner: LifecycleOwner) {
+            removeOnSharedPreferenceChangeListener(listener)
+        }
+    })
+}

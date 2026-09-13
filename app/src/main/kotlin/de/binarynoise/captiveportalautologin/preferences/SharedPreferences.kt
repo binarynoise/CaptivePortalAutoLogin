@@ -4,6 +4,7 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.time.Instant
+import android.content.SharedPreferences
 import android.provider.Settings
 import androidx.core.content.edit
 import androidx.preference.ListPreference
@@ -102,10 +103,12 @@ open class PreferencePropertyDelegate<T : Any>(val sharedPreferencesKey: String,
         }
     }
     
+    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    
     @Suppress("UNCHECKED_CAST")
     @JvmName("getValueNullable")
     operator fun getValue(thisRef: Any?, property: KProperty<*>?): T {
-        with(PreferenceManager.getDefaultSharedPreferences(applicationContext)) {
+        with(sharedPreferences) {
             return if (contains(sharedPreferencesKey)) all[sharedPreferencesKey] as T
             else defaultValue
         }
@@ -117,7 +120,7 @@ open class PreferencePropertyDelegate<T : Any>(val sharedPreferencesKey: String,
     
     @JvmName("setValueNullable")
     operator fun setValue(thisRef: Any?, property: KProperty<*>?, newValue: T?) {
-        PreferenceManager.getDefaultSharedPreferences(applicationContext).edit {
+        sharedPreferences.edit {
             when (newValue) {
                 null -> remove(sharedPreferencesKey)
                 is Int -> putInt(sharedPreferencesKey, newValue)
@@ -137,6 +140,33 @@ open class PreferencePropertyDelegate<T : Any>(val sharedPreferencesKey: String,
     fun get(): T = getValue(null, null)
     
     fun set(newValue: T?) = setValue(null, null, newValue)
+    
+    typealias OnSharedPreferenceChangeListener<T> = ((T) -> Unit)
+    
+    val listeners = mutableSetOf<OnSharedPreferenceChangeListener<T>>()
+    val onSharedPreferenceChangeListener: SharedPreferences.OnSharedPreferenceChangeListener = listener@{ _, key ->
+        if (key != sharedPreferencesKey) return@listener
+        val value = get()
+        listeners.forEach { it.invoke(value) }
+    }
+    
+    fun addOnSharedPreferenceChangeListener(
+        immediateCallback: Boolean = true,
+        listener: OnSharedPreferenceChangeListener<T>,
+    ) {
+        if (listeners.isEmpty()) {
+            sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
+        }
+        listeners.add(listener)
+        if (immediateCallback) listener.invoke(get())
+    }
+    
+    fun removeOnSharedPreferenceChangeListener(listener: OnSharedPreferenceChangeListener<T>) {
+        listeners.remove(listener)
+        if (listeners.isEmpty()) {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
+        }
+    }
 }
 
 class MappedPreferencePropertyDelegate<V : Any>(
