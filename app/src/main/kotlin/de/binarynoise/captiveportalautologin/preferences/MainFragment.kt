@@ -153,7 +153,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
                 }
                 addPreference(Preference(ctx)) {
                     title = "Telegram Channel"
-                    intent = Intent(Intent.ACTION_VIEW, "https://t.me/+__MmjOzaVOw3MDc6".toUri())
+                    intent = Intent(Intent.ACTION_VIEW, "https://t.me/captiveportalautologin".toUri())
                 }
                 addPreference(Preference(ctx)) {
                     title = "Telegram Group"
