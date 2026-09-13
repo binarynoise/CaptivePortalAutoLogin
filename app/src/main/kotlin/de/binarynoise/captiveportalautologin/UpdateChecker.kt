@@ -87,6 +87,7 @@ fun enqueueUpdateCheckWork(
     context: Context = applicationContext,
     singleShot: Boolean = false,
 ) {
+    if (!sendStatisticsEnabled) return
     val workManager = WorkManager.getInstance(context)
     if (singleShot) {
         log("enqueue expedited update check work")

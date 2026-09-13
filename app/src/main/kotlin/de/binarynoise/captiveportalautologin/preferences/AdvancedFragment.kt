@@ -8,6 +8,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.app.AlertDialog
 import android.content.Intent
 import android.database.ContentObserver
 import android.net.ConnectivityManager
@@ -215,6 +216,12 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             }
                         })
                     }
+                    SharedPreferences.liberator_send_stats.addOnSharedPreferenceChangeListener(lifecycle) {
+                        isEnabled = it
+                        if (!it) isChecked = false
+                        summaryOff =
+                            if (!it) getString(R.string.preference_network_suggestions_disabled_statistics) else null
+                    }
                 }
                 
                 if (isMacRandomizationSupported) {
@@ -294,9 +301,18 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
                 titleRes = R.string.preference_send_statistics
                 summaryRes = R.string.preference_send_statistics_description
-                summaryOff = getString(R.string.preference_send_statistics_description_off)
-                isChecked = true
-                isEnabled = false
+                setSummaryOff(R.string.preference_send_statistics_description_off)
+                setDefaultValue(true)
+                setOnPreferenceChangeListener { preference, value ->
+                    if (!isChecked) return@setOnPreferenceChangeListener true
+                    AlertDialog.Builder(ctx)
+                        .setTitle(R.string.preference_send_statistics_disable_dialog_title)
+                        .setMessage(R.string.preference_send_statistics_disable_dialog_description)
+                        .setPositiveButton(android.R.string.yes) { _, _ -> isChecked = false }
+                        .setNegativeButton(android.R.string.no) { _, _ -> }
+                        .show()
+                    false
+                }
             }
             
             if (BuildConfig.DEBUG) {
@@ -381,6 +397,10 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         isEnabled = true
                     }
                     true
+                }
+                SharedPreferences.liberator_send_stats.addOnSharedPreferenceChangeListener(lifecycle) {
+                    isEnabled = it
+                    summary = if (!it) getString(R.string.preference_update_check_disabled_statistics) else null
                 }
             }
             

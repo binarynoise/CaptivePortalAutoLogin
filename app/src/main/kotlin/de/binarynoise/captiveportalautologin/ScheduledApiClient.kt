@@ -35,6 +35,8 @@ private val localCacheRoot = applicationContext.cacheDir.toPath().resolve("Stats
 private val jsonDB = JsonDB(localCacheRoot)
 private val logDB = FileDB(localCacheRoot, "LOG", "log")
 
+val sendStatisticsEnabled : Boolean get() = SharedPreferences.liberator_send_stats.get()
+
 object ScheduledApiClient : Api {
     override val har: Har = Har()
     override val log: Log = Log()
@@ -64,12 +66,14 @@ object ScheduledApiClient : Api {
         }
         
         override fun reportError(error: Api.Liberator.Error) {
+            if (!sendStatisticsEnabled) return
             val key = "${System.currentTimeMillis()}_${error.hashCode()}"
             jsonDB.store(key, error)
             enqueueStatsUploadWork()
         }
         
         override fun reportSuccess(success: Api.Liberator.Success) {
+            if (!sendStatisticsEnabled) return
             val key = "${System.currentTimeMillis()}_${success.hashCode()}"
             jsonDB.store(key, success)
             enqueueStatsUploadWork()
@@ -221,6 +225,7 @@ fun enqueueStatsUploadWork(
     context: Context = applicationContext,
     singleShot: Boolean = false,
 ) {
+    if (!sendStatisticsEnabled) return
     val workManager = WorkManager.getInstance(context)
     if (singleShot) {
         log("enqueue expedited stats upload work")
