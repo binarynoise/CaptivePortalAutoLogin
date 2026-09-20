@@ -10,12 +10,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.app.AlertDialog
 import android.content.Intent
-import android.database.ContentObserver
 import android.net.ConnectivityManager
-import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -34,22 +31,14 @@ import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.C
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.serviceStateLock
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.ServiceState
-import de.binarynoise.captiveportalautologin.NetworkSuggestionOnPreferenceChangeListener
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
-import de.binarynoise.captiveportalautologin.SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY
+import de.binarynoise.captiveportalautologin.addNetworkSuggestionPreferences
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.gecko.GeckoViewActivity
 import de.binarynoise.captiveportalautologin.gecko.RecordCaptivePortalActivity
-import de.binarynoise.captiveportalautologin.isMacRandomizationForceEnabled
-import de.binarynoise.captiveportalautologin.isMacRandomizationSupported
-import de.binarynoise.captiveportalautologin.isNetworkSuggestion
-import de.binarynoise.captiveportalautologin.resetNetworkSuggestionMacAddress
-import de.binarynoise.captiveportalautologin.updateNetworkSuggestions
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
-import de.binarynoise.captiveportalautologin.util.mainHandler
-import de.binarynoise.captiveportalautologin.wifiManager
 import de.binarynoise.logger.Logger.log
 import de.binarynoise.util.okhttp.get
 import de.binarynoise.util.okhttp.readText
@@ -191,92 +180,15 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 summaryOffRes = R.string.preference_permissions_description_not_granted
             }
             
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                addPreference(SwitchPreference(ctx)) {
-                    titleRes = R.string.preference_network_suggestions
-                    summaryRes = R.string.preference_network_suggestions_description
-                    onPreferenceChangeListener = NetworkSuggestionOnPreferenceChangeListener
-                    key = SharedPreferences.network_suggestions.sharedPreferencesKey
-                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                        summaryOn =
-                            summary.toString() + getString(R.string.preference_network_suggestions_disconnect_on_Q)
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
-                            isEnabled = status != WifiManager.STATUS_SUGGESTION_APPROVAL_REJECTED_BY_USER
-                            if (!isEnabled) isChecked = false
-                        }
-                        lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onStart(owner: LifecycleOwner) {
-                                wifiManager.addSuggestionUserApprovalStatusListener(ctx.mainExecutor, listener)
-                            }
-                            
-                            override fun onStop(owner: LifecycleOwner) {
-                                wifiManager.removeSuggestionUserApprovalStatusListener(listener)
-                            }
-                        })
-                    }
-                    SharedPreferences.liberator_send_stats.addOnSharedPreferenceChangeListener(lifecycle) {
-                        isEnabled = it
-                        if (!it) isChecked = false
-                        summaryOff =
-                            if (!it) getString(R.string.preference_network_suggestions_disabled_statistics) else null
-                    }
-                }
-                
-                if (isMacRandomizationSupported) {
-                    addPreference(SwitchPreference(ctx)) {
-                        key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
-                        titleRes = R.string.preference_network_suggestions_mac_randomization
-                        summaryRes = R.string.preference_network_suggestions_mac_randomization_description
-                        setOnPreferenceChangeListener { _, _ ->
-                            updateNetworkSuggestions()
-                        }
-                        
-                        val observer = object : ContentObserver(mainHandler) {
-                            override fun onChange(selfChange: Boolean) {
-                                if (isMacRandomizationForceEnabled) {
-                                    isEnabled = false
-                                    isPersistent = false
-                                    isChecked = true
-                                } else {
-                                    isChecked = SharedPreferences.network_suggestions_mac_randomization.get()
-                                    isPersistent = true
-                                    isEnabled = true
-                                }
-                            }
-                        }
-                        val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
-                        lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onStart(owner: LifecycleOwner) {
-                                ctx.contentResolver.registerContentObserver(uri, false, observer)
-                                observer.onChange(true)
-                            }
-                            
-                            override fun onStop(owner: LifecycleOwner) {
-                                ctx.contentResolver.unregisterContentObserver(observer)
-                            }
-                        })
-                        observer.onChange(true)
-                    }.apply {
-                        dependency = SharedPreferences.network_suggestions.sharedPreferencesKey
-                    }
-                    
-                    addPreference(Preference(ctx)) {
-                        titleRes = R.string.preference_network_suggestions_change_mac_now
-                        summaryRes = R.string.preference_network_suggestions_change_mac_now_description
-                        setOnPreferenceClickListener {
-                            val networkState = networkStateLock.read { networkState }
-                            if (networkState == null) return@setOnPreferenceClickListener false
-                            resetNetworkSuggestionMacAddress(networkState.ssid)
-                            true
-                        }
-                        networkStateListeners.add {
-                            isEnabled = it != null && isNetworkSuggestion(it.ssid)
-                        }
-                    }
-                }
-            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) addNetworkSuggestionPreferences(
+                this,
+                lifecycle,
+                addMasterToggle = true,
+                addMacRandomizationToggle = true,
+                addChangeMacAddressNowButton = true,
+                networkStateListeners = networkStateListeners,
+            )
+            
             
             addPreference(SwitchPreference(ctx)) {
                 if (!BuildConfig.DEBUG) key = SharedPreferences.liberator_experimental_enabled_sharedPreferencesKey

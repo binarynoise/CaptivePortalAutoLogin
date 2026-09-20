@@ -46,15 +46,19 @@
     <string name="capture_captive_portal_description">Log in to a Captive Portal manually and share the capture to improve the Liberator</string>
     <string name="preference_network_suggestions">Network Suggestions</string>
     <string name="preference_network_suggestions_description">Suggest automatic connection for supported networks to the OS.</string>
+    <string name="preference_network_suggestions_description_simple">Automatically connect to supported networks.</string>
     <string name="preference_network_suggestions_disconnect_on_Q">\nNote: You may experience short disconnections while the suggestions are updated in the background.</string>
     <string name="preference_network_suggestions_disabled_statistics">Network Suggestions unavailable because "Send Statistics" is disabled.</string>
+    <string name="preference_network_suggestions_disabled_suggestions">Network Suggestions unavailable because they were not approved by the user.</string>
     <string name="preference_network_suggestions_mac_randomization">Non-persistent MAC randomization</string>
     <string name="preference_network_suggestions_mac_randomization_description">
         For suggested networks, the MAC address will be randomized periodically. 
         This will lead to more anonymity, but also requires liberation for most connection attempts.
     </string>
+    <string name="preference_network_suggestions_mac_randomization_description_force_enabled_system">MAC randomization is force-enabled by the system.</string>
     <string name="preference_network_suggestions_change_mac_now">Change MAC-Address now</string>
     <string name="preference_network_suggestions_change_mac_now_description">For suggested networks, immediately disconnect and resuggest with a different MAC-Address</string>
+    <string name="preference_network_suggestions_change_mac_now_description_simple">Disconnect and reconnect with a different MAC-Address</string>
     <string name="preference_advanced_settings">Advanced Settings</string>
     <string name="service_status">Service Status</string>
     <string name="network_status">Network Status</string>

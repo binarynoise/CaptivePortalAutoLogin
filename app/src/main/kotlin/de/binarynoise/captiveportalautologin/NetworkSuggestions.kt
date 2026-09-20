@@ -3,8 +3,10 @@
 package de.binarynoise.captiveportalautologin
 
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.read
 import android.annotation.SuppressLint
 import android.content.Context
+import android.database.ContentObserver
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
@@ -12,7 +14,12 @@ import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.preference.Preference
+import androidx.preference.PreferenceGroup
+import androidx.preference.SwitchPreference
 import androidx.preference.TwoStatePreference
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -23,11 +30,20 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkState
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.Companion.networkStateLock
+import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService.NetworkState
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
+import de.binarynoise.captiveportalautologin.preferences.addOnSharedPreferenceChangeListener
+import de.binarynoise.captiveportalautologin.preferences.addPreference
+import de.binarynoise.captiveportalautologin.preferences.summaryOnRes
+import de.binarynoise.captiveportalautologin.preferences.summaryRes
+import de.binarynoise.captiveportalautologin.preferences.titleRes
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.captiveportalautologin.util.englishResources
 import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
+import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.isExperimental
@@ -278,4 +294,124 @@ fun resetNetworkSuggestionMacAddress(suggestion: List<WifiNetworkSuggestion>): B
     val addStatus = wifiManager.addNetworkSuggestions(suggestion)
     log("resetNetworkSuggestionMacAddress addStatus=${addStatus.toNetworkSuggestionStatusString()}")
     return addStatus == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS
+}
+
+fun addNetworkSuggestionPreferences(
+    group: PreferenceGroup,
+    lifecycle: Lifecycle,
+    useSimpleDescriptions: Boolean = false,
+    addMasterToggle: Boolean = true,
+    addMacRandomizationToggle: Boolean = false,
+    addChangeMacAddressNowButton: Boolean = false,
+    networkStateListeners: MutableList<(newState: NetworkState?) -> Unit>? = null,
+) {
+    with(group) {
+        fun getString(id: Int): String {
+            return context.getString(id)
+        }
+        if (addMasterToggle) addPreference(SwitchPreference(context)) {
+            titleRes = R.string.preference_network_suggestions
+            summaryRes = if (useSimpleDescriptions) R.string.preference_network_suggestions_description_simple
+            else R.string.preference_network_suggestions_description
+            onPreferenceChangeListener = NetworkSuggestionOnPreferenceChangeListener
+            key = SharedPreferences.network_suggestions.sharedPreferencesKey
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                summaryOn = summary.toString() + getString(R.string.preference_network_suggestions_disconnect_on_Q)
+            }
+            var suggestionsApproved: Boolean? = null
+            var sendStatsEnabled: Boolean? = null
+            fun reevaluateEnabled() {
+                isEnabled = (suggestionsApproved ?: false) && (sendStatsEnabled ?: false)
+                if (suggestionsApproved == null || sendStatsEnabled == null) return
+                if (!isEnabled) isChecked = false
+                summaryOff = StringBuilder().apply {
+                    if (suggestionsApproved == false) append(getString(R.string.preference_network_suggestions_disabled_suggestions))
+                    if (sendStatsEnabled == false) append(getString(R.string.preference_network_suggestions_disabled_statistics))
+                }.takeIf { it.isNotEmpty() }?.toString()
+            }
+            reevaluateEnabled()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
+                    suggestionsApproved = status in listOf(
+                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_USER,
+                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_CARRIER_PRIVILEGE,
+                    )
+                    reevaluateEnabled()
+                }
+                lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onStart(owner: LifecycleOwner) {
+                        wifiManager.addSuggestionUserApprovalStatusListener(context.mainExecutor, listener)
+                    }
+                    
+                    override fun onStop(owner: LifecycleOwner) {
+                        wifiManager.removeSuggestionUserApprovalStatusListener(listener)
+                    }
+                })
+            }
+            SharedPreferences.liberator_send_stats.addOnSharedPreferenceChangeListener(lifecycle) {
+                sendStatsEnabled = it
+                reevaluateEnabled()
+            }
+        }
+        
+        if (isMacRandomizationSupported) {
+            if (addMacRandomizationToggle) addPreference(SwitchPreference(context)) {
+                key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
+                titleRes = R.string.preference_network_suggestions_mac_randomization
+                summaryRes = R.string.preference_network_suggestions_mac_randomization_description
+                setOnPreferenceChangeListener { _, _ ->
+                    updateNetworkSuggestions()
+                }
+                
+                val observer = object : ContentObserver(mainHandler) {
+                    override fun onChange(selfChange: Boolean) {
+                        if (isMacRandomizationForceEnabled) {
+                            isEnabled = false
+                            isPersistent = false
+                            isChecked = true
+                            summaryOnRes =
+                                R.string.preference_network_suggestions_mac_randomization_description_force_enabled_system
+                        } else {
+                            isChecked = SharedPreferences.network_suggestions_mac_randomization.get()
+                            isPersistent = true
+                            isEnabled = true
+                            summaryOn = null
+                        }
+                    }
+                }
+                val uri = Settings.Global.getUriFor(SETTINGS_NON_PERSISTENT_MAC_RANDOMIZATION_FORCE_ENABLED_KEY)
+                lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onStart(owner: LifecycleOwner) {
+                        context.contentResolver.registerContentObserver(uri, false, observer)
+                        observer.onChange(true)
+                    }
+                    
+                    override fun onStop(owner: LifecycleOwner) {
+                        context.contentResolver.unregisterContentObserver(observer)
+                    }
+                })
+                observer.onChange(true)
+            }.apply {
+                dependency = SharedPreferences.network_suggestions.sharedPreferencesKey
+            }
+            
+            if (addChangeMacAddressNowButton) addPreference(Preference(context)) {
+                titleRes = R.string.preference_network_suggestions_change_mac_now
+                summaryRes =
+                    if (useSimpleDescriptions) R.string.preference_network_suggestions_change_mac_now_description_simple
+                    else R.string.preference_network_suggestions_change_mac_now_description
+                setOnPreferenceClickListener {
+                    val networkState = networkStateLock.read { networkState }
+                    if (networkState == null) return@setOnPreferenceClickListener false
+                    resetNetworkSuggestionMacAddress(networkState.ssid)
+                    true
+                }
+                require(networkStateListeners != null)
+                networkStateListeners.add {
+                    isEnabled = it != null && isNetworkSuggestion(it.ssid)
+                    isVisible = isEnabled //hide if irrelevant
+                }
+            }
+        }
+    }
 }
