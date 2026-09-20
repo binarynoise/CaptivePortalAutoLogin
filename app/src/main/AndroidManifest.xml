@@ -130,7 +130,7 @@
             />
         <meta-data
             android:name="xposeddescription"
-            android:value="Forcing Android to reevaluate the Captive Portal after liberation"
+            android:value="Companion Module for extra functionality and comfort"
             />
         <meta-data
             android:name="xposedminversion"
