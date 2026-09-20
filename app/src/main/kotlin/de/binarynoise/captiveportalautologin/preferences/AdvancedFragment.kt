@@ -123,8 +123,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             addPreference(SwitchPreference(ctx)) {
                 key = SharedPreferences.liberator_automatically_liberate.sharedPreferencesKey
                 titleRes = R.string.liberator_status
-                setSummaryOn(R.string.preferences_automatically_liberating_captive_portals_description_on)
-                setSummaryOff(R.string.preferences_automatically_liberating_captive_portals_description_off)
+                summaryOnRes = R.string.preferences_automatically_liberating_captive_portals_description_on
+                summaryOffRes = R.string.preferences_automatically_liberating_captive_portals_description_off
                 setDefaultValue(SharedPreferences.liberator_automatically_liberate.defaultValue)
             }
             
@@ -187,8 +187,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                         isChecked = Permissions.all { it.granted(context) }
                     }
                 })
-                setSummaryOn(R.string.preference_permissions_description_granted)
-                setSummaryOff(R.string.preference_permissions_description_not_granted)
+                summaryOnRes = R.string.preference_permissions_description_granted
+                summaryOffRes = R.string.preference_permissions_description_not_granted
             }
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -285,7 +285,8 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                     isEnabled = false
                     isChecked = true
                     summaryRes = R.string.preference_enable_experimental_portalliberators_description
-                    setSummaryOn(R.string.preference_enable_experimental_portalliberators_description_always_enabled_on_debugging_builds)
+                    summaryOnRes =
+                        R.string.preference_enable_experimental_portalliberators_description_always_enabled_on_debugging_builds
                 }
             }
             
@@ -301,7 +302,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
                 titleRes = R.string.preference_send_statistics
                 summaryRes = R.string.preference_send_statistics_description
-                setSummaryOff(R.string.preference_send_statistics_description_off)
+                summaryOffRes = R.string.preference_send_statistics_description_off
                 setDefaultValue(true)
                 setOnPreferenceChangeListener { preference, value ->
                     if (!isChecked) return@setOnPreferenceChangeListener true

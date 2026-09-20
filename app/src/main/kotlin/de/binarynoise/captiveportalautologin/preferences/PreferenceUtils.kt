@@ -22,6 +22,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceViewHolder
+import androidx.preference.TwoStatePreference
 import androidx.preference.children
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPreferenceBinding
@@ -173,10 +174,15 @@ fun <V : Any> DropDownPreference(
 var Preference.titleRes: Int
     get() = 0
     set(value) = this.setTitle(value)
-
 var Preference.summaryRes: Int
     get() = 0
     set(value) = this.setSummary(value)
+var TwoStatePreference.summaryOnRes: Int
+    get() = 0
+    set(value) = this.setSummaryOn(value)
+var TwoStatePreference.summaryOffRes: Int
+    get() = 0
+    set(value) = this.setSummaryOff(value)
 
 fun <T : Any> PreferencePropertyDelegate<T>.addOnSharedPreferenceChangeListener(
     lifecycle: Lifecycle,
