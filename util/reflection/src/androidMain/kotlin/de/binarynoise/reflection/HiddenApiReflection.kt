@@ -5,11 +5,11 @@ import java.lang.reflect.Modifier
 import android.os.Build
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
-fun Any.invokeHiddenMethod(name: String, vararg args: Any?): Any {
+fun Any.invokeHiddenMethod(name: String, vararg args: Any?, cls: Class<*> = this::class.java): Any? {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.invoke(this::class.java, this, name, *args)
+        HiddenApiBypass.invoke(cls, this, name, *args)
     } else {
-        this::class.java.getDeclaredMethod(name).invoke(this, *args)
+        cls.getDeclaredMethod(name).invoke(this, *args)
     }
 }
 
