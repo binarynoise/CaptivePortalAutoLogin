@@ -4,6 +4,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import android.content.Context
+import android.content.SharedPreferences
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.KeyEvent
@@ -56,7 +57,7 @@ fun PreferenceGroup.removeOnClickListenersRecursively() {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : Preference> PreferenceGroup.addPreference(
+fun <T : Preference> PreferenceGroup.addPreference(
     preference: T,
     lifecycle: Lifecycle,
     setup: T.() -> Unit,
@@ -79,9 +80,21 @@ inline fun <T : Preference> PreferenceGroup.addPreference(
         addPreference(preference)
         
         if (preference.hasKey()) {
+            fun refreshPreference() {
+                preference.invokeHiddenMethod("onSetInitialValue", true, null, cls = Preference::class.java)
+            }
+            
+            val onSharedPreferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == preference.key) refreshPreference()
+            }
             lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
-                    preference.invokeHiddenMethod("onSetInitialValue", true, null, cls = Preference::class.java)
+                    refreshPreference()
+                    sharedPreferences?.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
+                }
+                
+                override fun onStop(owner: LifecycleOwner) {
+                    sharedPreferences?.unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
                 }
             })
         }
