@@ -57,7 +57,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
         
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
         preferenceScreen.apply {
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.status
                 
                 setOnPreferenceClickListener {
@@ -71,7 +71,7 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.capture_captive_portal
                 summaryRes = R.string.capture_captive_portal_description
                 setOnPreferenceClickListener {
@@ -101,23 +101,23 @@ class MainFragment : AutoCleanupPreferenceFragment() {
             }
             
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.preference_advanced_settings
                 fragment = AdvancedFragment::class.qualifiedName
             }
             
             
-            addPreference(PreferenceCategory(ctx)) {
+            addPreference(PreferenceCategory(ctx), lifecycle) {
                 title = "Contact"
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     title = "GitHub Repository"
                     intent = Intent(Intent.ACTION_VIEW, "https://github.com/binarynoise/CaptivePortalAutoLogin".toUri())
                 }
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     title = "Telegram Channel"
                     intent = Intent(Intent.ACTION_VIEW, "https://t.me/captiveportalautologin".toUri())
                 }
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     title = "Telegram Group"
                     intent = Intent(Intent.ACTION_VIEW, "https://t.me/+a5Kj_MA-OGoyN2My".toUri())
                 }

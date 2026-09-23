@@ -27,6 +27,7 @@ import androidx.preference.children
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.ItemInlineEditTextPreferenceBinding
 import de.binarynoise.captiveportalautologin.preferences.PreferencePropertyDelegate.OnSharedPreferenceChangeListener
+import de.binarynoise.reflection.invokeHiddenMethod
 
 //fun Preference.PreferenceIcon(icon: IIcon): Drawable {
 //    return IconicsDrawable(context, icon).apply {
@@ -55,7 +56,11 @@ fun PreferenceGroup.removeOnClickListenersRecursively() {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: T.() -> Unit): Preference {
+inline fun <T : Preference> PreferenceGroup.addPreference(
+    preference: T,
+    lifecycle: Lifecycle,
+    setup: T.() -> Unit,
+): Preference {
     contract {
         callsInPlace(setup, InvocationKind.EXACTLY_ONCE)
     }
@@ -72,6 +77,14 @@ inline fun <T : Preference> PreferenceGroup.addPreference(preference: T, setup: 
     if (!isPreferenceGroup) {
         // normal preferences need the setup applied before being added to the tree
         addPreference(preference)
+        
+        if (preference.hasKey()) {
+            lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    preference.invokeHiddenMethod("onSetInitialValue", true, null, cls = Preference::class.java)
+                }
+            })
+        }
     }
     
     return preference
@@ -158,7 +171,7 @@ fun EditTextPreference(
                 SoftwareKeyboardControllerCompat(editText).hide()
             }
         }
-        editText.setHint(hint)
+        editText.hint = hint
     }
 }.apply {
     layoutResource = R.layout.preference_horizontal
@@ -194,8 +207,12 @@ fun <T : Any> PreferencePropertyDelegate<T>.addOnSharedPreferenceChangeListener(
             addOnSharedPreferenceChangeListener(immediateCallback, listener)
         }
         
+        override fun onDestroy(owner: LifecycleOwner) {
+            removeOnSharedPreferenceChangeListener(listener)
+        }
+        
         override fun onStart(owner: LifecycleOwner) {
-            addOnSharedPreferenceChangeListener(immediateCallback = false, listener)
+            addOnSharedPreferenceChangeListener(immediateCallback, listener)
         }
         
         override fun onStop(owner: LifecycleOwner) {

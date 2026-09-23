@@ -27,7 +27,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
-            addPreference(PreferenceCategory(ctx)) {
+            addPreference(PreferenceCategory(ctx), lifecycle) {
                 titleRes = R.string.preference_export_logs
                 
                 lifecycleScope.launch {
@@ -123,7 +123,7 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
                                         uploadButton.isVisible = false
                                     }
                                 }
-                            }) {
+                            }, lifecycle) {
                                 title = file.name
                                 isIconSpaceReserved = false
                             }

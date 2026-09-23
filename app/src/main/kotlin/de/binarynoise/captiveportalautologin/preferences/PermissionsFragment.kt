@@ -23,9 +23,9 @@ class PermissionsFragment(
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
             titleRes = R.string.preference_permissions
             
-            addPreference(PreferenceCategory(ctx)) {
+            addPreference(PreferenceCategory(ctx), lifecycle) {
                 permissions.forEach { permission ->
-                    addPreference(CheckBoxPreference(ctx)) {
+                    addPreference(CheckBoxPreference(ctx), lifecycle) {
                         titleRes = permission.nameRes
                         summaryRes = permission.descriptionRes
                         
@@ -42,7 +42,7 @@ class PermissionsFragment(
                         
                         update()
                         lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onResume(owner: LifecycleOwner) {
+                            override fun onStart(owner: LifecycleOwner) {
                                 update()
                             }
                         })
@@ -51,7 +51,7 @@ class PermissionsFragment(
                 
             }
             
-            if (includeOpenSettingsLink) addPreference(Preference(ctx)) {
+            if (includeOpenSettingsLink) addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.preference_open_app_info
                 summaryRes = R.string.preference_open_app_info_description
                 setOnPreferenceClickListener { _ ->

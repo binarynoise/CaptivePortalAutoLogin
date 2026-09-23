@@ -309,7 +309,7 @@ fun addNetworkSuggestionPreferences(
         fun getString(id: Int): String {
             return context.getString(id)
         }
-        if (addMasterToggle) addPreference(SwitchPreference(context)) {
+        if (addMasterToggle) addPreference(SwitchPreference(context), lifecycle) {
             titleRes = R.string.preference_network_suggestions
             summaryRes = if (useSimpleDescriptions) R.string.preference_network_suggestions_description_simple
             else R.string.preference_network_suggestions_description
@@ -355,7 +355,7 @@ fun addNetworkSuggestionPreferences(
         }
         
         if (isMacRandomizationSupported) {
-            if (addMacRandomizationToggle) addPreference(SwitchPreference(context)) {
+            if (addMacRandomizationToggle) addPreference(SwitchPreference(context), lifecycle) {
                 key = SharedPreferences.network_suggestions_mac_randomization.sharedPreferencesKey
                 titleRes = R.string.preference_network_suggestions_mac_randomization
                 summaryRes = R.string.preference_network_suggestions_mac_randomization_description
@@ -395,7 +395,7 @@ fun addNetworkSuggestionPreferences(
                 dependency = SharedPreferences.network_suggestions.sharedPreferencesKey
             }
             
-            if (addChangeMacAddressNowButton) addPreference(Preference(context)) {
+            if (addChangeMacAddressNowButton) addPreference(Preference(context), lifecycle) {
                 titleRes = R.string.preference_network_suggestions_change_mac_now
                 summaryRes =
                     if (useSimpleDescriptions) R.string.preference_network_suggestions_change_mac_now_description_simple

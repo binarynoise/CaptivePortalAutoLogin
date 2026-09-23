@@ -80,7 +80,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx)
         preferenceScreen.apply {
             // TODO: add switch to disable service auto-start (and then disable manual start/stop)
-            addPreference(SwitchPreference(ctx)) {
+            addPreference(SwitchPreference(ctx), lifecycle) {
                 titleRes = R.string.service_status
                 
                 setOnPreferenceChangeListener { _, _ ->
@@ -98,7 +98,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.network_status
                 isSelectable = false
                 serviceStateListeners.add {
@@ -109,7 +109,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(SwitchPreference(ctx)) {
+            addPreference(SwitchPreference(ctx), lifecycle) {
                 key = SharedPreferences.liberator_automatically_liberate.sharedPreferencesKey
                 titleRes = R.string.liberator_status
                 summaryOnRes = R.string.preferences_automatically_liberating_captive_portals_description_on
@@ -117,7 +117,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 setDefaultValue(SharedPreferences.liberator_automatically_liberate.defaultValue)
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.liberate_now
                 summaryRes = R.string.liberate_now_description
                 
@@ -131,7 +131,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.request_reevaluation
                 summaryRes = R.string.request_reevaluation_description
                 setOnPreferenceClickListener {
@@ -143,7 +143,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.capture_captive_portal
                 summaryRes = R.string.capture_captive_portal_description
                 setOnPreferenceClickListener {
@@ -160,19 +160,19 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             }
             
             if (BuildConfig.DEBUG) {
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     titleRes = R.string.capture_captive_portal_dev
                     summaryRes = R.string.capture_captive_portal_dev_description
                     intent = Intent(ctx, GeckoViewActivity::class.java)
                 }
             }
             
-            addPreference(CheckBoxPreference(ctx)) {
+            addPreference(CheckBoxPreference(ctx), lifecycle) {
                 titleRes = R.string.preference_permissions
                 fragment = PermissionsFragment::class.qualifiedName
                 setOnPreferenceChangeListener { _, _ -> false }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onResume(owner: LifecycleOwner) {
+                    override fun onStart(owner: LifecycleOwner) {
                         isChecked = Permissions.all { it.granted(context) }
                     }
                 })
@@ -190,7 +190,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
             )
             
             
-            addPreference(SwitchPreference(ctx)) {
+            addPreference(SwitchPreference(ctx), lifecycle) {
                 if (!BuildConfig.DEBUG) key = SharedPreferences.liberator_experimental_enabled_sharedPreferencesKey
                 titleRes = R.string.preference_enable_experimental_portalliberators
                 if (BuildConfig.DEBUG) {
@@ -202,15 +202,15 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url)) {
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_captive_test_url), lifecycle) {
                 titleRes = R.string.preference_captive_test_url
             }
             
-            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_user_agent)) {
+            addPreference(DropDownPreference(ctx, SharedPreferences.liberator_user_agent), lifecycle) {
                 titleRes = R.string.preference_user_agent
             }
             
-            addPreference(SwitchPreference(ctx)) {
+            addPreference(SwitchPreference(ctx), lifecycle) {
                 key = SharedPreferences.liberator_send_stats.sharedPreferencesKey
                 titleRes = R.string.preference_send_statistics
                 summaryRes = R.string.preference_send_statistics_description
@@ -249,12 +249,13 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                             editText.error = e.localizedMessage ?: e.message ?: getString(R.string.invalid_url)
                         }
                     },
+                    lifecycle,
                 ) {
                     key = SharedPreferences.api_base_url.sharedPreferencesKey
                     titleRes = R.string.preference_api_base
                 }
                 
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     title = getString(R.string.preference_api_base_connection_test)
                     onPreferenceClickListener = {
                         lifecycleScope.launch {
@@ -275,7 +276,7 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 title = "Check for Updates"
                 onPreferenceClickListener = {
                     lifecycleScope.launch {
@@ -317,13 +318,13 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 }
             }
             
-            addPreference(Preference(ctx)) {
+            addPreference(Preference(ctx), lifecycle) {
                 titleRes = R.string.preference_export_logs
                 fragment = LogsFragment::class.qualifiedName
             }
             
             if (BuildConfig.DEBUG) {
-                addPreference(Preference(ctx)) {
+                addPreference(Preference(ctx), lifecycle) {
                     titleRes = R.string.preference_debug_activities
                     fragment = DebugShortcutsFragment::class.qualifiedName
                 }

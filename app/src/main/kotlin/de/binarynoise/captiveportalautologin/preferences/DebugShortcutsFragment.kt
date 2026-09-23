@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.preferences
 
+import android.R
 import android.content.pm.LauncherApps
 import android.content.pm.ShortcutManager
 import android.os.Bundle
@@ -18,11 +19,11 @@ class DebugShortcutsFragment : AutoCleanupPreferenceFragment() {
         
         preferenceScreen = preferenceManager.createPreferenceScreen(context).apply {
             shortcuts.forEach { shortcut ->
-                addPreference(Preference(context)) {
+                addPreference(Preference(context), lifecycle) {
                     title = shortcut.shortLabel
                     summary = shortcut.longLabel
                     val shortcutIconDrawable = launcherApps.getShortcutIconDrawable(shortcut, 0)
-                    val tintColor = context.getColorFromAttr(android.R.attr.textColorPrimary)
+                    val tintColor = context.getColorFromAttr(R.attr.textColorPrimary)
                     shortcutIconDrawable.setTint(tintColor)
                     icon = shortcutIconDrawable
                     setOnPreferenceClickListener {
