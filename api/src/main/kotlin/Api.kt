@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.api
 
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import de.binarynoise.captiveportalautologin.api.json.har.HAR
@@ -66,3 +67,5 @@ interface Api {
         manual: Boolean,
     ): Update?
 }
+
+val defaultUpdateInterval = 7.days

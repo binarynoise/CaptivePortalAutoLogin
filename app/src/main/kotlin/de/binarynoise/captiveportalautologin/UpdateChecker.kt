@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin
 
 import java.util.concurrent.TimeUnit
+import kotlin.time.toJavaDuration
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -19,6 +20,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import de.binarynoise.captiveportalautologin.api.defaultUpdateInterval
 import de.binarynoise.captiveportalautologin.client.ApiClient
 import de.binarynoise.captiveportalautologin.preferences.SharedPreferences
 import de.binarynoise.captiveportalautologin.util.applicationContext
@@ -98,11 +100,12 @@ fun enqueueUpdateCheckWork(
         }.build()
         workManager.enqueue(workRequest)
     } else {
-        val workRequest = PeriodicWorkRequest.Builder(UpdateCheckerWorker::class.java, 7, TimeUnit.DAYS).apply {
-            setConstraints(constraints)
-            addTag(UpdateCheckerWorker::class.java.name)
-            setInitialDelay(1, TimeUnit.HOURS)
-        }.build()
+        val workRequest =
+            PeriodicWorkRequest.Builder(UpdateCheckerWorker::class.java, defaultUpdateInterval.toJavaDuration()).apply {
+                setConstraints(constraints)
+                addTag(UpdateCheckerWorker::class.java.name)
+                setInitialDelay(1, TimeUnit.HOURS)
+            }.build()
         workManager.enqueueUniquePeriodicWork(
             UpdateCheckerWorker::class.java.name,
             ExistingPeriodicWorkPolicy.KEEP,
