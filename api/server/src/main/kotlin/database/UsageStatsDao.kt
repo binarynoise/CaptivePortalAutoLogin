@@ -22,7 +22,13 @@ interface UsageStatsDao {
     
     data class ActiveInstall(
         @ColumnInfo(name = "bucket_start") val start: Instant,
-        @ColumnInfo(name = "entry_count") val count: Number,
+        @ColumnInfo(name = "entry_count") val count: Int,
+    )
+    
+    data class ExtendedActiveInstall(
+        @ColumnInfo(name = "bucket_start") val start: Instant,
+        @ColumnInfo(name = "entry_count") val count: Int,
+        val extrapolated: Double,
     )
     
     @Query(

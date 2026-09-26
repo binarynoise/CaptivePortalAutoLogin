@@ -69,11 +69,6 @@ internal fun Route.usageRoutes() {
                 displayName = "Include Dev Versions",
                 default = false,
             )
-            val extrapolateUpdateInterval = CheckboxCustomInputDefinition(
-                name = "extrapolate_update_interval",
-                displayName = "Extrapolate data to match automatic update check interval",
-                default = true,
-            )
             val minimumMajorVersionInput = CustomInputDefinition(
                 name = "minimum_major_version",
                 displayName = "Min Major Version",
@@ -102,7 +97,6 @@ internal fun Route.usageRoutes() {
                 includeAutomaticInput,
                 includeManualInput,
                 includeDevVersionsInput,
-                extrapolateUpdateInterval,
                 minimumMajorVersionInput,
                 maximumMajorVersionInput,
                 minimumEntryCountInput,
@@ -122,9 +116,10 @@ internal fun Route.usageRoutes() {
                         maximumMajorVersion = maximumMajorVersionInput.typedValue,
                         minimumEntryCount = minimumEntryCountInput.typedValue,
                     ).map {
-                        UsageStatsDao.ActiveInstall(
+                        UsageStatsDao.ExtendedActiveInstall(
                             it.start,
-                            if (extrapolateUpdateInterval.typedValue) it.count.toInt() * (defaultUpdateInterval / intervalInput.typedValue) else it.count,
+                            it.count,
+                            it.count * (defaultUpdateInterval / intervalInput.typedValue),
                         )
                     }.toDataFrame()
                 },
