@@ -32,8 +32,7 @@ val PortalDetection.backendsAndroid: Map<String, PortalTestURL>
 
 val SystemPortalUserAgent = Settings.Global.getString(
     applicationContext.contentResolver,
-    tryOrNull { Settings.Global::class.java.getHiddenStaticFieldValue("CAPTIVE_PORTAL_USER_AGENT") as String }
-        ?: "captive_portal_user_agent",
+    Settings.Global::class.java.getHiddenStaticFieldValue("CAPTIVE_PORTAL_USER_AGENT") as String,
 ) ?: PortalDetection.userAgents["AOSP"] ?: PortalDetection.defaultUserAgent
 val PortalDetection.userAgentsAndroid: Map<String, String>
     get() = mapOf("System" to SystemPortalUserAgent) + PortalDetection.userAgents
