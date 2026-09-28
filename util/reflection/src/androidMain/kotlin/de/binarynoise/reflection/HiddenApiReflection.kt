@@ -13,8 +13,11 @@ private fun setHiddenApiExemptions() {
 }
 
 fun Any.invokeHiddenMethod(name: String, vararg args: Any?, cls: Class<*> = this::class.java): Any? {
-    setHiddenApiExemptions()
-    return cls.getDeclaredMethod(name).invoke(this, *args)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        HiddenApiBypass.invoke(cls, this, name, *args)
+    } else {
+        cls.getDeclaredMethod(name).invoke(this, *args)
+    }
 }
 
 fun Class<*>.getHiddenStaticField(fieldName: String): Field {
