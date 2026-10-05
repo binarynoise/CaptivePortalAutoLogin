@@ -68,6 +68,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
             applyCommonConfig()
             val preferenceFragmentName = pref.fragment ?: return false
             val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, preferenceFragmentName)
+            fragment.arguments = pref.extras
             replace(R.id.fragmentContainerView, fragment, pref.key)
             addToBackStack(null)
         }
