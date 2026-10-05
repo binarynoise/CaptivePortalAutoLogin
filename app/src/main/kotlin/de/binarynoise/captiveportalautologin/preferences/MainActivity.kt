@@ -56,7 +56,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     
     override fun onNavigateUp(): Boolean {
         if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
+            onBackPressedDispatcher.onBackPressed()
             return true
         }
         
