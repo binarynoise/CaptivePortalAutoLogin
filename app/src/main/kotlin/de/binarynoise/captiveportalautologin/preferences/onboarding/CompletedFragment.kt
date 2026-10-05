@@ -16,7 +16,7 @@ class CompletedFragment : Fragment(R.layout.fragment_onboarding_welcome) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ConnectivityChangeListenerService.start()
-        requireActivity().supportFragmentManager.commit {
+        parentFragmentManager.commit {
             replace(R.id.fragmentContainerView, MainFragment())
             fillInAnimation()
         }

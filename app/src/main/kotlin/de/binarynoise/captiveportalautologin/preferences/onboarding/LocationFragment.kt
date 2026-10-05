@@ -19,14 +19,14 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
         super.onViewCreated(view, savedInstanceState)
         fun onStateChangeListener() {
             if (Permissions.locationPermissions.all { it.granted(requireContext()) }) {
-                requireActivity().supportFragmentManager.commit {
+                parentFragmentManager.commit {
                     replace(R.id.fragmentContainerView, DataCollectionFragment())
                     fillInAnimation()
                 }
             }
         }
         onStateChangeListener()
-        requireActivity().supportFragmentManager.commit {
+        childFragmentManager.commit {
             replace(
                 R.id.permissionsFragmentContainerView, PermissionsFragment(
                     false,

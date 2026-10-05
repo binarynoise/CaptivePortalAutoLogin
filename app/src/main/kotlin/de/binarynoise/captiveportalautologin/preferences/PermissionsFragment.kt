@@ -30,7 +30,10 @@ class PermissionsFragment(
                         summaryRes = permission.descriptionRes
                         
                         setOnPreferenceChangeListener { _, _ ->
-                            permission.request(requireActivity())
+                            val activity = getActivity()
+                            if (activity != null) {
+                                permission.request(activity)
+                            }
                             false
                         }
                         

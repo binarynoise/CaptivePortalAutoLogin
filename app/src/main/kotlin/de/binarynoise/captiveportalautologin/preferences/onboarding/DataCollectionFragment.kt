@@ -17,7 +17,7 @@ class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collec
         super.onViewCreated(view, savedInstanceState)
         
         binding.fab.buttonNext.setOnClickListener {
-            requireActivity().supportFragmentManager.commit {
+            parentFragmentManager.commit {
                 replace(R.id.fragmentContainerView, CompletedFragment())
                 fillInAnimation()
             }

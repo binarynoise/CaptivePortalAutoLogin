@@ -16,7 +16,7 @@ class WelcomeFragment : Fragment(R.layout.fragment_onboarding_welcome) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.fab.buttonNext.setOnClickListener {
-            requireActivity().supportFragmentManager.commit {
+            parentFragmentManager.commit {
                 replace(R.id.fragmentContainerView, NotificationFragment())
                 fillInAnimation()
             }

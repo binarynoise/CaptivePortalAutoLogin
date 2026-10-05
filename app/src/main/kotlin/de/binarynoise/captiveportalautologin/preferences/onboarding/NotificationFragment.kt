@@ -19,7 +19,7 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
     val binding by viewBinding(FragmentOnboardingNotificationBinding::bind)
     
     fun nextPage() {
-        requireActivity().supportFragmentManager.commit {
+        parentFragmentManager.commit {
             replace(R.id.fragmentContainerView, LocationFragment())
             fillInAnimation()
         }
