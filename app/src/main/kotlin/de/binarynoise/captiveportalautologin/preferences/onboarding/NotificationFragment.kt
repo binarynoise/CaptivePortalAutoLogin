@@ -1,10 +1,9 @@
 package de.binarynoise.captiveportalautologin.preferences.onboarding
 
 import android.Manifest.permission.POST_NOTIFICATIONS
-import android.content.pm.PackageManager.PERMISSION_DENIED
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
@@ -25,21 +24,21 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
         }
     }
     
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) nextPage()
+            else binding.permissionDenied.isVisible = true
+        }
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (Permissions.notifications.granted(requireContext())) return nextPage()
-        binding.fab.buttonNext.setOnClickListener {
-            if (Permissions.notifications.granted(requireContext())) nextPage()
-            else requestPermissions(arrayOf(POST_NOTIFICATIONS), 0)
-        }
-    }
-    
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String?>, grantResults: IntArray) {
-        if (grantResults.single() == PERMISSION_GRANTED) return nextPage()
-        if (grantResults.single() == PERMISSION_DENIED) {
-            binding.permissionDenied.isVisible = true
+        if (savedInstanceState == null && Permissions.notifications.granted(requireContext())) {
+            nextPage()
             return
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        binding.fab.buttonNext.setOnClickListener {
+            if (Permissions.notifications.granted(requireContext())) nextPage()
+            else requestNotificationPermission.launch(POST_NOTIFICATIONS)
+        }
     }
 }
