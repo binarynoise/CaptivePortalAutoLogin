@@ -9,7 +9,7 @@ import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.FragmentOnboardingLocationBinding
 import de.binarynoise.captiveportalautologin.preferences.PermissionsFragment
-import de.binarynoise.captiveportalautologin.preferences.fillInAnimation
+import de.binarynoise.captiveportalautologin.preferences.applyCommonConfig
 
 class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
     
@@ -21,7 +21,7 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
             if (Permissions.locationPermissions.all { it.granted(requireContext()) }) {
                 parentFragmentManager.commit {
                     replace(R.id.fragmentContainerView, DataCollectionFragment())
-                    fillInAnimation()
+                    applyCommonConfig()
                 }
             }
         }
@@ -34,7 +34,7 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
                     ::onStateChangeListener,
                 )
             )
-            fillInAnimation()
+            applyCommonConfig()
         }
     }
 }

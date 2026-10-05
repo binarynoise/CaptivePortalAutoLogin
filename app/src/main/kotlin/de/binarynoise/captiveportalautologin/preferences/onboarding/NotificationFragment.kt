@@ -12,7 +12,7 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.FragmentOnboardingNotificationBinding
-import de.binarynoise.captiveportalautologin.preferences.fillInAnimation
+import de.binarynoise.captiveportalautologin.preferences.applyCommonConfig
 
 class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification) {
     
@@ -21,7 +21,7 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
     fun nextPage() {
         parentFragmentManager.commit {
             replace(R.id.fragmentContainerView, LocationFragment())
-            fillInAnimation()
+            applyCommonConfig()
         }
     }
     

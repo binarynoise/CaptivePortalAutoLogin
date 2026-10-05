@@ -28,7 +28,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
                 } else {
                     replace(R.id.fragmentContainerView, MainFragment())
                 }
-                fillInAnimation()
+                applyCommonConfig()
             }
         }
         
@@ -65,7 +65,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
         supportFragmentManager.commit {
-            fillInAnimation()
+            applyCommonConfig()
             val preferenceFragmentName = pref.fragment ?: return false
             val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, preferenceFragmentName)
             replace(R.id.fragmentContainerView, fragment, pref.key)
@@ -75,6 +75,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     }
 }
 
-fun FragmentTransaction.fillInAnimation() {
+fun FragmentTransaction.applyCommonConfig() {
     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+    setReorderingAllowed(true)
 }

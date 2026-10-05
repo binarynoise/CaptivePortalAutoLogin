@@ -7,7 +7,7 @@ import androidx.fragment.app.commit
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.FragmentOnboardingDataCollectionBinding
-import de.binarynoise.captiveportalautologin.preferences.fillInAnimation
+import de.binarynoise.captiveportalautologin.preferences.applyCommonConfig
 
 class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collection) {
     
@@ -19,7 +19,7 @@ class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collec
         binding.fab.buttonNext.setOnClickListener {
             parentFragmentManager.commit {
                 replace(R.id.fragmentContainerView, CompletedFragment())
-                fillInAnimation()
+                applyCommonConfig()
             }
         }
         
