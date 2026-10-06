@@ -20,8 +20,6 @@ class PermissionsFragment(
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
-            titleRes = R.string.preference_permissions
-            
             permissions.forEach { permission ->
                 addPreference(CheckBoxPreference(ctx), lifecycle) {
                     titleRes = permission.nameRes
