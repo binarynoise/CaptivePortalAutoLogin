@@ -27,7 +27,7 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) nextPage()
-            else binding.permissionDenied.isVisible = true
+            else if (isAdded) binding.permissionDenied.isVisible = true
         }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
