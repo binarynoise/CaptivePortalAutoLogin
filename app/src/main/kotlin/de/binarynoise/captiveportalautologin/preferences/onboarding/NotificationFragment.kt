@@ -32,13 +32,14 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (savedInstanceState == null && Permissions.notifications.granted(requireContext())) {
-            nextPage()
-            return
-        }
         binding.fab.buttonNext.setOnClickListener {
             if (Permissions.notifications.granted(requireContext())) nextPage()
             else requestNotificationPermission.launch(POST_NOTIFICATIONS)
         }
+    }
+    
+    override fun onStart() {
+        super.onStart()
+        if (Permissions.notifications.granted(requireContext())) nextPage()
     }
 }
