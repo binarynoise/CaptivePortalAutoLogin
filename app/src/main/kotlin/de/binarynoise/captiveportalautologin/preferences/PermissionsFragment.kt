@@ -3,7 +3,8 @@ package de.binarynoise.captiveportalautologin.preferences
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
@@ -40,9 +41,14 @@ class PermissionsFragment(
                     }
                     
                     update()
-                    lifecycle.addObserver(object : DefaultLifecycleObserver {
-                        override fun onStart(owner: LifecycleOwner) {
-                            update()
+                    lifecycle.addObserver(object : LifecycleEventObserver {
+                        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                            when (event) {
+                                Lifecycle.Event.ON_RESUME, Lifecycle.Event.ON_START -> {
+                                    update()
+                                }
+                                else -> {}
+                            }
                         }
                     })
                 }
