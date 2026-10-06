@@ -7,7 +7,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.preference.CheckBoxPreference
 import androidx.preference.Preference
-import androidx.preference.PreferenceCategory
 import de.binarynoise.captiveportalautologin.Permission
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
@@ -23,35 +22,32 @@ class PermissionsFragment(
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {
             titleRes = R.string.preference_permissions
             
-            addPreference(PreferenceCategory(ctx), lifecycle) {
-                permissions.forEach { permission ->
-                    addPreference(CheckBoxPreference(ctx), lifecycle) {
-                        titleRes = permission.nameRes
-                        summaryRes = permission.descriptionRes
-                        
-                        setOnPreferenceChangeListener { _, _ ->
-                            val activity = getActivity()
-                            if (activity != null) {
-                                permission.request(activity)
-                            }
-                            false
+            permissions.forEach { permission ->
+                addPreference(CheckBoxPreference(ctx), lifecycle) {
+                    titleRes = permission.nameRes
+                    summaryRes = permission.descriptionRes
+                    
+                    setOnPreferenceChangeListener { _, _ ->
+                        val activity = getActivity()
+                        if (activity != null) {
+                            permission.request(activity)
                         }
-                        
-                        fun update() {
-                            isChecked = permission.granted(context)
-                            isEnabled = permission.enabled(context)
-                            onStateChangeCallback()
-                        }
-                        
-                        update()
-                        lifecycle.addObserver(object : DefaultLifecycleObserver {
-                            override fun onStart(owner: LifecycleOwner) {
-                                update()
-                            }
-                        })
+                        false
                     }
+                    
+                    fun update() {
+                        isChecked = permission.granted(context)
+                        isEnabled = permission.enabled(context)
+                        onStateChangeCallback()
+                    }
+                    
+                    update()
+                    lifecycle.addObserver(object : DefaultLifecycleObserver {
+                        override fun onStart(owner: LifecycleOwner) {
+                            update()
+                        }
+                    })
                 }
-                
             }
             
             if (includeOpenSettingsLink) addPreference(Preference(ctx), lifecycle) {
