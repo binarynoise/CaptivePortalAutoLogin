@@ -16,7 +16,6 @@ import de.binarynoise.captiveportalautologin.util.startActivity
 class PermissionsFragment(
     val includeOpenSettingsLink: Boolean = true,
     val permissions: Set<Permission> = Permissions,
-    val onStateChangeCallback: () -> Unit = {},
 ) : AutoCleanupPreferenceFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
@@ -37,7 +36,6 @@ class PermissionsFragment(
                     fun update() {
                         isChecked = permission.granted(context)
                         isEnabled = permission.enabled(context)
-                        onStateChangeCallback()
                     }
                     
                     update()

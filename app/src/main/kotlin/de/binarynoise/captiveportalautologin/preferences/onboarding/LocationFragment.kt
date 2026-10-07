@@ -16,7 +16,8 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
     val binding by viewBinding(FragmentOnboardingLocationBinding::bind)
     
     private fun onStateChanged() {
-        if (Permissions.locationPermissions.all { it.granted(requireContext()) }) {
+        val ctx = context ?: return
+        if (Permissions.locationPermissions.all { it.granted(ctx) }) {
             parentFragmentManager.commit {
                 replace(R.id.fragmentContainerView, DataCollectionFragment())
                 applyCommonConfig()
@@ -31,7 +32,6 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
                 R.id.permissionsFragmentContainerView, PermissionsFragment(
                     false,
                     Permissions.locationPermissions,
-                    ::onStateChanged,
                 )
             )
             applyCommonConfig()
@@ -40,6 +40,11 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
     
     override fun onStart() {
         super.onStart()
+        onStateChanged()
+    }
+    
+    override fun onResume() {
+        super.onResume()
         onStateChanged()
     }
 }
