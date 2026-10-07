@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
@@ -17,24 +18,23 @@ class LocationFragment : Fragment(R.layout.fragment_onboarding_location) {
     
     private fun onStateChanged() {
         val ctx = context ?: return
-        if (Permissions.locationPermissions.all { it.granted(ctx) }) {
-            parentFragmentManager.commit {
-                replace(R.id.fragmentContainerView, DataCollectionFragment())
-                applyCommonConfig()
-            }
+        if (!Permissions.locationPermissions.all { it.granted(ctx) }) return
+        parentFragmentManager.commit {
+            replace<DataCollectionFragment>(R.id.fragmentContainerView)
+            applyCommonConfig()
         }
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        childFragmentManager.commit {
-            replace(
-                R.id.permissionsFragmentContainerView, PermissionsFragment(
-                    false,
-                    Permissions.locationPermissions,
+        if (savedInstanceState == null) {
+            childFragmentManager.commit {
+                replace<PermissionsFragment>(
+                    R.id.permissionsFragmentContainerView,
+                    args = PermissionsFragment.args(false, Permissions.locationPermissions),
                 )
-            )
-            applyCommonConfig()
+                applyCommonConfig()
+            }
         }
     }
     

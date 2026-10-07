@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.preferences.onboarding
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import de.binarynoise.captiveportalautologin.ConnectivityChangeListenerService
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.preferences.MainFragment
@@ -15,7 +16,7 @@ class CompletedFragment : Fragment(R.layout.fragment_onboarding_welcome) {
         super.onStart()
         ConnectivityChangeListenerService.start()
         parentFragmentManager.commit {
-            replace(R.id.fragmentContainerView, MainFragment())
+            replace<MainFragment>(R.id.fragmentContainerView)
             applyCommonConfig()
         }
     }

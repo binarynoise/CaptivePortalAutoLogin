@@ -11,12 +11,30 @@ import androidx.preference.Preference
 import de.binarynoise.captiveportalautologin.Permission
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
+import de.binarynoise.captiveportalautologin.util.fragmentArguments
 import de.binarynoise.captiveportalautologin.util.startActivity
 
-class PermissionsFragment(
-    val includeOpenSettingsLink: Boolean = true,
-    val permissions: Set<Permission> = Permissions,
-) : AutoCleanupPreferenceFragment() {
+class PermissionsFragment : AutoCleanupPreferenceFragment() {
+    companion object {
+        fun args(
+            includeOpenSettingsLink: Boolean? = null,
+            permissions: Set<Permission>? = null,
+        ): Bundle = Bundle().apply {
+            if (includeOpenSettingsLink != null) {
+                putBoolean(PermissionsFragment::includeOpenSettingsLink.name, includeOpenSettingsLink)
+            }
+            if (permissions != null) {
+                putStringArray(PermissionsFragment::permissions.name, permissions.map { it.id }.toTypedArray())
+            }
+        }
+    }
+    
+    private val includeOpenSettingsLink by fragmentArguments(Bundle::getBoolean, true)
+    
+    private val permissions: Set<Permission> by fragmentArguments(Bundle::getStringArray, Permissions) {
+        it.mapNotNull(Permissions::fromId).toSet()
+    }
+    
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         val ctx = preferenceManager.context
         preferenceScreen = preferenceManager.createPreferenceScreen(ctx).apply {

@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.Permissions
 import de.binarynoise.captiveportalautologin.R
@@ -19,7 +20,7 @@ class NotificationFragment : Fragment(R.layout.fragment_onboarding_notification)
     
     fun nextPage() {
         parentFragmentManager.commit {
-            replace(R.id.fragmentContainerView, LocationFragment())
+            replace<LocationFragment>(R.id.fragmentContainerView)
             applyCommonConfig()
         }
     }

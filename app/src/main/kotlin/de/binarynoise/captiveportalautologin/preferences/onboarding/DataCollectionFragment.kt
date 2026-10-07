@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.FragmentOnboardingDataCollectionBinding
@@ -18,7 +19,7 @@ class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collec
         
         binding.fab.buttonNext.setOnClickListener {
             parentFragmentManager.commit {
-                replace(R.id.fragmentContainerView, CompletedFragment())
+                replace<CompletedFragment>(R.id.fragmentContainerView)
                 applyCommonConfig()
             }
         }

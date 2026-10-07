@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import de.binarynoise.captiveportalautologin.BuildConfig
@@ -24,9 +25,9 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
             supportFragmentManager.commit {
                 if (Permissions.any { !it.granted(this@MainActivity) }) {
                     intent.putExtra(EXTRA_START_SERVICE, false)
-                    replace(R.id.fragmentContainerView, WelcomeFragment())
+                    replace<WelcomeFragment>(R.id.fragmentContainerView)
                 } else {
-                    replace(R.id.fragmentContainerView, MainFragment())
+                    replace<MainFragment>(R.id.fragmentContainerView)
                 }
                 applyCommonConfig()
             }
