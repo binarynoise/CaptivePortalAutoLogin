@@ -30,8 +30,10 @@ class LogsFragment : AutoCleanupPreferenceFragment() {
             addPreference(PreferenceCategory(ctx), lifecycle) {
                 titleRes = R.string.preference_export_logs
                 
+                val logCategory = this
                 lifecycleScope.launch {
                     repeatOnLifecycle(Lifecycle.State.STARTED) {
+                        logCategory.removeAll()
                         val logFiles = withContext(Dispatchers.IO) {
                             Logger.Config.folder?.listFiles()?.sortedByDescending { it.name }.orEmpty()
                         }

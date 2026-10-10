@@ -14,9 +14,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import de.binarynoise.captiveportalautologin.util.startActivity
 import de.binarynoise.liberator.cast
+import de.binarynoise.logger.Logger.log
 
 @Suppress("ANNOTATION_WILL_BE_APPLIED_ALSO_TO_PROPERTY_OR_FIELD")
 class Permission private constructor(
+    val id: String,
     @StringRes val nameRes: Int,
     @StringRes val descriptionRes: Int,
     val granted: (Context) -> Boolean,
@@ -24,6 +26,7 @@ class Permission private constructor(
     val enabled: (Context) -> Boolean,
 ) {
     constructor(
+        id: String,
         @StringRes nameRes: Int,
         @StringRes descriptionRes: Int,
         granted: (Context) -> Boolean,
@@ -31,6 +34,7 @@ class Permission private constructor(
         enabled: (Context) -> Boolean = { true },
         minSdk: Int = 0,
     ) : this(
+        id,
         nameRes,
         descriptionRes,
         if (minSdk == 0) granted else { context -> (Build.VERSION.SDK_INT < minSdk) || granted(context) },
@@ -48,6 +52,7 @@ object Permissions : Set<Permission> by allPermissions {
     val locationPermissions = mutableSetOf<Permission>()
     
     val notifications = Permission(
+        "notifications",
         R.string.preference_permission_notifications,
         R.string.preference_permission_notifications_description,
         { context ->
@@ -62,6 +67,7 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val fineLocation = Permission(
+        "fineLocation",
         R.string.preference_permission_fine_location,
         R.string.preference_permission_fine_location_description,
         { context ->
@@ -76,6 +82,7 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val backgroundLocation = Permission(
+        "backgroundLocation",
         R.string.preference_permission_background_location,
         R.string.preference_permission_background_location_description,
         { context ->
@@ -95,6 +102,7 @@ object Permissions : Set<Permission> by allPermissions {
     )
     
     val locationEnabled = Permission(
+        "locationEnabled",
         R.string.preference_permission_location,
         R.string.preference_permission_location_description,
         { context ->
@@ -114,6 +122,15 @@ object Permissions : Set<Permission> by allPermissions {
         },
         minSdk = Build.VERSION_CODES.O,
     )
+    
+    fun fromId(id: String): Permission? {
+        val permission = allPermissions.find { it.id == id }
+        if (permission == null) {
+            log("unknown permission id $id")
+            return null
+        }
+        return permission
+    }
     
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     @Deprecated("Deprecated in Java for some reason")

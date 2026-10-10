@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import de.binarynoise.captiveportalautologin.BuildConfig
@@ -24,11 +25,11 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
             supportFragmentManager.commit {
                 if (Permissions.any { !it.granted(this@MainActivity) }) {
                     intent.putExtra(EXTRA_START_SERVICE, false)
-                    replace(R.id.fragmentContainerView, WelcomeFragment())
+                    replace<WelcomeFragment>(R.id.fragmentContainerView)
                 } else {
-                    replace(R.id.fragmentContainerView, MainFragment())
+                    replace<MainFragment>(R.id.fragmentContainerView)
                 }
-                fillInAnimation()
+                applyCommonConfig()
             }
         }
         
@@ -56,7 +57,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     
     override fun onNavigateUp(): Boolean {
         if (supportFragmentManager.backStackEntryCount > 0) {
-            supportFragmentManager.popBackStack()
+            onBackPressedDispatcher.onBackPressed()
             return true
         }
         
@@ -65,9 +66,10 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     
     override fun onPreferenceStartFragment(caller: PreferenceFragmentCompat, pref: Preference): Boolean {
         supportFragmentManager.commit {
-            fillInAnimation()
+            applyCommonConfig()
             val preferenceFragmentName = pref.fragment ?: return false
             val fragment = supportFragmentManager.fragmentFactory.instantiate(classLoader, preferenceFragmentName)
+            fragment.arguments = pref.extras
             replace(R.id.fragmentContainerView, fragment, pref.key)
             addToBackStack(null)
         }
@@ -75,6 +77,7 @@ class MainActivity : FragmentActivity(), PreferenceFragmentCompat.OnPreferenceSt
     }
 }
 
-fun FragmentTransaction.fillInAnimation() {
+fun FragmentTransaction.applyCommonConfig() {
     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+    setReorderingAllowed(true)
 }

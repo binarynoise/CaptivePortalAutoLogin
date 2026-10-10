@@ -4,10 +4,11 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import by.kirich1409.viewbindingdelegate.viewBinding
 import de.binarynoise.captiveportalautologin.R
 import de.binarynoise.captiveportalautologin.databinding.FragmentOnboardingDataCollectionBinding
-import de.binarynoise.captiveportalautologin.preferences.fillInAnimation
+import de.binarynoise.captiveportalautologin.preferences.applyCommonConfig
 
 class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collection) {
     
@@ -17,9 +18,9 @@ class DataCollectionFragment : Fragment(R.layout.fragment_onboarding_data_collec
         super.onViewCreated(view, savedInstanceState)
         
         binding.fab.buttonNext.setOnClickListener {
-            requireActivity().supportFragmentManager.commit {
-                replace(R.id.fragmentContainerView, CompletedFragment())
-                fillInAnimation()
+            parentFragmentManager.commit {
+                replace<CompletedFragment>(R.id.fragmentContainerView)
+                applyCommonConfig()
             }
         }
         

@@ -15,6 +15,8 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.CheckBoxPreference
@@ -171,9 +173,14 @@ class AdvancedFragment : AutoCleanupPreferenceFragment() {
                 titleRes = R.string.preference_permissions
                 fragment = PermissionsFragment::class.qualifiedName
                 setOnPreferenceChangeListener { _, _ -> false }
-                lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onStart(owner: LifecycleOwner) {
-                        isChecked = Permissions.all { it.granted(context) }
+                lifecycle.addObserver(object : LifecycleEventObserver {
+                    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME, Lifecycle.Event.ON_START -> {
+                                isChecked = Permissions.all { it.granted(context) }
+                            }
+                            else -> {}
+                        }
                     }
                 })
                 summaryOnRes = R.string.preference_permissions_description_granted
