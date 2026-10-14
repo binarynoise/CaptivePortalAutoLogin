@@ -1,8 +1,10 @@
 package de.binarynoise.reflection
 
 import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
 import android.os.Build
+import de.binarynoise.logger.Logger.log
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 var setHiddenApiExemptionsCalled = false
@@ -13,10 +15,28 @@ private fun setHiddenApiExemptions() {
 }
 
 fun Any.invokeHiddenMethod(name: String, vararg args: Any?, cls: Class<*> = this::class.java): Any? {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        HiddenApiBypass.invoke(cls, this, name, *args)
-    } else {
-        cls.getDeclaredMethod(name).invoke(this, *args)
+    return try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.invoke(cls, this, name, *args)
+        } else {
+            cls.declaredMethods.single {
+                it.name == name //
+                    && it.parameterTypes.size == args.size //
+                    && it.parameterTypes.mapIndexed { i, cls -> args[i] == null || cls.isInstance(args[i]) }.all { it }
+            }.makeAccessible().invoke(this, *args)
+        }
+    } catch (t: Throwable) {
+        val message =
+            "Error invoking method $cls.$name on ${this::class.java.name} with args ${args.joinToString(", ")}"
+        when (t) {
+            is NoSuchMethodException -> throw NoSuchMethodException(message).also { it.initCause(t) }
+            is NoSuchElementException -> throw NoSuchElementException(message).also { it.initCause(t) }
+            is InvocationTargetException -> throw InvocationTargetException(t, message)
+            is ReflectiveOperationException -> throw ReflectiveOperationException(message).also { it.initCause(t) }
+            is IllegalArgumentException -> throw IllegalArgumentException(message).also { it.initCause(t) }
+        }
+        log(message, t)
+        throw t
     }
 }
 

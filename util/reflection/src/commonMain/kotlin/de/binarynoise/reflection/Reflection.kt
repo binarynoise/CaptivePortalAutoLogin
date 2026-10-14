@@ -1,5 +1,5 @@
 package de.binarynoise.reflection
 
-import java.lang.reflect.Field
+import java.lang.reflect.AccessibleObject
 
-fun Field.makeAccessible(): Field = apply { isAccessible = true }
+fun <T : AccessibleObject> T.makeAccessible(): T = apply { isAccessible = true }

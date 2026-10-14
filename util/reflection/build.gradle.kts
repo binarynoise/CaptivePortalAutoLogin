@@ -9,7 +9,9 @@ kotlin {
     
     sourceSets {
         commonMain {
-            dependencies {}
+            dependencies {
+                implementation(projects.util.logger)
+            }
         }
         
         androidMain {
@@ -26,4 +28,7 @@ kotlin {
 
 android {
     namespace = "de.binarynoise.reflection"
+    defaultConfig {
+        minSdk = 19
+    }
 }

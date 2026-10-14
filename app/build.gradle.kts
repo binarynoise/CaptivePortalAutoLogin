@@ -16,7 +16,7 @@ android {
         targetSdk = 36
         multiDexEnabled = true
         
-        proguardFiles(decoroutinatorAndroidProGuardRules())
+        proguardFiles(decoroutinatorAndroidProGuardRules(), "proguard-rules.pro")
         
         val localProperties = gradleLocalProperties(rootDir, providers)
         buildConfigField(
