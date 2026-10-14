@@ -81,7 +81,7 @@ fun <T : Preference> PreferenceGroup.addPreference(
         
         if (preference.hasKey()) {
             fun refreshPreference() {
-                preference.invokeHiddenMethod("onSetInitialValue", true, null, cls = Preference::class.java)
+                preference.invokeHiddenMethod("dispatchSetInitialValue", cls = Preference::class.java)
             }
             
             val onSharedPreferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->

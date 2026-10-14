@@ -9,7 +9,9 @@ kotlin {
     
     sourceSets {
         commonMain {
-            dependencies {}
+            dependencies {
+                implementation(projects.util.logger)
+            }
         }
         
         androidMain {
