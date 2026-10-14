@@ -1,7 +1,10 @@
 package de.binarynoise.captiveportalautologin.integration
 
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.createDirectories
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -19,6 +22,8 @@ class EmulatorSession(
 ) : AutoCloseable {
     
     private var emulatorProcess: Process? = null
+    private var shutdownHook: Thread? = null
+    private val closed = AtomicBoolean(false)
     
     lateinit var adb: Adb
         private set
@@ -47,7 +52,11 @@ class EmulatorSession(
         emulatorProcess = ProcessBuilder(command).directory(environment.projectDirectory.toFile())
             .redirectErrorStream(true)
             .redirectOutput(logDirectory.resolve("${avd.name}-emulator.log").toFile())
+            .apply { environment()["ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL"] = "0" }
             .start()
+        val hook = Thread(::shutdownFromHook)
+        shutdownHook = hook
+        runCatching { Runtime.getRuntime().addShutdownHook(hook) }
         
         waitUntilBoot(serial)
         prepareDevice()
@@ -85,14 +94,50 @@ class EmulatorSession(
     }
     
     override fun close() {
+        if (!closed.compareAndSet(false, true)) return
+        try {
+            shutdownEmulator()
+        } finally {
+            val hook = shutdownHook
+            shutdownHook = null
+            if (hook != null) runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
+        }
+    }
+
+    private fun shutdownFromHook() {
+        if (!closed.compareAndSet(false, true)) return
+        shutdownEmulator()
+    }
+
+    private fun shutdownEmulator() {
         val process = emulatorProcess ?: return
         emulatorProcess = null
-        if (::adb.isInitialized) runCatching { adb.shell("emu kill") }
-        if (!process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)) {
-            process.destroyForcibly()
-            if (!process.waitFor(30, java.util.concurrent.TimeUnit.SECONDS)) {
+        if (::adb.isInitialized) runCatching { adb.emuKill() }
+        if (process.isAlive) runCatching { process.destroy() }
+        if (!waitForExit(process, 30.seconds)) {
+            runCatching { process.destroyForcibly() }
+            if (!waitForExit(process, 30.seconds)) {
                 log("warning: the emulator ${avd.name} did not exit after destroyForcibly")
             }
+        }
+    }
+
+    private fun waitForExit(process: Process, timeout: Duration): Boolean {
+        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
+        var interrupted = false
+        try {
+            while (true) {
+                val remaining = deadline - System.nanoTime()
+                if (remaining <= 0L) return !process.isAlive
+                try {
+                    return process.waitFor(remaining, TimeUnit.NANOSECONDS)
+                } catch (_: InterruptedException) {
+                    interrupted = true
+                }
+                if (!process.isAlive) return true
+            }
+        } finally {
+            if (interrupted) Thread.currentThread().interrupt()
         }
     }
     

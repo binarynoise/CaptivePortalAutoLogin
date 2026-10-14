@@ -75,6 +75,10 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
         adb("shell", "settings delete global $testApiBaseUrlKey").requireSuccess("clearing the test api server url")
     }
     
+    fun emuKill() {
+        adb("emu", "kill").requireSuccess("killing the emulator $serial")
+    }
+    
     fun startActivity(activity: String) {
         adb("shell", "am", "start", "-W", "-n", activity).requireSuccess("starting $activity")
     }
