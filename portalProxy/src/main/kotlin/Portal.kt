@@ -6,14 +6,16 @@ import kotlin.contracts.contract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.html.*
 import kotlinx.html.stream.*
+import de.binarynoise.captiveportalautologin.portalproxy.PortalProxyConfig
 import de.binarynoise.logger.Logger.log
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.coroutineRouter
 
-val portalPort = System.getenv("PORTAL_PORT")?.toInt() ?: 8001
-val friendlyHost: String? = System.getenv("PORTAL_HOST")
+class PortalStateStore {
+    internal val database = ConcurrentHashMap<String, PortalState>()
+}
 
 enum class PortalState {
     CAPTURED, ERROR_STILL_CAPTURED, ERROR_403, NOT_CAPTURED;
@@ -31,26 +33,24 @@ enum class PortalState {
     }
 }
 
-private val database = ConcurrentHashMap<String, PortalState>()
-
-fun CoroutineScope.portalRouter(vertx: Vertx): Router {
+fun CoroutineScope.portalRouter(vertx: Vertx, config: PortalProxyConfig, store: PortalStateStore): Router {
     val router = Router.router(vertx)
     
     coroutineRouter {
         // Root route
         router.get("/").handler { ctx ->
-            servePortalPage(ctx.request())
+            servePortalPage(ctx.request(), config, store)
         }
         
         // Login route
         router.route("/login").handler { ctx ->
             val ip = ctx.request().getRealRemoteIP()
             
-            val oldState = database[ip]
+            val oldState = store.database[ip]
             when (oldState) {
                 null, PortalState.CAPTURED -> {
                     log("logged in $ip")
-                    database[ip] = PortalState.NOT_CAPTURED
+                    store.database[ip] = PortalState.NOT_CAPTURED
                 }
                 PortalState.NOT_CAPTURED -> {}
                 PortalState.ERROR_STILL_CAPTURED -> {
@@ -62,23 +62,23 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
                     return@handler
                 }
             }
-            redirect(ctx.request())
+            redirect(ctx.request(), config)
         }
         
         // Logout route
         router.route("/logout").handler { ctx ->
             val ip = ctx.request().getRealRemoteIP()
             
-            database[ip] = PortalState.CAPTURED
+            store.database[ip] = PortalState.CAPTURED
             log("logged out $ip")
-            redirect(ctx.request())
+            redirect(ctx.request(), config)
         }
         
         // Update state route
         router.route("/update-state").handler { ctx ->
             val ip = ctx.request().getRealRemoteIP()
             
-            val oldState = database[ip]
+            val oldState = store.database[ip]
             val newState = ctx.request().getParam("state")
             
             if (newState !in PortalState) {
@@ -87,9 +87,9 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
                 return@handler
             }
             
-            database[ip] = PortalState.valueOf(newState)
+            store.database[ip] = PortalState.valueOf(newState)
             log("updated state for $ip: $oldState → $newState")
-            redirect(ctx.request())
+            redirect(ctx.request(), config)
         }
         
         // 404 handler
@@ -102,27 +102,27 @@ fun CoroutineScope.portalRouter(vertx: Vertx): Router {
     return router
 }
 
-fun getPortalHost(request: HttpServerRequest): String {
-    return friendlyHost ?: request.getHeader("Host")!!.substringBefore(":")
+fun getPortalHost(request: HttpServerRequest, config: PortalProxyConfig): String {
+    return config.portalHost ?: request.getHeader("Host")!!.substringBefore(":")
 }
 
-fun redirect(request: HttpServerRequest) {
-    val host = getPortalHost(request)
-    request.response().putHeader("Location", "http://$host:$portalPort/").setStatusCode(303).end()
+fun redirect(request: HttpServerRequest, config: PortalProxyConfig) {
+    val host = getPortalHost(request, config)
+    request.response().putHeader("Location", "http://$host:${config.portalPort}/").setStatusCode(303).end()
 }
 
-fun getCaptured(request: HttpServerRequest): Boolean {
+fun getCaptured(request: HttpServerRequest, store: PortalStateStore): Boolean {
     val ip = request.getRealRemoteIP()
-    return database[ip] != PortalState.NOT_CAPTURED
+    return store.database[ip] != PortalState.NOT_CAPTURED
 }
 
-fun getPortalState(request: HttpServerRequest): PortalState {
+fun getPortalState(request: HttpServerRequest, store: PortalStateStore): PortalState {
     val ip = request.getRealRemoteIP()
-    return database[ip] ?: PortalState.CAPTURED
+    return store.database[ip] ?: PortalState.CAPTURED
 }
 
-private fun servePortalPage(request: HttpServerRequest) {
-    val state = getPortalState(request)
+private fun servePortalPage(request: HttpServerRequest, config: PortalProxyConfig, store: PortalStateStore) {
+    val state = getPortalState(request, store)
     
     val html = createHTML().html {
         attributes += "lang" to "en"
@@ -172,7 +172,7 @@ private fun servePortalPage(request: HttpServerRequest) {
             p {
                 +"This page can be opened again at"
                 br()
-                val href = "http://${getPortalHost(request)}:$portalPort/"
+                val href = "http://${getPortalHost(request, config)}:${config.portalPort}/"
                 a(href = href) { +href }
             }
             

@@ -13,6 +13,7 @@ import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.captiveportalautologin.util.applicationContext
 import de.binarynoise.liberator.PortalDetection
 import de.binarynoise.liberator.PortalTestURL
+import de.binarynoise.liberator.tryOrNull
 import de.binarynoise.reflection.getHiddenStaticFieldValue
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -55,10 +56,27 @@ object SharedPreferences {
     val api_base_raw: PreferencePropertyDelegate<String> by PreferenceProperty("")
     val api_base_url: TypeConversionPreferencePropertyDelegate<HttpUrl?, String> =
         TypeConversionPreferencePropertyDelegate(
-            { raw -> if (BuildConfig.DEBUG && raw.isNotEmpty()) raw.toHttpUrlOrNull() else BuildConfig.API_BASE.toHttpUrlOrNull() },
+            { raw ->
+                if (BuildConfig.DEBUG && raw.isNotEmpty()) raw.toHttpUrlOrNull()
+                else testApiBaseUrlOverride() ?: BuildConfig.API_BASE.toHttpUrlOrNull()
+            },
             { url -> url?.toString() ?: "" },
             api_base_raw,
         )
+    
+    /**
+     * Points the app at the api server of an integration test run.
+     *
+     * Only writable through adb shell: writing global settings needs WRITE_SECURE_SETTINGS, which
+     * third-party apps cannot hold, so this keeps release builds testable without an intent hook
+     * that any app could call. The key has to match the one in the integration tests.
+     */
+    private fun testApiBaseUrlOverride(): HttpUrl? = tryOrNull {
+        Settings.Global.getString(applicationContext.contentResolver, "captive_portal_auto_login_test_api_base_url")
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.toHttpUrlOrNull()
+    }
     
     val network_suggestions: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)
     val network_suggestions_mac_randomization: PreferencePropertyDelegate<Boolean> by PreferenceProperty(false)

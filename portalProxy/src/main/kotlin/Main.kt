@@ -2,12 +2,10 @@ package de.binarynoise.captiveportalautologin.portalproxy
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import de.binarynoise.captiveportalautologin.portalproxy.portal.friendlyHost
-import de.binarynoise.captiveportalautologin.portalproxy.portal.portalPort
+import de.binarynoise.captiveportalautologin.portalproxy.portal.PortalStateStore
 import de.binarynoise.captiveportalautologin.portalproxy.portal.portalRouter
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.forward
 import de.binarynoise.captiveportalautologin.portalproxy.proxy.forwardConnect
-import de.binarynoise.captiveportalautologin.portalproxy.proxy.proxyPort
 import de.binarynoise.logger.Logger
 import de.binarynoise.logger.Logger.log
 import io.netty.handler.codec.DecoderException
@@ -18,7 +16,10 @@ import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
 
-class MainVerticle : CoroutineVerticle() {
+class MainVerticle(
+    private val proxyConfig: PortalProxyConfig,
+    private val store: PortalStateStore = PortalStateStore(),
+) : CoroutineVerticle() {
     override suspend fun start() {
         
         // Portal routes
@@ -26,17 +27,17 @@ class MainVerticle : CoroutineVerticle() {
         portalRouter.route().handler { ctx ->
             log("route portal")
             ctx.next()
-        }.subRouter(portalRouter(vertx))
+        }.subRouter(portalRouter(vertx, proxyConfig, store))
         
         // Proxy routes
         val proxyRouter = Router.router(vertx)
         proxyRouter.route().handler { ctx ->
             log("route /http")
             val request = ctx.request()
-            if (request.authority().port() == portalPort) {
+            if (request.authority()?.port() == proxyConfig.portalPort) {
                 portalRouter.handle(request)
             } else {
-                forward(request)
+                forward(request, proxyConfig, store)
             }
         }
         
@@ -62,7 +63,7 @@ class MainVerticle : CoroutineVerticle() {
                 })
                 
                 if (request.method() == HttpMethod.CONNECT) {
-                    forwardConnect(request, vertx)
+                    forwardConnect(request, vertx, proxyConfig, store)
                 } else {
                     proxyRouter.handle(request)
                 }
@@ -94,24 +95,28 @@ class MainVerticle : CoroutineVerticle() {
         val proxyServer = vertx.createHttpServer()
             .requestHandler(proxyRequestHandler)
             .exceptionHandler(exceptionHandler)
-            .listen(proxyPort, "0.0.0.0")
+            .listen(proxyConfig.proxyPort, "0.0.0.0")
             .coAwait()
         log("Started proxy server on port " + proxyServer.actualPort())
         
         val portalServer = vertx.createHttpServer()
             .requestHandler(portalRequestHandler)
             .exceptionHandler(exceptionHandler)
-            .listen(portalPort, "0.0.0.0")
+            .listen(proxyConfig.portalPort, "0.0.0.0")
             .coAwait()
         log("Started portal server on port " + portalServer.actualPort())
         
-        if (friendlyHost != null) {
-            log("Friendly host: $friendlyHost")
+        if (proxyConfig.portalHost != null) {
+            log("Friendly host: ${proxyConfig.portalHost}")
         }
     }
 }
 
 fun main() {
+    main(PortalProxyConfig.fromEnvironment())
+}
+
+fun main(config: PortalProxyConfig) {
     Logger.Config.debugDump = true
     
     // disable ipv6 so entries in the portal database are deterministic for dual stack clients
@@ -121,7 +126,7 @@ fun main() {
     vertx.exceptionHandler { e ->
         log("Unhandled exception", e)
     }
-    vertx.deployVerticle(MainVerticle()).onFailure { e ->
+    vertx.deployVerticle(MainVerticle(config)).onFailure { e ->
         log("Failed to deploy verticle", e)
         vertx.close()
     }

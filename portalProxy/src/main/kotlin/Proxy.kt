@@ -5,7 +5,8 @@ package de.binarynoise.captiveportalautologin.portalproxy.proxy
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CancellationException
-import de.binarynoise.captiveportalautologin.portalproxy.portal.friendlyHost
+import de.binarynoise.captiveportalautologin.portalproxy.PortalProxyConfig
+import de.binarynoise.captiveportalautologin.portalproxy.portal.PortalStateStore
 import de.binarynoise.captiveportalautologin.portalproxy.portal.getCaptured
 import de.binarynoise.captiveportalautologin.portalproxy.portal.redirect
 import de.binarynoise.logger.Logger.log
@@ -16,13 +17,11 @@ import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.net.NetSocket
 import io.vertx.kotlin.coroutines.coAwait
 
-private val allowlistDomain = System.getenv("PROXY_ALLOWLIST_DOMAIN")?.split(",")?.map { it.trim() }
-private val allowlistPort = System.getenv("PROXY_ALLOWLIST_PORT")?.split(",")?.map { it.trim() }
-val proxyPort = System.getenv("PROXY_PORT")?.toInt() ?: 8000
-
-fun forward(request: HttpServerRequest) {
-    if ((friendlyHost != null && request.authority()?.host() == friendlyHost) || getCaptured(request)) {
-        redirect(request)
+fun forward(request: HttpServerRequest, config: PortalProxyConfig, store: PortalStateStore) {
+    if ((config.portalHost != null && request.authority()?.host() == config.portalHost) //
+        || getCaptured(request, store)
+    ) {
+        redirect(request, config)
         return
     }
     
@@ -35,11 +34,16 @@ fun forward(request: HttpServerRequest) {
         .end("Access to ${request.uri()} is not allowed")
 }
 
-suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
+suspend fun forwardConnect(
+    request: HttpServerRequest,
+    vertx: Vertx,
+    config: PortalProxyConfig,
+    store: PortalStateStore,
+) {
     try {
-        if (getCaptured(request)) {
+        if (getCaptured(request, store)) {
             log("captured")
-            redirect(request)
+            redirect(request, config)
             return
         }
         
@@ -54,7 +58,7 @@ suspend fun forwardConnect(request: HttpServerRequest, vertx: Vertx) {
         
         val (host, port) = hostPort
         
-        if ((allowlistDomain != null && host !in allowlistDomain) || (allowlistPort != null && port !in allowlistPort)) {
+        if ((config.allowlistDomain != null && host !in config.allowlistDomain) || (config.allowlistPort != null && port !in config.allowlistPort)) {
             request.response()
                 .setStatusCode(HttpResponseStatus.FORBIDDEN.code())
                 .end("Access to $host:$port is not allowed")
