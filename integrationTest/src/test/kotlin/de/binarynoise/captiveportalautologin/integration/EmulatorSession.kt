@@ -2,6 +2,7 @@ package de.binarynoise.captiveportalautologin.integration
 
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import de.binarynoise.logger.Logger.log
@@ -53,14 +54,14 @@ class EmulatorSession(
     }
     
     private fun waitUntilBoot(serial: String) {
-        retry(bootTimeout, interval = 2.seconds, description = "the emulator $serial to show up") {
+        retry(bootTimeout, interval = 500.milliseconds, description = "the emulator $serial to show up") {
             val states = deviceStates()
             check(states[serial] !in listOf("offline", "unauthorized")) {
                 "the emulator $serial is ${states[serial]}"
             }
             states[serial] == "device"
         }
-        retry(bootTimeout, interval = 2.seconds, description = "$serial to finish booting") {
+        retry(bootTimeout, interval = 500.milliseconds, description = "$serial to finish booting") {
             adb.property("sys.boot_completed") == "1"
         }
     }
@@ -78,7 +79,7 @@ class EmulatorSession(
         adb.shellOrNull("locksettings set-disabled true")
         adb.shellOrNull("svc power stayon true")
         adb.wakeUpAndDismissKeyguard()
-        retry(30.seconds, interval = 2.seconds, description = "the package manager to become available") {
+        retry(30.seconds, interval = 500.milliseconds, description = "the package manager to become available") {
             adb.shellOrNull("pm path android")?.contains("package:") == true
         }
     }

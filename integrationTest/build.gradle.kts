@@ -55,8 +55,17 @@ tasks.register<Test>("integrationTest") {
         includeTestsMatching("*IntegrationTest")
     }
     
-    dependsOn(":app:assembleUniversalDebug")
-    dependsOn(":app:assembleUniversalRelease")
+    val requestedBuildTypes = providers.gradleProperty("buildTypes").orNull
+        ?.split(",")
+        ?.map { it.trim().lowercase() }
+        ?.filter { it.isNotEmpty() }
+        ?.toSet()
+    if (requestedBuildTypes == null || "debug" in requestedBuildTypes) {
+        dependsOn(":app:assembleUniversalDebug")
+    }
+    if (requestedBuildTypes == null || "release" in requestedBuildTypes) {
+        dependsOn(":app:assembleUniversalRelease")
+    }
     
     systemProperty("captivePortalAutoLogin.projectDirectory", rootProject.projectDir.absolutePath)
     systemProperty("captivePortalAutoLogin.androidSdkDirectory", androidSdkDirectory)

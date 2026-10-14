@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.integration
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -36,15 +37,15 @@ class CaptivePortalNetwork(
     
     fun reconnectWifi() {
         adb.shell("svc wifi disable")
-        retry(30.seconds, interval = 1.seconds, description = "the wifi to turn off") {
+        retry(30.seconds, interval = 500.milliseconds, description = "the wifi to turn off") {
             adb.getGlobalSetting("wifi_on") == "0"
         }
         adb.shell("svc wifi enable")
-        retry(60.seconds, interval = 1.seconds, description = "the wifi to turn on") {
+        retry(60.seconds, interval = 500.milliseconds, description = "the wifi to turn on") {
             adb.getGlobalSetting("wifi_on") == "1"
         }
         try {
-            retry(60.seconds, interval = 2.seconds, description = "the wifi to connect") {
+            retry(60.seconds, interval = 1.seconds, description = "the wifi to connect") {
                 hasWifiNetwork()
             }
         } catch (failure: IllegalStateException) {
@@ -123,7 +124,7 @@ class CaptivePortalNetwork(
         condition: () -> Boolean,
     ) {
         try {
-            retry(timeout, interval = 2.seconds, description = description, block = condition)
+            retry(timeout, interval = 1.seconds, description = description, block = condition)
         } catch (failure: IllegalStateException) {
             throw IllegalStateException("$failureMessage:\n${describeNetworks()}", failure)
         }

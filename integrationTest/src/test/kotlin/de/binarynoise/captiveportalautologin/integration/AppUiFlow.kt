@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.integration
 
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import de.binarynoise.logger.Logger.log
@@ -110,6 +111,7 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
      */
     private fun scrollUntilFound(description: String, predicate: (UiNode) -> Boolean): UiNode? {
         val (width, height) = screenSize()
+        dumpUi().find(predicate)?.let { return it }
         scrollToTop(width, height)
         var lastScreen = ""
         repeat(maxScrolls) {
@@ -201,8 +203,8 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
     
     private companion object {
         val onboardingTimeout = 5.minutes
-        val settleDelay = 1.seconds
-        val pollInterval = 1.seconds
+        val settleDelay = 500.milliseconds
+        val pollInterval = 500.milliseconds
         const val maxScrolls = 12
         const val crashLogDetailLength = 4000
         

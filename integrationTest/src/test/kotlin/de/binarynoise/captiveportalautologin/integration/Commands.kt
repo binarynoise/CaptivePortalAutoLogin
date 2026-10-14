@@ -7,7 +7,7 @@ import java.net.Socket
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.TimeSource
 
 data class CommandResult(
@@ -54,13 +54,13 @@ fun runCommand(
     return CommandResult(command, exitCode, standardOutput, standardError)
 }
 
-inline fun retry(timeout: Duration, interval: Duration = 1.seconds, description: String, block: () -> Boolean) {
+inline fun retry(timeout: Duration, interval: Duration = 500.milliseconds, description: String, block: () -> Boolean) {
     retryValue(timeout, interval, description) {
         check(block()) { "condition not met yet" }
     }
 }
 
-inline fun <T> retryValue(timeout: Duration, interval: Duration = 1.seconds, description: String, block: () -> T): T {
+inline fun <T> retryValue(timeout: Duration, interval: Duration = 500.milliseconds, description: String, block: () -> T): T {
     val timeSource = TimeSource.Monotonic
     val start = timeSource.markNow()
     var lastFailure: Throwable? = null
@@ -70,7 +70,9 @@ inline fun <T> retryValue(timeout: Duration, interval: Duration = 1.seconds, des
         } catch (e: Exception) {
             lastFailure = e
         }
-        Thread.sleep(interval.inWholeMilliseconds)
+        val remaining = timeout - start.elapsedNow()
+        if (remaining <= Duration.ZERO) break
+        Thread.sleep(minOf(interval, remaining).inWholeMilliseconds)
     }
     val illegalStateException = IllegalStateException("timed out after $timeout waiting for $description")
     if (lastFailure != null) illegalStateException.addSuppressed(lastFailure)

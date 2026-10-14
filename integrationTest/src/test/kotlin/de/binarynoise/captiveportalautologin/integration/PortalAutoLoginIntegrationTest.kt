@@ -173,7 +173,7 @@ class PortalAutoLoginIntegrationTest {
             log("a release build reports with its hourly job, which a test cannot wait for")
             return
         }
-        retry(2.minutes, interval = 5.seconds, description = "the app to report the liberation to the api server") {
+        retry(2.minutes, interval = 2.seconds, description = "the app to report the liberation to the api server") {
             session.adb.startActivity("${TestEnvironment.appPackageName}/.QueuedWorkActivity")
             ui.uploadQueuedStatistics()
             apiServer.reportedSuccesses().size > successesBefore

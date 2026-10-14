@@ -151,7 +151,7 @@ class PortalProxyFixture(
      * Waits until the portal accepted the login of the app and no longer considers it captured.
      */
     fun awaitLiberated(timeout: Duration) {
-        retry(timeout, interval = 2.seconds, description = "the portal to stop considering the app captured") {
+        retry(timeout, interval = 500.milliseconds, description = "the portal to stop considering the app captured") {
             portalState() == PortalState.NOT_CAPTURED
         }
     }
