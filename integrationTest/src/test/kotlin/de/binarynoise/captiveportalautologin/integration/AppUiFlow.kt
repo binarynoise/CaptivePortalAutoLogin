@@ -14,11 +14,36 @@ import de.binarynoise.logger.Logger.log
  */
 class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
     
-    fun dumpUi(): DeviceUi = retryValue(30.seconds, description = "uiautomator to report the screen") {
-        // `uiautomator dump` writes the XML into this file, its own output is not usable as XML
-        adb.execOut("uiautomator dump $remoteDumpFile", logDirectory.resolve("uiautomator-stdout.txt"))
-        val uiFile = adb.execOut("cat $remoteDumpFile", logDirectory.resolve("window_dump.xml"))
-        DeviceUi.parse(uiFile.toFile().readText())
+    fun dumpUi(): DeviceUi {
+        val ui = retryValue(10.seconds, description = "uiautomator to report the screen") {
+            // `uiautomator dump` writes the XML into this file, its own output is not usable as XML
+            adb.execOut("uiautomator dump $remoteDumpFile", logDirectory.resolve("uiautomator-stdout.txt"))
+            val uiFile = adb.execOut("cat $remoteDumpFile", logDirectory.resolve("window_dump.xml"))
+            DeviceUi.parse(uiFile.toFile().readText())
+        }
+        // outside of the retry, dumping again never turns a screen of another app into a screen of this one
+        checkAppIsInForeground(ui)
+        return ui
+    }
+    
+    /**
+     * `uiautomator dump` reports whatever window is on top, so an app that crashed used to hand the test a screen
+     * full of launcher nodes that it then tried to tap, and the test only failed with a timeout without a cause.
+     *
+     * The app and the system screens it waits for are the only screens this flow can drive, so every other one
+     * means the app is not the app in the foreground any more. A crash is reported with the crash buffer, since
+     * that is the only place holding the reason for it.
+     */
+    private fun checkAppIsInForeground(ui: DeviceUi) {
+        failIfAppDied()
+        val packagesOnScreen = ui.packages()
+        if (TestEnvironment.appPackageName in packagesOnScreen) return
+        if (ui.isShowingKeyguard() || packagesOnScreen.any { it in permissionPopupPackages }) return
+        val crashLog = adb.crashLogDump()
+        error(
+            "the app is not the app in the foreground any more, the screen shows $packagesOnScreen:\n${ui.describe()}\n" //
+                + crashLog.take(crashLogDetailLength)
+        )
     }
     
     fun tap(node: UiNode) {
@@ -74,7 +99,7 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
     }
     
     fun openAdvancedSettings() {
-        retry(60.seconds, description = "the advanced settings to open") {
+        retry(10.seconds, description = "the advanced settings to open") {
             val ui = dumpUi()
             val entry = ui.find { node -> node.text == advancedSettingsTitle } ?: return@retry false
             tap(entry)
@@ -204,7 +229,7 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
         val settleDelay = 500.milliseconds
         val pollInterval = 500.milliseconds
         const val maxScrolls = 12
-        const val crashLogDetailLength = 4000
+        const val crashLogDetailLength = 5000
         
         const val remoteDumpFile = "/sdcard/window_dump.xml"
         
@@ -214,5 +239,11 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
         const val experimentalLiberatorsTitle = "Enable Experimental PortalLiberators"
         
         val locationPermissionTitles = listOf("Fine Location", "Background Location")
+        
+        val permissionPopupPackages = listOf(
+            "com.android.packageinstaller",
+            "com.android.permissioncontroller",
+            "com.google.android.permissioncontroller",
+        )
     }
 }

@@ -63,6 +63,12 @@ class DeviceUi(private val roots: List<UiNode>) {
     fun findByText(text: String): UiNode? = find { node -> node.text == text }
     
     /**
+     * The packages owning the dumped windows, which tells the caller which app is on the screen.
+     * Only the windows that are on the screen are part of the dump, so a covered app is not reported anymore.
+     */
+    fun packages(): List<String> = findAll { node -> node.packageName.isNotEmpty() }.map { it.packageName }.distinct()
+    
+    /**
      * Whether the device shows its lockscreen instead of the app.
      *
      * Only the system ui is on screen then, and it marks its lock screen elements with a keyguard class.
