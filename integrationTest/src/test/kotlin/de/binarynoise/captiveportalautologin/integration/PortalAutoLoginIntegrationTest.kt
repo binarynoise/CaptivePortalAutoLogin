@@ -27,7 +27,7 @@ import org.junit.jupiter.api.TestInstance
  * - the api server of this repository runs on the host machine, the app reports its liberation to it.
  *
  * A debug and a release build are tested the same way. The difference is that only a debug build can be
- * checked for the report itself, see [PortalAutoLoginIntegrationTest].
+ * checked for the report itself, see [checkReportedToApiServer].
  *
  * Run it with `./gradlew :integrationTest:integrationTest`.
  */

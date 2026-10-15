@@ -4,7 +4,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Reads one line of `text`, terminated by `\n`, without buffering anything beyond it.
+ * Reads one line of text, terminated by `\n`, without buffering anything beyond it.
  */
 fun InputStream.readLineUnbuffered(): String? {
     val line = StringBuilder()
@@ -16,9 +16,6 @@ fun InputStream.readLineUnbuffered(): String? {
     }
 }
 
-/**
- * Copies exactly [length] bytes.
- */
 fun InputStream.copyExactly(length: Long, destination: OutputStream) {
     val buffer = ByteArray(8 * 1024)
     var remaining = length

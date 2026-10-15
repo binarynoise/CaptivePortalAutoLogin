@@ -124,8 +124,8 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
     
     /**
      * Clearing is hygiene for the logcat dump written after the test, not part of the liberation itself:
-     * after `adb root` some images answer `logcat -c` with `failed to clear the 'main' log` (seen on
-     * API 26), so a clear that keeps failing only logs a warning instead of failing the test.
+     * after `adb root` some images answer `logcat -c` with `failed to clear the 'main' log`,
+     * so a clear that keeps failing only logs a warning instead of failing the test.
      */
     fun clearLogcat() {
         try {

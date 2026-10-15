@@ -147,9 +147,6 @@ class PortalProxyFixture(
     private fun fetchPortalPage(): String =
         client.newCall(Request.Builder().url(portalUrl("")).build()).execute().use { it.body.string() }
     
-    /**
-     * Waits until the portal accepted the login of the app and no longer considers it captured.
-     */
     fun awaitLiberated(timeout: Duration) {
         retry(timeout, interval = 500.milliseconds, description = "the portal to stop considering the app captured") {
             portalState() == PortalState.NOT_CAPTURED

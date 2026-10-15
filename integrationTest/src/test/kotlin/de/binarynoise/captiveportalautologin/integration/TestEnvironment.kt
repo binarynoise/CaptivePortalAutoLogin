@@ -42,7 +42,7 @@ class TestEnvironment private constructor(
     
     /**
      * The proxy port of the `portalProxy` server itself, which the emulator never talks to because
-     * [HttpCaptureProxy] sits in front of it. It still has to be a port nothing else is listening on.
+     * [HttpCaptureProxy] sits in front of it.
      */
     val portalProxyPort: Int = 18000
     

@@ -208,9 +208,6 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
         const val maxScrolls = 12
         const val crashLogDetailLength = 4000
         
-        /**
-         * `uiautomator dump` writes the XML into this file, its own output is not usable as XML.
-         */
         const val remoteDumpFile = "/sdcard/window_dump.xml"
         
         const val mainScreenTitle = "Status"
