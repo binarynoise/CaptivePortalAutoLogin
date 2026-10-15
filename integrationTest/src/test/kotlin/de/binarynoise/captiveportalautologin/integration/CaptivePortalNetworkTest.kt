@@ -44,9 +44,8 @@ class CaptivePortalNetworkTest {
     
     @Test
     fun `describes the absence of any network`() {
-        assertTrue(
-            "no networks" in CaptivePortalNetwork.describeNetworks(""), CaptivePortalNetwork.describeNetworks("")
-        )
+        val description = CaptivePortalNetwork.describeNetworks("")
+        assertTrue("no networks" in description, description)
     }
     
     private companion object {

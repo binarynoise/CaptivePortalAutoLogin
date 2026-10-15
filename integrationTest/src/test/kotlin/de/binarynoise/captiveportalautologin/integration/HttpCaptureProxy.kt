@@ -73,16 +73,16 @@ class HttpCaptureProxy(
     private fun handle(client: Socket) {
         var target: String? = null
         try {
-            client.use {
-                val request = Request.read(it.getInputStream()) ?: return
+            client.use { client ->
+                val request = Request.read(client.getInputStream()) ?: return
                 target = request.target
                 onRequest(request.target)
-                val destination = request.target.asDestination() ?: return refuse(it.getOutputStream())
+                val destination = request.target.asDestination() ?: return refuse(client.getOutputStream())
                 when {
-                    destination !in probeTargets -> forward(it, request, destination)
+                    destination !in probeTargets -> forward(client, request, destination)
                     // the portal redirects to itself, so a probe is answered with the portal only while it is captured
-                    isCaptured() -> redirect(it.getOutputStream())
-                    else -> respond(it.getOutputStream(), 204, "No Content", emptyMap())
+                    isCaptured() -> redirect(client.getOutputStream())
+                    else -> respond(client.getOutputStream(), 204, "No Content", emptyMap())
                 }
             }
         } catch (failure: Exception) {
@@ -102,12 +102,12 @@ class HttpCaptureProxy(
         return aliases["$host:$targetPort"] ?: "$host:$targetPort"
     }
     
-    private fun refuse(destination: OutputStream) {
-        respond(destination, 400, "Bad Request", emptyMap(), "this proxy does not forward tunnelled connections")
+    private fun refuse(output: OutputStream) {
+        respond(output, 400, "Bad Request", emptyMap(), "this proxy does not forward tunnelled connections")
     }
     
-    private fun redirect(destination: OutputStream) {
-        respond(destination, 303, "See Other", mapOf("Location" to redirectTarget))
+    private fun redirect(output: OutputStream) {
+        respond(output, 303, "See Other", mapOf("Location" to redirectTarget))
     }
     
     private fun forward(client: Socket, request: Request, destination: String) {
@@ -136,7 +136,7 @@ class HttpCaptureProxy(
     }
     
     private fun respond(
-        destination: OutputStream,
+        output: OutputStream,
         code: Int,
         reason: String,
         headers: Map<String, String>,
@@ -149,8 +149,8 @@ class HttpCaptureProxy(
             append("Connection: close\r\n\r\n")
             append(body)
         }
-        destination.write(response.toByteArray())
-        destination.flush()
+        output.write(response.toByteArray())
+        output.flush()
     }
     
     private class Request(

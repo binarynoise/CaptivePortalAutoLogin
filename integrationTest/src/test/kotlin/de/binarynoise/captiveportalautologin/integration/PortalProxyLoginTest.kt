@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import de.binarynoise.captiveportalautologin.portalproxy.portal.PortalState
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
@@ -20,7 +21,7 @@ class PortalProxyLoginTest {
     @Test
     fun `logs in through the portal like the app does`() {
         // free ports, so this test never talks to the portal proxy of a concurrently running integration test
-        PortalProxyProcess.start(proxyPort = freePort(), portalPort = freePort(), portalHost = "portalHost")
+        PortalProxy.start(proxyPort = freePort(), portalPort = freePort(), portalHost = "portalHost")
             .use { portalProxy ->
                 HttpCaptureProxy(
                     listenPort = 0,

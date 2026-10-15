@@ -14,7 +14,7 @@ const val testApiBaseUrlKey = "captive_portal_auto_login_test_api_base_url"
 class Adb(private val environment: TestEnvironment, val serial: String) {
     fun shell(command: String): String {
         val result = shellResult(command)
-        if (result.exitCode != 0) error("$serial: adb shell failed: $command -> ${result.exitCode}\n${result.standardOutput}${result.standardError}")
+        if (result.exitCode != 0) error("$serial: adb shell failed: $command -> ${result.exitCode}\n${result.standardOutput}")
         return result.standardOutput.trim()
     }
     
@@ -28,16 +28,16 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
     
     fun execOut(command: String, outputFile: Path): Path {
         val result = adb("exec-out", command)
-        if (result.exitCode != 0) error("$serial: adb exec-out failed: $command\n${result.standardError}")
+        if (result.exitCode != 0) error("$serial: adb exec-out failed: $command\n${result.standardOutput}")
         return writeFile(outputFile, result.standardOutput)
     }
     
     fun install(apk: Path) {
         val result = adb("install", "-r", "-t", apk.toAbsolutePath().toString())
         val failure = when {
-            result.exitCode != 0 -> result.standardError.ifBlank { result.standardOutput }.trim()
+            result.exitCode != 0 -> result.standardOutput.trim()
             result.standardOutput.contains("Success") -> null
-            else -> result.standardOutput.trim().ifBlank { result.standardError.trim() }
+            else -> result.standardOutput.trim()
         }
         failure?.let { error("$serial: installing ${apk.name} failed: $it") }
     }
@@ -88,7 +88,7 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
      */
     fun root(): Boolean {
         val result = adb("root")
-        val output = (result.standardOutput + result.standardError).trim()
+        val output = result.standardOutput.trim()
         val refused = result.exitCode != 0 || //
             output.contains("cannot", ignoreCase = true) || //
             output.contains("unable", ignoreCase = true)
@@ -117,7 +117,7 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
                 if (size != "16M") log("$serial: using logcat buffer size $size")
                 return
             }
-            log("$serial: setting the logcat buffer size to $size failed: ${(result.standardOutput + result.standardError).trim()}")
+            log("$serial: setting the logcat buffer size to $size failed: ${result.standardOutput.trim()}")
         }
         log("$serial: warning: leaving the logcat buffer at its default size")
     }
@@ -135,8 +135,7 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
         } catch (failure: IllegalStateException) {
             val result = adb("logcat", "-c")
             log(
-                "$serial: warning: clearing logcat failed, " +
-                    "continuing with uncleared logs: ${(result.standardOutput + result.standardError).trim()}",
+                "$serial: warning: clearing logcat failed, continuing with uncleared logs: ${result.standardOutput.trim()}",
             )
         }
     }

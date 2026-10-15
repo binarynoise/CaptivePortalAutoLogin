@@ -4,6 +4,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 import kotlin.time.Duration
@@ -14,7 +15,6 @@ data class CommandResult(
     val command: List<String>,
     val exitCode: Int,
     val standardOutput: String,
-    val standardError: String,
 ) {
     fun requireSuccess(description: String): CommandResult {
         if (exitCode != 0) {
@@ -26,7 +26,6 @@ data class CommandResult(
                     append("\ncommand: ")
                     append(command.joinToString(" "))
                     if (standardOutput.isNotBlank()) append("\nstdout: ").append(standardOutput.trim())
-                    if (standardError.isNotBlank()) append("\nstderr: ").append(standardError.trim())
                 },
             )
         }
@@ -36,7 +35,7 @@ data class CommandResult(
 
 fun runCommand(
     command: List<String>,
-    workingDirectory: java.nio.file.Path? = null,
+    workingDirectory: Path? = null,
     environment: Map<String, String> = emptyMap(),
 ): CommandResult {
     val processBuilder = ProcessBuilder(command).apply {
@@ -48,10 +47,9 @@ fun runCommand(
     
     val process = processBuilder.start()
     val standardOutput = process.inputStream.bufferedReader().use { it.readText() }
-    val standardError = process.errorStream.bufferedReader().use { it.readText() }
     val exitCode = process.waitFor()
     
-    return CommandResult(command, exitCode, standardOutput, standardError)
+    return CommandResult(command, exitCode, standardOutput)
 }
 
 inline fun retry(timeout: Duration, interval: Duration = 500.milliseconds, description: String, block: () -> Boolean) {
@@ -60,7 +58,12 @@ inline fun retry(timeout: Duration, interval: Duration = 500.milliseconds, descr
     }
 }
 
-inline fun <T> retryValue(timeout: Duration, interval: Duration = 500.milliseconds, description: String, block: () -> T): T {
+inline fun <T> retryValue(
+    timeout: Duration,
+    interval: Duration = 500.milliseconds,
+    description: String,
+    block: () -> T,
+): T {
     val timeSource = TimeSource.Monotonic
     val start = timeSource.markNow()
     var lastFailure: Throwable? = null
@@ -79,7 +82,7 @@ inline fun <T> retryValue(timeout: Duration, interval: Duration = 500.millisecon
     throw illegalStateException
 }
 
-fun writeFile(file: java.nio.file.Path, content: String): java.nio.file.Path {
+fun writeFile(file: Path, content: String): Path {
     file.parent?.createDirectories()
     file.writeText(content)
     return file

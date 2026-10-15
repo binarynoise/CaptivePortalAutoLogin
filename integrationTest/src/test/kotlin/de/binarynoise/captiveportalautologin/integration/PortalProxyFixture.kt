@@ -6,21 +6,18 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 import de.binarynoise.captiveportalautologin.portalproxy.PortalProxyConfig
 import de.binarynoise.captiveportalautologin.portalproxy.PortalProxyServer
+import de.binarynoise.captiveportalautologin.portalproxy.portal.PortalState
 import de.binarynoise.logger.Logger.log
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
 /**
- * States the portal served by `portalProxy` can be in, see `portalProxy/src/main/kotlin/Portal.kt`.
+ * Reads the state of the portal served by `portalProxy`, see `portalProxy/src/main/kotlin/Portal.kt`.
  *
  * The proxy keys them by the ip of the client. Requests coming from an emulator reach the host machine
  * through `10.0.2.2`, which makes the emulator show up as `127.0.0.1` - the same ip this test uses.
  */
-enum class PortalState {
-    CAPTURED, ERROR_STILL_CAPTURED, ERROR_403, NOT_CAPTURED;
-}
-
 internal fun String.toPortalState(): PortalState =
     PortalState.entries.firstOrNull { state -> contains("You are currently in state ${state.name}") }
         ?: error("could not read the portal state from:\n$this")
@@ -28,7 +25,7 @@ internal fun String.toPortalState(): PortalState =
 /**
  * Runs the `portalProxy` of this repository in this process, like `deployment/portal-proxy.service` does.
  */
-class PortalProxyProcess(
+class PortalProxy(
     val proxyPort: Int,
     val portalPort: Int,
     private val portalHost: String,
@@ -61,8 +58,8 @@ class PortalProxyProcess(
             proxyPort: Int,
             portalPort: Int,
             portalHost: String,
-        ): PortalProxyProcess {
-            val portalProxy = PortalProxyProcess(proxyPort, portalPort, portalHost)
+        ): PortalProxy {
+            val portalProxy = PortalProxy(proxyPort, portalPort, portalHost)
             try {
                 portalProxy.start()
                 val start = TimeSource.Monotonic.markNow()
@@ -100,7 +97,7 @@ class PortalProxyFixture(
 ) : AutoCloseable {
     
     private val client = OkHttpClient()
-    private var portalProxy: PortalProxyProcess? = null
+    private var portalProxy: PortalProxy? = null
     private val captureProxy = HttpCaptureProxy(
         listenPort = environment.proxyPort,
         probeTargets = setOf("${environment.hostAddress}:${environment.proxyPort}"),
@@ -124,7 +121,7 @@ class PortalProxyFixture(
             environment.portalProxyPort,
             owner = "another portal proxy",
         )
-        portalProxy = PortalProxyProcess.start(
+        portalProxy = PortalProxy.start(
             proxyPort = environment.portalProxyPort,
             portalPort = environment.portalPort,
             portalHost = environment.portalHost,

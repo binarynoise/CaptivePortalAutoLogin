@@ -55,8 +55,7 @@ tasks.register<Test>("integrationTest") {
         includeTestsMatching("*IntegrationTest")
     }
     
-    val requestedBuildTypes = providers.gradleProperty("buildTypes").orNull
-        ?.split(",")
+    val requestedBuildTypes = providers.gradleProperty("buildTypes").orNull?.split(",")
         ?.map { it.trim().lowercase() }
         ?.filter { it.isNotEmpty() }
         ?.toSet()

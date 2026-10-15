@@ -48,12 +48,10 @@ class AppUiFlow(private val adb: Adb, private val logDirectory: Path) {
             if (isShowingMainScreen(ui)) return
             // the device locks itself during a long onboarding, which would make the test tap a keyguard
             if (ui.isShowingKeyguard()) {
-                lastScreen = ui.describe()
                 adb.wakeUpAndDismissKeyguard()
                 continue
             }
             if (!handleSystemPermissionScreen(ui) && !handleAppScreen(ui)) {
-                lastScreen = ui.describe()
                 Thread.sleep(pollInterval.inWholeMilliseconds)
             }
         }

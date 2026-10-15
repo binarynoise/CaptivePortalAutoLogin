@@ -122,12 +122,12 @@ class EmulatorSession(
             if (hook != null) runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
         }
     }
-
+    
     private fun shutdownFromHook() {
         if (!closed.compareAndSet(false, true)) return
         shutdownEmulator()
     }
-
+    
     private fun shutdownEmulator() {
         val process = emulatorProcess ?: return
         emulatorProcess = null
@@ -140,23 +140,13 @@ class EmulatorSession(
             }
         }
     }
-
+    
     private fun waitForExit(process: Process, timeout: Duration): Boolean {
-        val deadline = System.nanoTime() + timeout.inWholeNanoseconds
-        var interrupted = false
         try {
-            while (true) {
-                val remaining = deadline - System.nanoTime()
-                if (remaining <= 0L) return !process.isAlive
-                try {
-                    return process.waitFor(remaining, TimeUnit.NANOSECONDS)
-                } catch (_: InterruptedException) {
-                    interrupted = true
-                }
-                if (!process.isAlive) return true
-            }
-        } finally {
-            if (interrupted) Thread.currentThread().interrupt()
+            return process.waitFor(timeout.inWholeNanoseconds, TimeUnit.NANOSECONDS)
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+            return !process.isAlive
         }
     }
     

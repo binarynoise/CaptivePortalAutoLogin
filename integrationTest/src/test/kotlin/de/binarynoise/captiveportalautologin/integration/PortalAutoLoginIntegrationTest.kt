@@ -4,6 +4,7 @@ import java.util.stream.Stream
 import kotlin.io.path.createDirectories
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import de.binarynoise.captiveportalautologin.portalproxy.portal.PortalState
 import de.binarynoise.logger.Logger.log
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue

@@ -12,8 +12,10 @@ data class PortalProxyConfig(
             proxyPort = System.getenv("PROXY_PORT")?.toInt() ?: 8000,
             portalPort = System.getenv("PORTAL_PORT")?.toInt() ?: 8001,
             portalHost = System.getenv("PORTAL_HOST"),
-            allowlistDomain = System.getenv("PROXY_ALLOWLIST_DOMAIN")?.split(",")?.map { it.trim() },
-            allowlistPort = System.getenv("PROXY_ALLOWLIST_PORT")?.split(",")?.map { it.trim() },
+            allowlistDomain = environmentList("PROXY_ALLOWLIST_DOMAIN"),
+            allowlistPort = environmentList("PROXY_ALLOWLIST_PORT"),
         )
+        
+        private fun environmentList(name: String): List<String>? = System.getenv(name)?.split(",")?.map { it.trim() }
     }
 }
