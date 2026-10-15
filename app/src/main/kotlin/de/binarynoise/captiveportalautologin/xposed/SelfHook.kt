@@ -1,5 +1,6 @@
 package de.binarynoise.captiveportalautologin.xposed
 
+import android.os.Process
 import androidx.annotation.Keep
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.logger.Logger
@@ -14,7 +15,7 @@ class SelfHook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName != BuildConfig.APPLICATION_ID) return
         applyLoggerConfig(lpparam)
-        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
+        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${Process.myPid()}")
         
         val cls = Class.forName(Xposed::class.qualifiedName!!, false, lpparam.classLoader)
         XposedHelpers.findAndHookMethod(

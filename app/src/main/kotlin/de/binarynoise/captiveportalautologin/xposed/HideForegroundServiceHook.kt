@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.xposed
 
 import android.os.Build
+import android.os.Process
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.logger.Logger.log
 import de.robv.android.xposed.IXposedHookLoadPackage
@@ -13,7 +14,7 @@ class HideForegroundServiceHook : IXposedHookLoadPackage {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         if (lpparam.packageName != "com.android.systemui") return
         applyLoggerConfig(lpparam)
-        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
+        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${Process.myPid()}")
         
         val UIControl = XposedHelpers.findClass(
             "com.android.systemui.qs.FgsManagerControllerImpl\$UIControl",

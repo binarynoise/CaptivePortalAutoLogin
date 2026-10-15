@@ -4,6 +4,7 @@ package de.binarynoise.captiveportalautologin.xposed
 
 import android.net.wifi.WifiConfiguration
 import android.os.Build
+import android.os.Process
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.logger.Logger.log
@@ -17,7 +18,7 @@ class ReEnableSupportedNetworksHook : IXposedHookLoadPackage {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         if (lpparam.packageName != "com.android.networkstack") return
         applyLoggerConfig(lpparam)
-        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
+        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${Process.myPid()}")
         
         val whitelistedSSIDs: List<String> = allPortalLiberators.flatMap { portalLiberator ->
             portalLiberator::class.java.annotations.filterIsInstance<SSID>().flatMap { it.ssid.asIterable() }

@@ -1,6 +1,7 @@
 package de.binarynoise.captiveportalautologin.xposed
 
 import android.os.Build
+import android.os.Process
 import de.binarynoise.captiveportalautologin.BuildConfig
 import de.binarynoise.liberator.cast
 import de.binarynoise.logger.Logger.log
@@ -14,7 +15,7 @@ class LocationIndicatorHook : IXposedHookLoadPackage {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         if (lpparam.packageName != "com.android.systemui") return
         applyLoggerConfig(lpparam)
-        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${android.os.Process.myPid()}")
+        log("${this::class.simpleName} handleLoadPackage ${lpparam.packageName} with process ${lpparam.processName} and pid ${Process.myPid()}")
         
         XposedHelpers.findAndHookMethod(
             "com.android.systemui.appops.AppOpsControllerImpl",
