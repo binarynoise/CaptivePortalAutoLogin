@@ -2,6 +2,8 @@ package de.binarynoise.captiveportalautologin.integration
 
 import java.nio.file.Path
 import kotlin.io.path.name
+import kotlin.time.Duration.Companion.seconds
+import de.binarynoise.logger.Logger.log
 
 /**
  * The global setting the tests point the app at their api server with. Has to match the key in
@@ -12,7 +14,7 @@ const val testApiBaseUrlKey = "captive_portal_auto_login_test_api_base_url"
 class Adb(private val environment: TestEnvironment, val serial: String) {
     fun shell(command: String): String {
         val result = shellResult(command)
-        if (result.exitCode != 0) error("$serial: adb shell failed: $command\n${result.standardError}")
+        if (result.exitCode != 0) error("$serial: adb shell failed: $command -> ${result.exitCode}\n${result.standardOutput}${result.standardError}")
         return result.standardOutput.trim()
     }
     
@@ -79,6 +81,25 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
         adb("emu", "kill").requireSuccess("killing the emulator $serial")
     }
     
+    /**
+     * Restarts adbd as root. `svc wifi` silently does nothing on some images unless adbd runs as
+     * root, so the test run tries this after every boot. Returns whether the device runs as root
+     * now, production builds refuse it and the run continues without root then.
+     */
+    fun root(): Boolean {
+        val result = adb("root")
+        val output = (result.standardOutput + result.standardError).trim()
+        val refused = result.exitCode != 0 || //
+            output.contains("cannot", ignoreCase = true) || //
+            output.contains("unable", ignoreCase = true)
+        if (refused) {
+            log("$serial: adb root unavailable, continuing without root: ${output.ifBlank { "exit code ${result.exitCode}" }}")
+            return false
+        }
+        log("$serial: ${output.ifBlank { "restarting adbd as root" }}")
+        return true
+    }
+    
     fun startActivity(activity: String) {
         adb("shell", "am", "start", "-W", "-n", activity).requireSuccess("starting $activity")
     }
@@ -86,13 +107,38 @@ class Adb(private val environment: TestEnvironment, val serial: String) {
     /**
      * The app logs a lot while it walks through the portal, and the default buffer drops the beginning of a
      * test run long before it is over, which makes log-based checks flaky.
+     *
+     * Best effort only: older images reject large sizes, and the liberation itself does not depend on it.
      */
     fun enlargeLogcatBuffer() {
-        adb("logcat", "-G", "16M").requireSuccess("enlarging the logcat buffer")
+        for (size in listOf("16M", "4M", "1M")) {
+            val result = adb("logcat", "-G", size)
+            if (result.exitCode == 0) {
+                if (size != "16M") log("$serial: using logcat buffer size $size")
+                return
+            }
+            log("$serial: setting the logcat buffer size to $size failed: ${(result.standardOutput + result.standardError).trim()}")
+        }
+        log("$serial: warning: leaving the logcat buffer at its default size")
     }
     
+    /**
+     * Clearing is hygiene for the logcat dump written after the test, not part of the liberation itself:
+     * after `adb root` some images answer `logcat -c` with `failed to clear the 'main' log` (seen on
+     * API 26), so a clear that keeps failing only logs a warning instead of failing the test.
+     */
     fun clearLogcat() {
-        adb("logcat", "-c").requireSuccess("clearing logcat")
+        try {
+            retry(15.seconds, interval = 1.seconds, description = "logcat to become clearable") {
+                adb("logcat", "-c").exitCode == 0 || adb("logcat", "-b", "all", "-c").exitCode == 0
+            }
+        } catch (failure: IllegalStateException) {
+            val result = adb("logcat", "-c")
+            log(
+                "$serial: warning: clearing logcat failed, " +
+                    "continuing with uncleared logs: ${(result.standardOutput + result.standardError).trim()}",
+            )
+        }
     }
     
     fun wakeUpAndDismissKeyguard() {

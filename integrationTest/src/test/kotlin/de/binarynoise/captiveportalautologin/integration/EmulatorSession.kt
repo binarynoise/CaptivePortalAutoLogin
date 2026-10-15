@@ -59,6 +59,7 @@ class EmulatorSession(
         runCatching { Runtime.getRuntime().addShutdownHook(hook) }
         
         waitUntilBoot(serial)
+        tryRoot(serial)
         prepareDevice()
     }
     
@@ -71,6 +72,24 @@ class EmulatorSession(
             states[serial] == "device"
         }
         retry(bootTimeout, interval = 500.milliseconds, description = "$serial to finish booting") {
+            adb.property("sys.boot_completed") == "1"
+        }
+    }
+    
+    /**
+     * `svc wifi` crashes on some images unless adbd runs as root, so the run tries `adb root` after every boot.
+     * adbd restarts, therefore the device is waited for again.
+     */
+    private fun tryRoot(serial: String) {
+        val rooted = runCatching { adb.root() }.getOrElse { failure ->
+            log("warning: adb root on $serial failed: $failure")
+            false
+        }
+        if (!rooted) return
+        retry(60.seconds, interval = 500.milliseconds, description = "$serial to come back after adb root") {
+            deviceStates()[serial] == "device"
+        }
+        retry(60.seconds, interval = 500.milliseconds, description = "$serial to finish restarting adbd") {
             adb.property("sys.boot_completed") == "1"
         }
     }
