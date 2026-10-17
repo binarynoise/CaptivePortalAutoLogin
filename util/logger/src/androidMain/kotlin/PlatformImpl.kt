@@ -33,11 +33,11 @@ class PlatformImpl : Platform {
         }
     
     var printBuffer = StringBuilder()
-    override fun <T> print(t: T) {
+    override fun <T> print(t: T): Unit = synchronized(printBuffer) {
         printBuffer.append(t)
     }
     
-    override fun <T> println(t: T) {
+    override fun <T> println(t: T): Unit = synchronized(printBuffer) {
         print(t)
         printBuffer.toString().lineSequence().forEach {
             Log.d(TAG, it)
@@ -46,11 +46,11 @@ class PlatformImpl : Platform {
     }
     
     var printErrBuffer = StringBuilder()
-    override fun <T> printErr(t: T) {
+    override fun <T> printErr(t: T): Unit = synchronized(printErrBuffer) {
         printErrBuffer.append(t)
     }
     
-    override fun <T> printlnErr(t: T) {
+    override fun <T> printlnErr(t: T): Unit = synchronized(printErrBuffer) {
         printErr(t)
         printErrBuffer.toString().lineSequence().forEach {
             Log.e(TAG, it)
