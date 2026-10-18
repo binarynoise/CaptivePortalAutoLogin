@@ -91,6 +91,8 @@
         \nIf you disable sending feedback we can\'t improve this app.
         \nYou will lose access to automatic update checks and Network Suggestions,
         since they depend on aggregated statistics data from our server.
+        \n
+        \nUploading HAR files and Logs will be postponed too until you enable statistics sharing again.
     </string>
     <string name="invalid_url">Invalid URL</string>
     <string name="preference_api_base">api base</string>
