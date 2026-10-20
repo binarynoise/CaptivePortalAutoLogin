@@ -17,6 +17,7 @@ import okhttp3.Response
     "SSB fuer Dich - WiFi Free",
     "postbank.de",
     "deutsche-bank.de",
+    "guests", // Roche
 )
 object CiscoISE : PortalLiberator {
     override fun canSolve(response: Response): Boolean {
