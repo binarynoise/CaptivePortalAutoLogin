@@ -332,10 +332,8 @@ fun addNetworkSuggestionPreferences(
             reevaluateEnabled()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
-                    suggestionsApproved = status in listOf(
-                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_USER,
-                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_CARRIER_PRIVILEGE,
-                    )
+                    // The first submission triggers approval, so UNKNOWN and PENDING must remain usable.
+                    suggestionsApproved = status != WifiManager.STATUS_SUGGESTION_APPROVAL_REJECTED_BY_USER
                     reevaluateEnabled()
                 }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
