@@ -49,7 +49,9 @@
     <string name="preference_network_suggestions_description_simple">Automatically connect to supported networks.</string>
     <string name="preference_network_suggestions_disconnect_on_Q">\nNote: You may experience short disconnections while the suggestions are updated in the background.</string>
     <string name="preference_network_suggestions_disabled_statistics">Network Suggestions unavailable because "Send Statistics" is disabled.</string>
-    <string name="preference_network_suggestions_disabled_suggestions">Network Suggestions unavailable because they were not approved by the user.</string>
+    <string name="preference_network_suggestions_disabled_suggestions">Network Suggestions unavailable because they were rejected by the user.</string>
+    <string name="preference_network_suggestions_disabled_suggestions_open_settings">\nClick to open the system settings to manually grant the \"%s\" permission.</string>
+    <string name="change_wifi_state_title">Wi-Fi Control</string>
     <string name="preference_network_suggestions_mac_randomization">Non-persistent MAC randomization</string>
     <string name="preference_network_suggestions_mac_randomization_description">
         For suggested networks, the MAC address will be randomized periodically. 

@@ -5,7 +5,9 @@ package de.binarynoise.captiveportalautologin
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.read
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.database.ContentObserver
 import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
@@ -46,6 +48,7 @@ import de.binarynoise.captiveportalautologin.util.getSignaturePublicKey
 import de.binarynoise.captiveportalautologin.util.mainHandler
 import de.binarynoise.filedb.FixedKeyJsonDB
 import de.binarynoise.liberator.SSID
+import de.binarynoise.liberator.filterNotNullValues
 import de.binarynoise.liberator.isExperimental
 import de.binarynoise.liberator.portals.allPortalLiberators
 import de.binarynoise.liberator.tryOrDefault
@@ -163,11 +166,9 @@ fun dequeueUpdateNetworkSuggestionSSIDsWork(context: Context = applicationContex
     WorkManager.getInstance(context).cancelUniqueWork(UpdateNetworkSuggestionSSIDsWorkerUniqueWorkName)
 }
 
-val NetworkSuggestionOnPreferenceChangeListener: Preference.OnPreferenceChangeListener = { preference, newValue ->
-    require(preference is TwoStatePreference) { "preference is not TwoStatePreference" }
+val NetworkSuggestionOnPreferenceChangeListener = { preference: TwoStatePreference, newValue: Boolean ->
     val onAppDisallowedCallback = {
         preference.isChecked = false
-        preference.isEnabled = false
     }
     if (newValue as Boolean) {
         enqueueUpdateNetworkSuggestionSSIDsWork(preference.context, expedited = true)
@@ -215,6 +216,12 @@ fun Number.toNetworkSuggestionStatusString(): String {
     return WifiManager::class.java.declaredFields.singleOrNull {
         it.name.startsWith("STATUS_NETWORK_SUGGESTIONS_") && it.get(null) == this
     }?.name?.removePrefix("STATUS_NETWORK_SUGGESTIONS_") ?: "UNKNOWN"
+}
+
+fun Number.toSuggestionApprovalStatusString(): String {
+    return WifiManager::class.java.declaredFields.singleOrNull {
+        it.name.startsWith("STATUS_SUGGESTION_APPROVAL_") && it.get(null) == this
+    }?.name?.removePrefix("STATUS_SUGGESTION_APPROVAL_") ?: "UNKNOWN"
 }
 
 fun updateNetworkSuggestions(
@@ -306,36 +313,80 @@ fun addNetworkSuggestionPreferences(
     networkStateListeners: MutableList<(newState: NetworkState?) -> Unit>? = null,
 ) {
     with(group) {
-        fun getString(id: Int): String {
-            return context.getString(id)
+        fun getString(id: Int, vararg formatArgs: Any?): String {
+            return context.getString(id, *formatArgs)
         }
         if (addMasterToggle) addPreference(SwitchPreference(context), lifecycle) {
             titleRes = R.string.preference_network_suggestions
             summaryRes = if (useSimpleDescriptions) R.string.preference_network_suggestions_description_simple
             else R.string.preference_network_suggestions_description
-            onPreferenceChangeListener = NetworkSuggestionOnPreferenceChangeListener
-            key = SharedPreferences.network_suggestions.sharedPreferencesKey
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
                 summaryOn = summary.toString() + getString(R.string.preference_network_suggestions_disconnect_on_Q)
             }
-            var suggestionsApproved: Boolean? = null
-            var sendStatsEnabled: Boolean? = null
+            key = SharedPreferences.network_suggestions.sharedPreferencesKey
+            
+            var suggestionsRejected: Boolean? = null
+            var sendStatsEnabled by SharedPreferences.liberator_send_stats
+            val specialAccessSettingsIntent = arrayOf(
+                Intent("android.settings.SPECIAL_ACCESS_SETTINGS"),
+                Intent("android.intent.action.MANAGE_SPECIAL_APP_ACCESSES"),
+                Intent().apply {
+                    component = ComponentName(
+                        "com.android.settings",
+                        $$"com.android.settings.Settings$SpecialAccessSettingsActivity",
+                    )
+                },
+            ).associateWith {
+                context.packageManager.resolveActivity(it, 0)
+            }.onEach { (i, ri) ->
+                log("Resolved activity: $i -> $ri")
+            }.filterNotNullValues().keys.firstOrNull()
+            
             fun reevaluateEnabled() {
-                isEnabled = (suggestionsApproved ?: false) && (sendStatsEnabled ?: false)
-                if (suggestionsApproved == null || sendStatsEnabled == null) return
-                if (!isEnabled) isChecked = false
-                summaryOff = StringBuilder().apply {
-                    if (suggestionsApproved == false) append(getString(R.string.preference_network_suggestions_disabled_suggestions))
-                    if (sendStatsEnabled == false) append(getString(R.string.preference_network_suggestions_disabled_statistics))
-                }.takeIf { it.isNotEmpty() }?.toString()
+                isEnabled = sendStatsEnabled && (suggestionsRejected != true || specialAccessSettingsIntent != null)
+                if (!isEnabled || suggestionsRejected == true) isChecked = false
+                
+                summaryOff = buildString {
+                    if (suggestionsRejected == true) {
+                        val change_wifi_state_title =
+                            tryOrDefault(getString(R.string.change_wifi_state_title), log = true) {
+                                val settingsContext = context.createPackageContext("com.android.settings", 0)
+                                val resId = settingsContext.resources.getIdentifier(
+                                    "change_wifi_state_title",
+                                    "string",
+                                    "com.android.settings",
+                                )
+                                settingsContext.getString(resId)
+                            }
+                        
+                        append(getString(R.string.preference_network_suggestions_disabled_suggestions))
+                        if (specialAccessSettingsIntent != null) {
+                            append(
+                                getString(
+                                    R.string.preference_network_suggestions_disabled_suggestions_open_settings,
+                                    change_wifi_state_title
+                                )
+                            )
+                        }
+                    }
+                    if (!sendStatsEnabled) append(getString(R.string.preference_network_suggestions_disabled_statistics))
+                }.takeIf { it.isNotEmpty() }
             }
             reevaluateEnabled()
+            
+            setOnPreferenceChangeListener { _, newValue ->
+                if (suggestionsRejected == true) {
+                    if (specialAccessSettingsIntent != null) context.startActivity(specialAccessSettingsIntent)
+                    return@setOnPreferenceChangeListener false
+                }
+                
+                NetworkSuggestionOnPreferenceChangeListener(this, newValue as Boolean)
+            }
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val listener = WifiManager.SuggestionUserApprovalStatusListener { status ->
-                    suggestionsApproved = status in listOf(
-                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_USER,
-                        WifiManager.STATUS_SUGGESTION_APPROVAL_APPROVED_BY_CARRIER_PRIVILEGE,
-                    )
+                    log("Suggestion user approval status: ${status.toSuggestionApprovalStatusString()}")
+                    suggestionsRejected = status == WifiManager.STATUS_SUGGESTION_APPROVAL_REJECTED_BY_USER
                     reevaluateEnabled()
                 }
                 lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -349,7 +400,6 @@ fun addNetworkSuggestionPreferences(
                 })
             }
             SharedPreferences.liberator_send_stats.addOnSharedPreferenceChangeListener(lifecycle) {
-                sendStatsEnabled = it
                 reevaluateEnabled()
             }
         }
