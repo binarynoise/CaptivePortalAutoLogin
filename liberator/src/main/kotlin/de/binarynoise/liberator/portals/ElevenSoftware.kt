@@ -21,7 +21,7 @@ import okhttp3.Response
 @Experimental
 @SSID("Aloft_Public")
 object ElevenSoftware : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "secure.guestinternet.com" && response.requestUrl.hasQueryParameter("redirect")
     }
     

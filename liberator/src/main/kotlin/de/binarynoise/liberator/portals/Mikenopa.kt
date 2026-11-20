@@ -15,7 +15,7 @@ import okhttp3.Response
 
 @SSID("Unger_GUEST")
 object Mikenopa : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "login.mikenopa.com" //
             && response.requestUrl.lastPathSegment == "initialization-task"
     }

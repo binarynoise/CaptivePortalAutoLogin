@@ -20,7 +20,7 @@ import okhttp3.Response
     "ZEDO_Guest",
 )
 object WifiDog : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.isIp //
             && response.requestUrl.port == 2060  //
             && response.requestUrl.decodedPath == "/wifidog"

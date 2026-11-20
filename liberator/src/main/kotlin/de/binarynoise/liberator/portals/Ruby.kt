@@ -53,7 +53,7 @@ object Ruby : PortalLiberator {
         return Pair(chapId, chapChallenge)
     }
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "hotspot.ruby-workspaces.com" // 
             && response.requestUrl.encodedPath == "/login" //
             && response.requestUrl.hasQueryParameter("dst")

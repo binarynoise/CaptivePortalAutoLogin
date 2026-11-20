@@ -21,12 +21,16 @@ interface PortalLiberator : PortalHandler {
      *
      * This method is called during portal detection to determine if this liberator
      * has the capability to authenticate with the specific captive portal system.
+     * Requests should only be made if necessary for identifying whether this portal is compatible,
+     * any further requests must be made in the [canSolve] function.
      *
+     * The [client] is the OkHttpClient instance to use for making HTTP requests to the portal.
      * The [response] is the HTTP response loaded from `response.requestUrl` containing the portal content.
+     * The [extras] contain additional information like cookies.
      *
      * @return true if this liberator can solve the portal, false otherwise.
      */
-    fun canSolve(response: Response): Boolean
+    fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean
     
     /**
      * Attempts to solve the captive portal by performing the necessary authentication actions.

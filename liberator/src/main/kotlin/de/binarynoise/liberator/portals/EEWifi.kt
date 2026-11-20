@@ -15,7 +15,7 @@ import okhttp3.Response
 
 @SSID("EE WiFi")
 object EEWifi : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "ee-wifi.ee.co.uk" && response.requestUrl.firstPathSegment == "home"
     }
     

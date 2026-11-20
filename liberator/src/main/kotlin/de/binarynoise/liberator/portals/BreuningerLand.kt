@@ -15,7 +15,7 @@ import okhttp3.Response
 @Experimental
 @SSID("Breuninger-WiFi")
 object BreuningerLand : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "welcome.eb-guest.de"
     }
     

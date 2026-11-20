@@ -31,14 +31,14 @@ import okhttp3.Response
 object TheCloud : PortalLiberator {
     const val THECLOUD_DOMAIN = "service.thecloud.eu"
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == THECLOUD_DOMAIN //
             && response.requestUrl.firstPathSegment == "service-platform"
     }
     
     /**
      * recursively crawl to a until hitting a target [HttpUrl]
-     * 
+     *
      * @param isTargetUrlCallback check whether this [HttpUrl] is the one searched for
      * @param getPossibleUrls get all [HttpUrl]s which should be crawled next
      * @param doRequest override how a request to a [HttpUrl] is performed, defaults to [get]
@@ -78,7 +78,7 @@ object TheCloud : PortalLiberator {
         
         /**
          * macauthlogin redirect chain:
-         * initial request -> activate (-> getonline) -> macauthlogin -> register 
+         * initial request -> activate (-> getonline) -> macauthlogin -> register
          */
         
         val activateResponse = client.get(baseUrl, "activate")
@@ -115,7 +115,9 @@ object TheCloud : PortalLiberator {
         if (macAuthResponse.getLocationUrl()!!.lastPathSegment == "getonline") // 
             throw IllegalStateException("macAuthResponse redirected to getonline")
         
-        val onlineResponse = macAuthResponse.followRedirects(client) { it.host == THECLOUD_DOMAIN && it.lastPathSegment != "online" }.followRedirects(client) {false}
+        val onlineResponse =
+            macAuthResponse.followRedirects(client) { it.host == THECLOUD_DOMAIN && it.lastPathSegment != "online" }
+                .followRedirects(client) { false }
         onlineResponse.checkSuccess()
         check(onlineResponse.requestUrl.lastPathSegment == "online") {
             "redirection chain didn't end with online"

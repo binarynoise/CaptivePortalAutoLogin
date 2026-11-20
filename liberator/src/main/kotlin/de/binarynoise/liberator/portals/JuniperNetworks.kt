@@ -119,7 +119,7 @@ fun simpleJwt(data: ByteArray, secret: String): String {
  * liberates portals hosted on `portal.mist.com` directly
  */
 object MistCom : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return isMistPortalUrl(response.requestUrl)
     }
     
@@ -156,7 +156,7 @@ object Abercrombie : PortalLiberator {
         return portalUrl.queryParameter("authorize_url")?.toHttpUrl(portalUrl) ?: error("no authorize_url")
     }
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "storewifi.abercrombie.com" && tryOrDefault(false) {
             isMistPortalUrl(getAuthorizeUrl(response.requestUrl))
         }

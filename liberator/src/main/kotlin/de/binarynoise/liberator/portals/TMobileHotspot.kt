@@ -18,7 +18,7 @@ import okhttp3.Response
     "Galeria Kunden-WLAN",
 )
 object TMobileHotspot : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return "hotspot.t-mobile.net" == response.requestUrl.host && response.requestUrl.decodedPath == "/wlan/redirect.do"
     }
     

@@ -15,7 +15,7 @@ import okhttp3.Response
 
 @SSID("EDEKA free-wifi")
 object YourSpot : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "captive.your-spot.de" && response.requestUrl.decodedPath == "/login"
     }
     

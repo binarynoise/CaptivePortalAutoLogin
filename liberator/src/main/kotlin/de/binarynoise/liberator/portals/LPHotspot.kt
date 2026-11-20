@@ -24,7 +24,7 @@ import okhttp3.Response
 )
 @Experimental
 object LPHotspot : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (!response.isSuccessful) return false
         val html = response.parseHtml()
         return listOf(

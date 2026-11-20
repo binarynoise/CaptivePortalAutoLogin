@@ -19,7 +19,7 @@ import okhttp3.Response
 @Experimental
 @SSID("Cosmo-Gast")
 object IMasterNCE : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "device.imaster-nce.de" //
             && response.requestUrl.port == 19008 //
             && with(response.requestUrl.pathSegments) {

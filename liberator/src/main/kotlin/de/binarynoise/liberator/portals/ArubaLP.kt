@@ -18,7 +18,7 @@ https://support.hpe.com/hpesc/public/docDisplay?docId=sf000095199en_us&docLocale
 
 @SSID("PRIMARK_PUBLIC")
 object Primark : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "www.primark.com"
     }
     

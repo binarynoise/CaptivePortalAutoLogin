@@ -19,7 +19,7 @@ import okhttp3.Response
     "Zalando Free Wifi",
 )
 object TargetBox : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "wifi.targetbox.de"
     }
     

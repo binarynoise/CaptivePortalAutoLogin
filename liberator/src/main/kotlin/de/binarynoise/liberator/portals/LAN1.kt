@@ -19,7 +19,7 @@ import okhttp3.Response
     "Novum Hotel Boulevard",
 )
 object LAN1 : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "login.lan1.de" && response.requestUrl.decodedPath == "/login"
     }
     

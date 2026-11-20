@@ -15,7 +15,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("Hotspot S-Bahn Rhein-Ruhr")
 object RheinRuhr : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return "10.10.10.1" == response.requestUrl.host && 2050 == response.requestUrl.port && "splash.html" == response.requestUrl.firstPathSegment
     }
     

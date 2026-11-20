@@ -14,7 +14,7 @@ import okhttp3.Response
 
 @SSID("Dresden")
 object MesseDresden : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "aerolan.ibh.de" //
             && response.requestUrl.firstPathSegment == "messe"
     }

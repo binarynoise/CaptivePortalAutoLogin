@@ -19,7 +19,7 @@ import okhttp3.Response
     "deutsche-bank.de",
 )
 object CiscoISE : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.isRedirect && response.requestUrl.encodedPath == "/portal/gateway" // redirect to Cisco ISE CWA service
             && response.requestUrl.queryParameter("action") == "cwa" // CWA (Central Web Authentication)
             && response.requestUrl.queryParameter("type") == "drw" // DRW (Device Registration Web Authentication) is used for no-login guest WiFis

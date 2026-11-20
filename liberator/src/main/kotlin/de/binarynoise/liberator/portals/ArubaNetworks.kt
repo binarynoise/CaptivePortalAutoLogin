@@ -31,7 +31,7 @@ import okhttp3.Response
     "Peters-WLAN",
 )
 object ArubaNetworks : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host.endsWith(".cloudguest.central.arubanetworks.com") //
             && response.requestUrl.pathSegments.firstOrNull() == "portal" //
             && response.requestUrl.pathSegments.lastOrNull() == "login" //

@@ -21,7 +21,7 @@ import okhttp3.Response
     "pap_guest",
 )
 object SubmitOnlyForm : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (!response.isSuccessful) return false
         if (response.parseHtml().forms().size != 1) return false
         return true

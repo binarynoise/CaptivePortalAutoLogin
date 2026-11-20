@@ -16,7 +16,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("Fotoprofi-Gast", mustMatch = true)
 object FotoProfi : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.isIp //
             && response.requestUrl.pathSegments.last() == "index.shtml" // 
             && response.requestUrl.hasQueryParameter("redirect")

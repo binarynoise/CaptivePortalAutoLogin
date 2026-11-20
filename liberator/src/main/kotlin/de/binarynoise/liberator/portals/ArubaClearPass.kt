@@ -25,7 +25,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.FormElement
 
 abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (LocationRedirector.canRedirect(response)) return false
         if (hosts.isNotEmpty() && response.requestUrl.host !in hosts) return false
         return with(response.requestUrl) {
@@ -139,12 +139,12 @@ abstract class ArubaClearPassLiberator(vararg val hosts: String) : PortalLiberat
     "scandic_easy",
 )
 object ArubaClearPass : ArubaClearPassLiberator() {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (allPortalLiberators.filterIsInstance<ArubaClearPassLiberator>()
                 .filterNot { it == this }
-                .any { it.canSolve(response) }
+                .any { it.canSolve(client, response, extras) }
         ) return false
-        return super.canSolve(response)
+        return super.canSolve(client, response, extras)
     }
 }
 

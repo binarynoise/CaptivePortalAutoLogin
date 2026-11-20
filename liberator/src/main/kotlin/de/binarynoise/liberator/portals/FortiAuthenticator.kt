@@ -35,7 +35,7 @@ object FortiAuthenticator : PortalLiberator {
         return this.port == 1000 && this.firstPathSegment == "fgtauth"
     }
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (!response.requestUrl.isFortiAuthenticatorUrl()) return false
         if (response.isRedirect) return false
         if (FortiAuthenticatorRedirect.canRedirect(response)) return false
@@ -48,7 +48,7 @@ object FortiAuthenticator : PortalLiberator {
             if (FortiAuthenticatorRedirect.canRedirect(response)) recurseForti(
                 FortiAuthenticatorRedirect.redirect(client, response, extras)
             )
-            if (canSolve(response)) solve(client, response, extras)
+            if (canSolve(client, response, extras)) solve(client, response, extras)
         }
         recurseForti(submitResponse)
     }
@@ -77,7 +77,7 @@ object FortiAuthenticatorRedirect : PortalRedirector {
 @SSID("DeichmannGast")
 @FortiAuthenticatorSubPortal
 object DseTech : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "disclaimer.dse-tech.net" && !response.isRedirect
     }
     

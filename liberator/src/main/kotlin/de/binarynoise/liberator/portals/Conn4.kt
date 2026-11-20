@@ -6,6 +6,7 @@ import de.binarynoise.liberator.PortalLiberator
 import de.binarynoise.liberator.SSID
 import de.binarynoise.liberator.UnsupportedPortalException
 import de.binarynoise.liberator.firstSuccess
+import de.binarynoise.liberator.portals.Conn4.createSession
 import de.binarynoise.liberator.successes
 import de.binarynoise.liberator.tryOrDefault
 import de.binarynoise.liberator.tryOrNull
@@ -44,7 +45,7 @@ import org.jsoup.nodes.Element
     "ibisbudget",
 )
 object Conn4 : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host.endsWith(".conn4.com") && response.requestUrl.firstPathSegment == "ident"
     }
     

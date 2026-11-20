@@ -45,7 +45,7 @@ object SocialWave : PortalLiberator {
     )
     val SOCIALWAVE_SPLASH_API_BASE = "https://splash-api.daisy.meinwlan.com/api/".toHttpUrl()
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host in SOCIALWAVE_DOMAINS //
             && response.requestUrl.hasQueryParameter("res") // 
             && response.requestUrl.hasQueryParameter("auth")
@@ -64,8 +64,8 @@ object SocialWave : PortalLiberator {
     /**
      * check if the [response]'s `Success` [Boolean] is `true`
      * and if not throw [IllegalStateException]
-     * 
-     * @param checkReason if not successful, this lambda is called with the reason, 
+     *
+     * @param checkReason if not successful, this lambda is called with the reason,
      * so it can throw a different exception instead
      */
     fun checkApiSuccess(response: JsonObject, checkReason: (String) -> Unit = {}) {
@@ -178,8 +178,8 @@ object SocialWave : PortalLiberator {
     
     /**
      * get an authentication url
-     * 
-     * @param loginJson a [JsonObject] containing `username` and `password` 
+     *
+     * @param loginJson a [JsonObject] containing `username` and `password`
      * obtained after following the previous authentication flow
      * @param auth content of the query parameter from initial redirection
      * @param redir content of the query parameter from initial redirection, if present
@@ -219,7 +219,7 @@ object SocialWave : PortalLiberator {
     "MeinHotspot",
 )
 object MeinWlan : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "login.meinwlan.com" //
             && response.requestUrl.decodedPath == "/login" //
             && response.requestUrl.hasQueryParameter("dst")

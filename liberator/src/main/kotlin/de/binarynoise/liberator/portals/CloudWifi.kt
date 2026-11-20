@@ -25,7 +25,7 @@ import org.jsoup.nodes.FormElement
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("-free Milaneo Stuttgart")
 object CloudWifi : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return "start.cloudwifi.de" == response.requestUrl.host
     }
     
@@ -93,8 +93,8 @@ object CloudWifi : PortalLiberator {
     "Radiologie-GAST",
 )
 object CloudWifiRedirect : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
-        if (CloudWifi.canSolve(response)) return false
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
+        if (CloudWifi.canSolve(client, response, extras)) return false
         return response.isSuccessful && response.parseHtml()
             .getElementsByTag("script")
             .map { it.attr("src") }

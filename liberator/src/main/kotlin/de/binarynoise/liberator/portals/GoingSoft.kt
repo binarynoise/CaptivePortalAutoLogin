@@ -13,7 +13,7 @@ import okhttp3.Response
 
 @SSID("Royal Hotspot")
 object GoingSoft : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host.endsWith("hotainment.info") //
             && response.requestUrl.queryParameter("nc") == "1"
     }

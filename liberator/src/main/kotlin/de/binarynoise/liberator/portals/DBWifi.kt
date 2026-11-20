@@ -31,7 +31,7 @@ object DBWifi : PortalLiberator {
         "wifi.bahn.de",
     )
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host in domains //
             && !response.isRedirect //
             && response.requestUrl.firstPathSegment in setOf("cna", "sp", "cp", "auth_login_update")

@@ -31,7 +31,7 @@ fun HttpUrl.isEricssonSuccess(): Boolean {
     "WIFI@DB",
 )
 object Hotsplots : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (!response.requestUrl.isEricssonCaptured()) return false
         with(response.requestUrl) {
             if (host == "www.hotsplots.de" && encodedPath == "/auth/login.php") return true

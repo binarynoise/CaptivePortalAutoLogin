@@ -15,7 +15,7 @@ import okhttp3.Response
 
 @SSID("HfMWiFi")
 object ArubaInstantOn : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.decodedPath == "/swarm.cgi" //
             && response.requestUrl.queryParameter("opcode") == "cp_generate" // 
             && response.requestUrl.hasQueryParameter("orig_url")

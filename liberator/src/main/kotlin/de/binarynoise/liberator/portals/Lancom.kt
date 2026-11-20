@@ -16,7 +16,7 @@ import okhttp3.Response
     "Butlers-FreeWifi",
 )
 object LancomCloudServiceHotspot : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "hotspot.lmc.de" && response.requestUrl.pathSegments.firstOrNull() == "cloud-service-hotspot"
     }
     

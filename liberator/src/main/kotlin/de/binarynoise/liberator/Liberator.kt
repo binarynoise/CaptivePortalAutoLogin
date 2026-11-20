@@ -151,7 +151,7 @@ class Liberator(
             if (enableRequestSystemReevaluation) requestSystemReevaluation()
             if (enableRequestSystemReevaluation && isSystemLiberated()) return Pair(false, null)
             
-            val (httpIsInPortal, redirectedResponseHttp) = isInPortal(portalTestUrl.httpUrl)
+            val (_, redirectedResponseHttp) = isInPortal(portalTestUrl.httpUrl)
             redirectedResponse = redirectedResponseHttp
             
             try {
@@ -177,13 +177,18 @@ class Liberator(
     }
     
     private fun recurse(response: Response, depth: Int): LiberationResult {
+        val extras = LiberatorExtras(
+            cookies = cookies,
+            portalTestUrl = portalTestUrl,
+            userAgent = userAgent,
+        )
         try {
             val solvers: List<PortalLiberator> = allPortalLiberators //
                 .filter { solver -> !solver.isExperimental() || experimental }
                 .filter { solver -> !solver.ssidMustMatch() || (ssid != null && solver.ssidMatches(ssid)) }
                 .filter { solver ->
                     try {
-                        solver.canSolve(response)
+                        solver.canSolve(client, response, extras)
                     } catch (e: Exception) {
                         log("failed to run canSolve for ${solver::class.simpleName}", e)
                         false
@@ -196,17 +201,9 @@ class Liberator(
                 val redirectedResponse = getRedirectedResponse(client, response, cookies)
                 log("redirectedResponse.requestUrl: ${redirectedResponse?.requestUrl}")
                 if (redirectedResponse == null) {
-                    if (SubmitOnlyForm.canSolve(response)) try {
+                    if (SubmitOnlyForm.canSolve(client, response, extras)) try {
                         log("attempting to solve unknown portal with ${SubmitOnlyForm::class.simpleName}")
-                        SubmitOnlyForm.solve(
-                            client,
-                            response,
-                            LiberatorExtras(
-                                cookies = cookies,
-                                portalTestUrl = portalTestUrl,
-                                userAgent = userAgent,
-                            ),
-                        )
+                        SubmitOnlyForm.solve(client, response, extras)
                         log("solver ${SubmitOnlyForm::class.simpleName} finished processing")
                         return LiberationResult.Success(
                             response.requestUrl.toString(),

@@ -18,7 +18,7 @@ import okhttp3.Response
     "Hofmeister-Gast",
 )
 object WifiAccess : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "wifiaccess.co" // 
             && response.requestUrl.pathSegments.getOrNull(1) == "portal" // 
             && !response.isRedirect

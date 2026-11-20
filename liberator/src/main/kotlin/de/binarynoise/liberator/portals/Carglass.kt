@@ -16,7 +16,7 @@ import okhttp3.Response
 @Experimental
 @SSID("NEU_Carglass-Gast-Zugang", mustMatch = true)
 object Carglass : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.decodedPath == "/reg.php" && response.requestUrl.hasQueryParameter("url")
     }
     

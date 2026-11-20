@@ -23,7 +23,7 @@ import okhttp3.Response
     "_free-wifi-stuttgart_(official)",
 )
 object VodafoneHotspot : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "hotspot.vodafone.de"
     }
     

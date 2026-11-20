@@ -21,7 +21,7 @@ import okhttp3.Response
 object Cloudifi : PortalLiberator {
     const val CLOUDIFI_DOMAIN = "login.cloudi-fi.net"
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == CLOUDIFI_DOMAIN && !response.isRedirect
     }
     

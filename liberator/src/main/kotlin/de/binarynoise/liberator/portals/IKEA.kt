@@ -19,7 +19,7 @@ import okhttp3.Response
 @SSID("IKEA WiFi")
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 object IKEA : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return "yo-wifi.net" == response.requestUrl.host && "authen" == response.requestUrl.firstPathSegment
     }
     

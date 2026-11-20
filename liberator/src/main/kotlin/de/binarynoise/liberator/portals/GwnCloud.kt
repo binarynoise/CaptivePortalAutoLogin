@@ -19,7 +19,7 @@ import okhttp3.Response
 @Experimental
 @SSID("3SonsGuest")
 object GwnCloud : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "cwp.gwnportal.cloud" && response.requestUrl.port == 8080
     }
     

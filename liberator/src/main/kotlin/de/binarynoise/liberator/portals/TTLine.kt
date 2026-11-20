@@ -18,7 +18,7 @@ import okhttp3.Response
 @Experimental
 @SSID("TTLINE-TB-GUEST")
 object TTLine : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "tbguest.ttline.com" && response.requestUrl.port == 8000
     }
     

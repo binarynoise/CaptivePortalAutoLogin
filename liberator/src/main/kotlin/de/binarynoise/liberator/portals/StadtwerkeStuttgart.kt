@@ -17,7 +17,7 @@ import okhttp3.Response
 @Suppress("SpellCheckingInspection", "GrazieInspection", "LocalVariableName", "RedundantSuppression")
 @SSID("Solarbank-WLAN", mustMatch = true)
 object StadtwerkeStuttgart : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.isIp // 
             && response.requestUrl.lastPathSegment == "macauth" //
             && listOf("uamport", "uamip", "userurl").all { response.requestUrl.hasQueryParameter(it) }

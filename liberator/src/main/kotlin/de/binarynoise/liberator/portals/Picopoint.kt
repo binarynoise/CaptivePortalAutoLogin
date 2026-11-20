@@ -25,7 +25,7 @@ import okhttp3.Response
 object Picopoint : PortalLiberator {
     const val PICOPOINT_GATEKEEPER_DOMAIN = "gatekeeper2.picopoint.com"
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == PICOPOINT_GATEKEEPER_DOMAIN //
             && !response.isRedirect //
             && response.requestUrl.lastPathSegment == "options" //

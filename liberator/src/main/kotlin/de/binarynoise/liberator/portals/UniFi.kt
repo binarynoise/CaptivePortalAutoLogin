@@ -34,7 +34,7 @@ import okhttp3.Response
     "poGast",
 )
 object UniFi : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.encodedPath.startsWith("/guest/s/")
     }
     

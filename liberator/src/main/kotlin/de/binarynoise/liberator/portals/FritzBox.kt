@@ -13,7 +13,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 
 object FritzBox : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.decodedPath == "/untrusted_guest.lua"
     }
     
@@ -23,7 +23,7 @@ object FritzBox : PortalLiberator {
 }
 
 object FritzBoxBlocked : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "fritz.box" && response.requestUrl.decodedPath == "/blocked"
     }
     

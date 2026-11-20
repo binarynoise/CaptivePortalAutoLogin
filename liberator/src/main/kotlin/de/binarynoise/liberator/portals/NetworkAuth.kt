@@ -36,7 +36,7 @@ object NetworkAuth : PortalLiberator {
         return this.isNetworkAuthDomain() && this.pathSegments.last() == "grant"
     }
     
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.isNetworkAuthDomain() && !response.isRedirect
     }
     
@@ -58,7 +58,7 @@ object NetworkAuth : PortalLiberator {
     "EDEKA free-wifi",
 )
 object NetworkAuthSubPortal : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         if (!response.requestUrl.isNetworkAuthDomain()) return false
         if (!response.isRedirect) return false
         val locationUrl = response.getLocationUrl() ?: return false

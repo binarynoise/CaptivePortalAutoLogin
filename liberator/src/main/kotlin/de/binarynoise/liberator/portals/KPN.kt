@@ -14,7 +14,7 @@ import okhttp3.Response
 
 @SSID("KPN")
 object KPN : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "login.wifi.kpn.com"
     }
     

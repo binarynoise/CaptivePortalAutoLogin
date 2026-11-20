@@ -23,7 +23,7 @@ import okhttp3.Response
     "saturn-kunden",
 )
 object CiscoWirelessMobility : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return with(response.requestUrl) {
             decodedPath == "/fs/customwebauth/login.html" //
                 && hasQueryParameter("switch_url") // 
@@ -59,7 +59,7 @@ object CiscoWirelessMobility : PortalLiberator {
 @Experimental
 @SSID("MBMuseum_FreeWifi")
 object MercedesBenzMuseum : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "wifi.media.mercedes-benz.museum"
     }
     
@@ -71,7 +71,7 @@ object MercedesBenzMuseum : PortalLiberator {
 @Experimental
 @SSID("ColesFreeWiFi")
 object Coles : PortalLiberator {
-    override fun canSolve(response: Response): Boolean {
+    override fun canSolve(client: OkHttpClient, response: Response, extras: LiberatorExtras): Boolean {
         return response.requestUrl.host == "app.coles.com.au" //
             && response.requestUrl.decodedPath == "/colesfreewifi.htm"
     }
