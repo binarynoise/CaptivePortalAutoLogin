@@ -43,21 +43,22 @@ fun JsonArray() = JsonArray("[]")
 fun JsonElement(map: Map<String, Any>) = map.toJsonElement()
 
 fun JsonObject.getString(key: String): String = this.getValue(key).jsonPrimitive.content
-fun JsonObject.getOptString(key: String): String? = if (key !in this) null else this.getValue(key).jsonPrimitive.content
+fun JsonObject.getOptString(key: String): String? = if (key !in this) null else this.getString(key)
 fun JsonObject.getInt(key: String): Int = this.getValue(key).jsonPrimitive.run { doubleOrNull?.roundToInt() ?: int }
 fun JsonObject.getLong(key: String): Long = this.getValue(key).jsonPrimitive.run { doubleOrNull?.roundToLong() ?: long }
 fun JsonObject.getFloat(key: String): Float = this.getValue(key).jsonPrimitive.float
 fun JsonObject.getDouble(key: String): Double = this.getValue(key).jsonPrimitive.double
 fun JsonObject.getBoolean(key: String): Boolean = this.getValue(key).jsonPrimitive.boolean
+fun JsonObject.getOptBoolean(key: String): Boolean? = if (key !in this) null else this.getBoolean(key)
 fun JsonObject.getJsonObject(key: String): JsonObject = this.getValue(key).jsonObject
 fun JsonObject.getJsonArray(key: String): JsonArray = this.getValue(key).jsonArray
 
-fun JsonObject.has(key: String): Boolean = containsKey(key)
+fun JsonObject.has(key: String): Boolean = this.containsKey(key)
 
 fun JsonObject.getOptJsonObject(key: String): JsonObject? =
-    if (key !in this || this[key] is JsonNull) null else this.getValue(key).jsonObject
+    if (key !in this || this[key] is JsonNull) null else this.getJsonObject(key)
 
-fun JsonObject.getOptJsonArray(key: String): JsonArray? = if (key !in this) null else this.getValue(key).jsonArray
+fun JsonObject.getOptJsonArray(key: String): JsonArray? = if (key !in this) null else this.getJsonArray(key)
 
 fun JsonArray.getJsonObject(index: Int): JsonObject = get(index).jsonObject
 fun JsonArray.getString(index: Int): String = get(index).jsonPrimitive.content
