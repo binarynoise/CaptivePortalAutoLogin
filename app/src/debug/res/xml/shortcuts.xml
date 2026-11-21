@@ -1,4 +1,4 @@
-<shortcuts
+<shortcuts xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
         android:enabled="true"
@@ -38,5 +38,18 @@
             android:targetClass="de.binarynoise.captiveportalautologin.UrlTestActivity"
             android:targetPackage="de.binarynoise.captiveportalautologin"
             />
+    </shortcut>
+    <shortcut 
+        android:enabled="true"
+        android:icon="@android:drawable/stat_notify_error"
+        android:shortcutId="ssidsactivity"
+        android:shortcutLongLabel="@string/urltest_shortcut_long"
+        android:shortcutShortLabel="@string/urltest_shortcut_short"
+        >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="de.binarynoise.captiveportalautologin.NetworkSuggestionSSIDActivity"
+            android:targetPackage="de.binarynoise.captiveportalautologin"
+            tools:targetApi="29" />
     </shortcut>
 </shortcuts>

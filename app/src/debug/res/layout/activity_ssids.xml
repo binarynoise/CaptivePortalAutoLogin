@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CaptivePortalAutoLogin.Edge2EdgeFix"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".NetworkSuggestionSSIDActivity"
+    >
+    
+    <TextView
+        android:id="@+id/counters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView"
+        tools:text="Count: 0"
+        />
+    
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginVertical="@dimen/padding"
+        android:background="?android:attr/colorAccent"
+        />
+    
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+        
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="0dp"
+            android:text="@string/loading"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.TextView"
+            />
+    
+    </ScrollView>
+</LinearLayout>

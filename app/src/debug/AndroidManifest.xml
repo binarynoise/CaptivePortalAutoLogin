@@ -33,6 +33,12 @@
             android:launchMode="singleInstance"
             android:taskAffinity=":UrlTestActivity"
             />
+        <activity
+            android:name=".NetworkSuggestionSSIDActivity"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=":NetworkSuggestionSSIDActivity"
+            tools:targetApi="29" />
         
         <!-- Get rid of stuff -->
         <!--suppress AndroidDomInspection -->

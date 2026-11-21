@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.concurrent.thread
 import kotlin.jvm.optionals.getOrNull
 import kotlin.system.exitProcess
+import kotlin.time.Duration.Companion.seconds
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.options.flag
@@ -161,7 +162,14 @@ class CaptivePortalAutoLoginLinux : CliktCommand() {
                 val ssid = querySSID()
                 
                 val liberationResult = Liberator(
-                    { okhttpClient -> if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS)) },
+                    { okhttpClient -> 
+                        if (oneshot) okhttpClient.connectionPool(ConnectionPool(0, 1, SECONDS))
+                        okhttpClient.apply {
+                            connectTimeout(60.seconds)
+                            writeTimeout(60.seconds)
+                            readTimeout(120.seconds)
+                        }
+                    },
                     PortalDetection.defaultBackend,
                     PortalDetection.defaultUserAgent,
                     ssid,

@@ -132,7 +132,7 @@ class UpdateNetworkSuggestionSSIDsWorker(val appContext: Context, workerParams: 
     }
 }
 
-private const val UpdateNetworkSuggestionSSIDsWorkerUniqueWorkName = "UpdateNetworkSuggestionSSIDs"
+const val UpdateNetworkSuggestionSSIDsWorkerUniqueWorkName = "UpdateNetworkSuggestionSSIDs"
 fun enqueueUpdateNetworkSuggestionSSIDsWork(
     context: Context = applicationContext,
     repeatInterval: Long = 7,
